@@ -1,0 +1,2 @@
+# Triggers
+This folder contains files pertaining to triggers. Triggers is a construct in the WPI Library encapsulating something which runs a Command. These should all derive the Trigger base class defined in WPILib.
