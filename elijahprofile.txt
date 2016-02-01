@@ -1,2 +1,8 @@
-#Elijah Profile
-I like any form of entertainment that minimizes physical movement.
+While on the desktop, press Windows Key + X.
+Select Command Prompt (Run as Administrator).
+Type ipconfig /release in the command prompt.
+Wait a few seconds for a reply that the IP address has been released.
+Type ipconfig /renew in the command prompt.
+Wait a few seconds for a reply that the IP address has been re-established.
+Type ipconfig /flushdns in the command prompt.
+Close the command prompt and attempt to make a connection.
