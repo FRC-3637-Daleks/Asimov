@@ -14,6 +14,8 @@
 // STD Includes
 #include <memory>
 
+#define PI 3.1415926535897
+
 namespace subsystems
 {
 
@@ -34,6 +36,7 @@ public:
 	using Meters_t = double;
 	using MetersPerSecond_t = double;
 	template<class TalonsT> using Ptr_t = std::unique_ptr<TalonsT>;
+	using Ticks_t = uint32_t;
 
 public:
 	Drive();
@@ -44,25 +47,37 @@ public:  /// Configuration functions
 	bool Initialize();
 	bool Configure();
 
-	void SetMode(Mode m);
-	Mode get_mode() const {return mode_;}
+	void SetMode(Mode_t m);
+	Mode_t get_mode() const {return mode_;}
 
 	/// Used positional calculations
-	void SetTicksPerRev(double val);
-	double get_ticks_per_rev() const {return ticks_per_rev_;}
+	void SetTicksPerRev(Ticks_t val);
+	Ticks_t get_ticks_per_rev() const {return ticks_per_rev_;}
 
 	/// Used for distance calculations
 	void SetWheelDiameter(Meters_t val);
 	Meters_t get_wheel_diameter() const {return wheel_diameter_;}
+	Meters_t get_wheel_circumference() const {return get_wheel_diameter() * PI;}
 
 	/// Standardizes velocities to be on a -1.0 to 1.0 scale
-	void SetVelocityScale(double max_velocity);
-	double get_velocity_scale() const {return max_velocity_;}
+	void SetVelocityScale(MetersPerSecond_t max_velocity);
+	MetersPerSecond_t get_velocity_scale() const {return max_velocity_;}
+
+	/// Used for point-turning robot
+	void SetWheelRevsPerBaseRev(double rate);
+	double get_wheel_revs_per_base_rev() const {return wheel_revs_per_base_rev_;}
+
+	double get_allowable_error() {return allowable_error_;}
 
 public:  /// Position tracking functions
 
 	/// Returns distance traveled of robot in meters based on average of right and left wheel revs
 	Meters_t GetDistance() const;
+
+	/** Returns rotation rotated by robot in proportion of revolutions based on right and left wheel revs
+	 * In the future this may also return a sensor which returns heading
+	 */
+	double GetRotation() const;
 
 	/// Returns number of revolutions on a side
 	double GetLeftRevs() const;
@@ -75,6 +90,9 @@ public:  /// Position tracking functions
 	/// Returns velocity of robot in meters per second based on average of right and left wheel revs per second
 	MetersPerSecond_t GetVelocity() const;
 
+	/// Returns turning velocity of robot in base revolutions per minute
+	double GetBaseRPM() const;
+
 	/// Sets both motor revs to 0
 	void ResetPosition();
 
@@ -82,6 +100,11 @@ public:  /// Position tracking functions
 	 * @return true once both motors are considered to be at the position
 	 */
 	bool GoToPosition(Meters_t pos);
+
+	/** Sets both sides to turn opposite directions to point-turn the base \c rotate revolutions
+	 * @return true once both motors are considered to be at the right rotation
+	 */
+	bool TurnToRotation(double revolutions);
 
 public:	/// Drive functions
 
@@ -115,12 +138,17 @@ private:
 	// Configures the motor at master for the current mode
 	void configureMaster(CANTalon &master);
 
+	// Runs configureMaster on both sides
+	void configureBoth();
+
 private:
 	Ptr_t<Talons> talons_ ;
 	Mode_t mode_;
-	short ticks_per_rev_;
+	Ticks_t ticks_per_rev_;
 	Meters_t wheel_diameter_;
-	double max_velocity_;
+	MetersPerSecond_t max_velocity_;
+	double wheel_revs_per_base_rev_;
+	Meters_t allowable_error_;
 };
 
 
