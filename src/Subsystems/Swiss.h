@@ -6,47 +6,51 @@
  */
 
 #include <CANTalon.h>
+#include <Talon.h>x
 
 #ifndef SRC_SUBSYSTEMS_SWISS_H_
 #define SRC_SUBSYSTEMS_SWISS_H_
 
-void maxheight();
-void minheight();
-void liftdoor();
-void lowercheval();
-void getPosition();
+class Swiss{
+	void maxheight();
+	void minheight();
+	void liftdoor();
+	void lowercheval();
+	void getPosition();
+}
 
 enum state{max=0, door, cheval, min, end};
 
 double state[4];
 
-void getPosition(){
-	int selectedSensorPos = cusomMotorDescrip.GetPosition();
+void Swiss::getPosition(){
+	customMotorDescrip.SetFeedbackDevice(CANTalon::AnalogPot);
+	customMotorDescrip.ConfigPotentiometerTurns(10);
 
 
 }
 
-void maxheight(){
-
-
-
-}
-
-void minheight(){
-
+void Swiss::maxheight(){
 
 
 
 }
 
+void Swiss::minheight(){
 
-void liftdoor(){
 
 
 
 }
 
-void lowercheval(){
+
+void Swiss::liftdoor(){
+
+
+
+}
+
+void Swiss::lowercheval(){
 
 
 
