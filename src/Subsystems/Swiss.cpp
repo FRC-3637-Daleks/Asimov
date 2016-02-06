@@ -1,19 +1,23 @@
 #include "Swiss.h"
-
+#include "WPILib.h"
 #include <cmath>
 
 
-void getSensorPosition(){
+Swiss::Swiss(int deviceNumber){
+swisstalon = newCANTalon(deviceNumber);
 
 
 }
+
 
 int Swiss::getPosition(){
 
-	return state;
+
+	return position;
 }
 
 void Swiss::maxheight(){
+	SetMode(Mode_t::Position);
 
 	//position = state[0];
 
