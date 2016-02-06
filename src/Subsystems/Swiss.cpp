@@ -17,20 +17,20 @@ swisstalon->SetFeedbackDevice(CANTalon::FeedbackDevice::AnalogPot);
 
 
 
-int Swiss::Getposition(){
+int Swiss::GetPosition(){
 
 
 	return position;
 }
 
-void Swiss::Maxheight(){
+void Swiss::MaxHeight(){
 	swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
 	swisstalon->Set(states[0]);
 	//position = state[0];
 
 }
 
-void Swiss::Minheight(){
+void Swiss::MinHeight(){
 	swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
 		swisstalon->Set(states[3]);
 	//position = state[3];
@@ -38,14 +38,14 @@ void Swiss::Minheight(){
 }
 
 
-void Swiss::Liftdoor(){
+void Swiss::LiftDoor(){
 	swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
 	swisstalon->Set(states[1]);
 	//position = state[1];
 
 }
 
-void Swiss::Lowercheval(){
+void Swiss::LowerCheval(){
 	swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
 	swisstalon->Set(states[2]);
 	//position= state[2];

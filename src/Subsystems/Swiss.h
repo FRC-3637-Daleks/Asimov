@@ -32,11 +32,11 @@ private:
 
 public:
 	Swiss(int deviceNumber);
-	void Maxheight();
-	void Minheight();
-	void Liftdoor();
-	void Lowercheval();
-	int Getposition();
+	void MaxHeight();
+	void MinHeight();
+	void LiftDoor();
+	void LowerCheval();
+	int GetPosition();
 };
 
 
