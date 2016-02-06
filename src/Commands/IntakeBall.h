@@ -9,7 +9,8 @@
 #define SRC_COMMANDS_INTAKEBALL_H_
 #include "Subsystems/Intake.h"
 
-/** Command namespace with actual
+/**
+ * Command namespace with actual
  * implementation of IntakeBall class.
  */
 namespace commands
@@ -22,12 +23,12 @@ class IntakeBall : public Command
 // Constructors & Destructors:
 public:
 	IntakeBall(Intake* intake);
-
 	virtual ~IntakeBall() = default;
 
 // Functions:
 public:
-	/** Sets up IntakeBall command before it begins execution each time
+	/**
+	 * Sets up IntakeBall command before it begins execution each time
 	 * it is called. Responsible for calling TakeBall function of Intake.
 	 */
 	void Initialize() override;
@@ -36,7 +37,8 @@ public:
 	 */
 	void Execute() override;
 
-	/** Returns true if IntakeBall no longer needs to be executed, false
+	/**
+	 * Returns true if IntakeBall no longer needs to be executed, false
 	 * if otherwise. Does this by calling Intake's CheckSwitch function.
 	 */
 	bool IsFinished() override;
@@ -45,7 +47,8 @@ public:
 	 */
 	void End() override;
 
-	/** Called when another command which requires the same Intake subsystem
+	/**
+	 * Called when another command which requires the same Intake subsystem
 	 * is scheduled to run. Calls End function.
 	 */
 	void Interrupted() override;
