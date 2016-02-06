@@ -7,17 +7,26 @@
 
 #include <CANTalon.h>
 #include <Talon.h>
+#include "WPILib.h"
 
 
 #ifndef SRC_SUBSYSTEMS_SWISS_H_
 #define SRC_SUBSYSTEMS_SWISS_H_
 
-class wpilib.CANTalon(deviceNumber, controlPeriodMs=10){
-	void getSensorPosition();
-	void setSensorPosition()
-}
+#include <memory>
 
-class Swiss{
+#define PI 3.1415926535897
+
+namespace subsystems
+{
+
+class Swiss: public Subsystem
+
+	enum state{max=0, door, cheval, min, end};
+	double state[4];
+	int position;
+
+
 	void maxheight();
 	void minheight();
 	void liftdoor();
@@ -25,10 +34,7 @@ class Swiss{
 	int getPosition();
 }
 
-enum state{max=0, door, cheval, min, end};
 
-double state[4];
-int position;
 
 
 void getSensorPosition(){
