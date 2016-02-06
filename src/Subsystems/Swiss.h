@@ -8,7 +8,6 @@
 #include <CANTalon.h>
 #include <Talon.h>
 #include "WPILib.h"
-#include <Potentiometer.h>
 
 
 #ifndef SRC_SUBSYSTEMS_SWISS_H_
@@ -22,21 +21,25 @@ namespace subsystems
 {
 
 class Swiss: public Subsystem
-	{
+{
+public:
 	enum state{max=0, door, cheval, min, end};
-	double state[4];
+
+private:
+	static double states[4];
 	int position;
-	CANTalon*swisstalon;
+	CANTalon *swisstalon;
+
+public:
+	Swiss(int deviceNumber);
+	void Maxheight();
+	void Minheight();
+	void Liftdoor();
+	void Lowercheval();
+	int Getposition();
+};
 
 
-
-	Swiss();
-	void maxheight();
-	void minheight();
-	void liftdoor();
-	void lowercheval();
-	int getPosition();
-	};
 }
 
 
