@@ -35,5 +35,10 @@ void Shooter::SpinUp(double speed)
 
 void Shooter::SpinDown()
 {
-//	top_roller_->Set(0.0);
+	top_roller_->Set(0.0);
+}
+
+void Shooter::EmergencyStop()
+{
+	top_roller_->StopMotor();
 }
