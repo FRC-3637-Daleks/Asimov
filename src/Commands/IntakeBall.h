@@ -43,7 +43,8 @@ public:
 	 */
 	bool IsFinished() override;
 
-	/** Ends the execution of IntakeBall, calls Intake's Stop function.
+	/**
+	 * Ends the execution of IntakeBall, calls Intake's Stop function.
 	 */
 	void End() override;
 
