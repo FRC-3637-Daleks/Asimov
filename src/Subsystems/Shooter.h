@@ -9,9 +9,6 @@
 #define SRC_SUBSYSTEMS_SHOOTER_H_
 #include "WPILib.h"
 
-//spin up, spin down, spin one direction, variable speed
-// remember commands namespace and make commands function
-
 /**
  * Subsystems namespace for carrying
  * Shooter class definition over to
@@ -50,14 +47,18 @@ public:
 	 */
 	void SpinDown();
 
+	/**
+	 * Function to completely disable the front roller's controlling motor
+	 * in an emergency.
+	 */
+	void EmergencyStop();
+
 protected:
 
 private:
-
 	CANTalon *top_roller_;
 };
 
 }// end namespace subsystems
-//
 
 #endif /* SRC_SUBSYSTEMS_SHOOTER_H_ */
