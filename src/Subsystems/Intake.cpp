@@ -1,8 +1,10 @@
 #include "Intake.h"
 #include "Commands/IntakeBall.h"
+#include "Commands/PushBall.h"
 
 using Intake = subsystems::Intake;
 using IntakeBall = commands::IntakeBall;
+using PushBall = commands::PushBall;
 
 // Constructor:
 Intake::Intake() : Subsystem("Intake")
@@ -33,7 +35,7 @@ void Intake::TakeBall(bool check)
 		SetSpeed(intake_speed_);
 }
 
-void Intake::PushBall()
+void Intake::OutakeBall()
 {
 	SetSpeed(push_speed_);
 }
@@ -54,7 +56,32 @@ void Intake::Stop()
 	SetSpeed(0.0);
 }
 
+void Intake::SetIntakeSpeed(double intake_speed)
+{
+	intake_speed_ = intake_speed;
+}
+
+void Intake::SetPushSpeed(double push_speed)
+{
+	push_speed_ = push_speed;
+}
+
+double Intake::GetIntakeSpeed() const
+{
+	return intake_speed_;
+}
+
+double Intake::GetPushSpeed() const
+{
+	return push_speed_;
+}
+
 IntakeBall* Intake::MakeIntakeBall()
 {
 	return new IntakeBall(this);
+}
+
+PushBall* Intake::MakePushBall()
+{
+	return new PushBall(this);
 }
