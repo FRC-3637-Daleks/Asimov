@@ -16,6 +16,7 @@
 namespace commands
 {
 	class IntakeBall;
+	class PushBall;
 } // end namespace commands
 
 /**
@@ -59,9 +60,9 @@ public:
 	 * Controls the front rollers in order to horizontally push the
 	 * boulder from its storage. It will call the SetSpeed function to
 	 * control the speed of the rollers.
-	 * NOTE: PushBall is controlled by the OuttakeBall command.
+	 * NOTE: OutakeBall is controlled by the PushBall command.
 	 */
-	void PushBall();
+	void OutakeBall();
 
 	/**
 	 * Sets the speed and direction of the front roller. Values of -1 or
@@ -73,7 +74,7 @@ public:
 	 */
 	void SetSpeed(double speed);
 
-	/** Returns the front roller's current speed (a value between -1 and 1)
+	/** Returns the front roller's current speed ( value between -1 and 1)
 	 */
 	double GetSpeed() const;
 
@@ -83,16 +84,43 @@ public:
 	 */
 	void Stop();
 
+	/**
+	 * Sets the intake_speed_ (auto) variable to a new speed (-1 to 1)
+	 * @param intake_speed the new automatic intake speed
+	 */
+	void SetIntakeSpeed(double intake_speed);
+
+	/**
+	 * Sets the push_speedP (auto) variable to a new speed (-1 to 1)
+	 * @param push_speed the new automatic push speed
+	 */
+	void SetPushSpeed(double push_speed);
+
+	/**
+	 * @return intake_speed_ the current automatic intake speed
+	 */
+	double GetIntakeSpeed() const;
+
+	/**
+	 * @return push_speed_ the current automatic push speed
+	 */
+	double GetPushSpeed() const;
+
 // Commands:
 public:
-	/** Creates new IntakeBall command, and passes "this" class as an argument
+	/**
+	 * Creates new IntakeBall command, and passes class instance as an argument
 	 */
 	commands::IntakeBall * MakeIntakeBall();
+
+	/**
+	 * Creates new PushBall command, and passes class instance as an argument
+	 */
+	commands::PushBall * MakePushBall();
 
 protected:
 
 private:
-
 	CANTalon *roller_;
 	DigitalInput *detector_;
 	double intake_speed_;
