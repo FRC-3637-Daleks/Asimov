@@ -24,27 +24,23 @@ public:
 // Functions:
 public:
 	/**
-	 * Initializes the PushBall command group before it begins execution.
-	 * Responsable for creating Push and Stopper commands, passing the
-	 * Intake parameter to them. Sequentially adds the Push Command, a
-	 * WaitCommand for delaying the stopping of the rollers, and the
-	 * Stopper command.
+	 * Not implemented. The constructor handles the addition of sequential
+	 * commands and the initializaton of member variables.
 	 */
 	void Initialize() override {};
 
 	/**
-	 * Execute is periodically called (every 20 ms) but does nothing.
+	 * Execute is periodically called (every 20 ms) but is not implemented.
 	 */
 	void Execute() override {};
 
 	/**
-	 * Returns true if PushBall no longer needs to be executed, false
-	 *if otherwise.
+	 * Not implemented.
 	 */
 	bool IsFinished() override {};
 
 	/**
-	 * Does nothing as stopping the rollers is handled by Stopper
+	 * Does nothing as stopping the rollers is handled by Stopper.
 	 */
 	void End() override {};
 
@@ -54,13 +50,13 @@ public:
 	void Interrupted() override {};
 
 	/**
-	 * Sets timeout_ to a specified timeout value, for the purpose of waiting
-	 * to stop turning the rollers.
+	 * Sets timeout_ to a specified timeout value, for the purpose of
+	 * waiting to stop turning the rollers.
 	 */
 	void SetTimeout(double timeout);
 
 	/**
-	 * @return timeout_ the current timeout value for the WaitCommand
+	 * @return timeout_ the current timeout value for the WaitCommand.
 	 */
 	double GetTimeout() const;
 
@@ -91,17 +87,17 @@ private:
 		bool IsFinished() override;
 
 		/**
-		 * Execute is periodically called (every 20 ms) but does nothing.
+		 * Execute is periodically called (every 20 ms) but not implemented.
 		 */
 		void Execute() override {};
 
 		/**
-		 * Does nothing as stopping the rollers is handled by Stopper
+		 * Not implemented as stopping the rollers is handled by Stopper.
 		 */
 		void End() override {};
 
 		/**
-		 * Does nothing.
+		 * Not implemented.
 		 */
 		void Interrupted() override {};
 
@@ -109,6 +105,9 @@ private:
 		Intake *intake_;
 	};
 
+	/**
+	 * Stopper's only responsability is to stop the front roller's movement
+	 */
 	class Stopper: public Command
 	{
 	public:
@@ -117,7 +116,7 @@ private:
 
 	public:
 		/**
-		 * Does nothing, as Stopper's only job is to stop the rollers
+		 * Not implemented.
 		 */
 		void Initialize() override {};
 
@@ -127,7 +126,7 @@ private:
 		 */
 		bool IsFinished() override;
 		/**
-		 * Execute is periodically called (every 20 ms) but does nothing.
+		 * Execute is periodically called (every 20 ms) but is not implemented.
 		 */
 		void Execute() override {};
 
@@ -137,7 +136,7 @@ private:
 		void End() override;
 
 		/**
-		 * Does nothing.
+		 * Not implemented.
 		 */
 		void Interrupted() override {};
 
