@@ -11,8 +11,8 @@ Intake::Intake() : Subsystem("Intake")
 {
 	roller_ = new CANTalon(1);
 	detector_ = new DigitalInput(2);
-	intake_speed_ = 0.5; // temporary value
-	push_speed_ = -0.7; // temporary value
+	intake_speed_ = 1.0; // Default values
+	push_speed_ = -1.0;
 }
 
 // Destructor:
