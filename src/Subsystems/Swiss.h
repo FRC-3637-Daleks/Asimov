@@ -31,7 +31,7 @@ private:
 	CANTalon *swisstalon;
 
 public:
-	Swiss(int deviceNumber);
+	Swiss(int deviceNumber, double P, double D);
 	void SetState(state_t s);
 	void MaxHeight();
 	void MinHeight();

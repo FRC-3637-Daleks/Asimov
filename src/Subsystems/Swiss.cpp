@@ -8,15 +8,23 @@ using Swiss = subsystems::Swiss;
 
 using state_t = subsystems::Swiss::state_t;
 
+static int tickToDegree = 90; //measure and change later
+
 double Swiss::states[4] = {
 		80.0 , 3.0 , 2.0 , 1.0
 };
 
-Swiss::Swiss(int deviceNumber) : Subsystem("Swiss"){
+Swiss::Swiss(int deviceNumber, double P, double D) : Subsystem("Swiss"){
 	swisstalon = new CANTalon(deviceNumber);
 	swisstalon->SetFeedbackDevice(CANTalon::FeedbackDevice::AnalogPot);
 	swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
-}
+	swisstalon->ConfigPotentiometerTurns(1);
+	swisstalon->SetPID(P, 0, D);
+	swisstalon->ConfigNeutralMode(CANSpeedController::kNeutralMode_Brake);
+	swisstalon->ConfigForwardLimit(max);
+	swisstalon->ConfigReverseLimit(min);
+
+};
 
 
 
