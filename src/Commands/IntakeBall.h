@@ -46,7 +46,7 @@ public:
 	/**
 	 * Ends the execution of IntakeBall, calls Intake's Stop function.
 	 */
-	void End() override;
+	void End() override {};
 
 	/**
 	 * Called when another command which requires the same Intake subsystem

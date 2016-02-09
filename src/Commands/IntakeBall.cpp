@@ -13,11 +13,6 @@ void IntakeBall::Initialize()
 	intake_->TakeBall(true);
 }
 
-void IntakeBall::Execute()
-{
-
-}
-
 bool IntakeBall::IsFinished()
 {
 	return intake_->CheckSwitch();
