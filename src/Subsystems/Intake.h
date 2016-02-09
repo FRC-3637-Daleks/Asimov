@@ -10,8 +10,7 @@
 #include "WPILib.h"
 
 /**
- * Commands namespace: has forward
- * declarations of command classes.
+ * Has forward declarations of Intake Command classes.
  */
 namespace commands
 {
@@ -20,9 +19,8 @@ namespace commands
 } // end namespace commands
 
 /**
- * Subsystems namespace for carying
- * Intake class definition over to
- * command files.
+ * Namespace for carying Intake class definition over
+ * to other files.
  */
 namespace subsystems
 {
@@ -39,7 +37,7 @@ public:
 	/**
 	 * Returns true if the mechanical switch (detector_) is
 	 * pressed on, and false otherwise. Used to determine
-	 * whether or not to call Stop().
+	 * whether or not to call Stop(), and if commands should end.
 	 */
 	bool CheckSwitch() const;
 
@@ -109,12 +107,12 @@ public:
 // Commands:
 public:
 	/**
-	 * Creates new IntakeBall command, and passes class instance as an argument
+	 * Creates new IntakeBall command, and passes class instance as argument
 	 */
 	commands::IntakeBall * MakeIntakeBall();
 
 	/**
-	 * Creates new PushBall command, and passes class instance as an argument
+	 * Creates new PushBall command, and passes class instance as argument
 	 */
 	commands::PushBall * MakePushBall();
 
