@@ -23,20 +23,21 @@ namespace subsystems
 class Swiss: public Subsystem
 {
 public:
-	enum state{max=0, door, cheval, min, end};
+	enum state_t {max=0, door, cheval, min, end};
 
 private:
 	static double states[4];
-	int position;
+	state_t position;
 	CANTalon *swisstalon;
 
 public:
 	Swiss(int deviceNumber);
+	void SetState(state_t s);
 	void MaxHeight();
 	void MinHeight();
 	void LiftDoor();
 	void LowerCheval();
-	int GetPosition();
+	state_t GetState();
 };
 
 
