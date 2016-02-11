@@ -16,7 +16,7 @@ using Intake = subsystems::Intake;
 
 class PushBall: public CommandGroup
 {
-// Construcotrs & Destructors:
+// Constructors & Destructors:
 public:
 	PushBall(Intake* intake);
 	virtual ~PushBall() = default;
