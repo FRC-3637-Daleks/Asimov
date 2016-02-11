@@ -35,7 +35,7 @@ public:
 
 	/** Execute is periodically called (every 20 ms), but does nothing.
 	 */
-	void Execute() override;
+	void Execute() override {};
 
 	/**
 	 * Returns true if IntakeBall no longer needs to be executed, false
@@ -46,7 +46,7 @@ public:
 	/**
 	 * Ends the execution of IntakeBall, calls Intake's Stop function.
 	 */
-	void End() override {};
+	void End() override;
 
 	/**
 	 * Called when another command which requires the same Intake subsystem
