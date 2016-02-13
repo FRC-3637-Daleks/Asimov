@@ -59,11 +59,21 @@ private:
 	// Test
 	void TestInit() override
 	{
+		TestDriveInit();
+	}
+
+	void TestPeriodic() override
+	{
+		TestDrivePeriodic();
+	}
+
+	void TestDriveInit()
+	{
 		drive_.Configure();
 		drive_.SetMode(subsystems::Drive::Mode_t::Velocity);
 	}
 
-	void TestPeriodic() override
+	void TestDrivePeriodic()
 	{
 		if(left_stick_.GetButton(Joystick::ButtonType::kTriggerButton) &&
 				right_stick_.GetButton(Joystick::ButtonType::kTriggerButton))
