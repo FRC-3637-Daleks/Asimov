@@ -32,9 +32,16 @@ public:
 	Intake();
 	virtual ~Intake();
 
-// Enumerations // TODO ::: DOCUMENTATION
+// Enumerations
 public:
+	/**
+	 * Enumeration for the Intake subsystem's possible states
+	 */
 	enum class State_t {OFF = 0, TAKING, HOLDING, PUSHING, SHOOTING};
+
+	/**
+	 * Enumeration for possible roller control modes
+	 */
 	enum class Mode_t {VELOCITY = 0, VBUS};
 
 // Main functions:
@@ -117,8 +124,15 @@ public:
 	 */
 	double GetPushSpeed() const;
 
-	// TODO ::: DOCUMENTATION
+	/**
+	 * @return max_velocity_ the maximum roller velocity
+	 */
 	double GetMaxVelocity() const;
+
+	/**
+	 * Sets the max velocity of the roller to a new value
+	 * @param max_velocity the new maximum roller velocity
+	 */
 	void SetMaxVelocity(double max_velocity);
 
 // Error Functions:
@@ -158,9 +172,17 @@ public:
 	 */
 	void SetState(State_t state);
 
-// Mode functions: TODO ::: DOCUMENTATION
+// Control mode functions:
 public:
+	/**
+	 * @return mode_ the roller's current control mode
+	 */
 	Mode_t GetMode() const;
+
+	/**
+	 * Sets the control mode to a new one if it isn't already on that mode
+	 * @param mode the new control mode.
+	 */
 	void SetMode(Mode_t mode);
 
 // Command functions:
@@ -180,8 +202,10 @@ protected:
 private:
 	CANTalon *roller_;
 	DigitalInput *detector_;
+
 	State_t state_;
 	Mode_t mode_;
+
 	double intake_speed_;
 	double push_speed_;
 	double allowed_error_;
