@@ -10,17 +10,18 @@
 #include "Subsystems/Intake.h"
 
 /**
- * Command namespace with actual
- * implementation of IntakeBall class.
+ * Command namespace with declaration
+ * of IntakeBall class.
  */
 namespace commands
 {
 
 using Intake = subsystems::Intake;
+using State_t = Intake::State_t;
 
 class IntakeBall : public Command
 {
-// Constructors & Destructors:
+// Constructor & destructor:
 public:
 	IntakeBall(Intake* intake);
 	virtual ~IntakeBall() = default;
@@ -29,11 +30,14 @@ public:
 public:
 	/**
 	 * Sets up IntakeBall command before it begins execution each time
-	 * it is called. Responsible for calling TakeBall function of Intake.
+	 * it is called. If the current state is not OFF, then there is a
+	 * problem, and an error message is printed. Otherwise, the TakeBall
+	 * function of Intake is called and the state is set to TAKING.
 	 */
 	void Initialize() override;
 
-	/** Execute is periodically called (every 20 ms), but does nothing.
+	/**
+	 * Execute is periodically called (every 20 ms), but not implemented.
 	 */
 	void Execute() override {};
 
@@ -44,13 +48,15 @@ public:
 	bool IsFinished() override;
 
 	/**
-	 * Ends the execution of IntakeBall, calls Intake's Stop function.
+	 * Ends the execution of IntakeBall. Calls the Stop function of Intake
+	 * and sets the new state to HOLDING
 	 */
 	void End() override;
 
 	/**
 	 * Called when another command which requires the same Intake subsystem
-	 * is scheduled to run. Calls End function.
+	 * is scheduled to run. Interrupts the command. Calls the Stop function
+	 * and sets the Intake state to OFF.
 	 */
 	void Interrupted() override;
 
