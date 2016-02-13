@@ -18,11 +18,14 @@ Intake::Intake() : Subsystem("Intake")
 {
 	roller_ = new CANTalon(1);
 	detector_ = new DigitalInput(2);
+
 	// Default values:
 	intake_speed_ = 1.0;
 	push_speed_ = -1.0;
+
 	state_ = State_t::OFF;
 	mode_ = Mode_t::VELOCITY;
+
 	max_velocity_ = 30;
 	allowed_error_ = 0.1;
 }
@@ -109,6 +112,16 @@ double Intake::GetPushSpeed() const
 	return push_speed_;
 }
 
+double Intake::GetMaxVelocity() const
+{
+	return max_velocity_;
+}
+
+void Intake::SetMaxVelocity(double max_velocity)
+{
+	max_velocity_ = max_velocity;
+}
+
 // Error functions:
 double Intake::GetErr() const
 {
@@ -130,16 +143,6 @@ bool Intake::IsAllowable() const
 	return (fabs(GetErr()) > fabs(allowed_error_));
 }
 
-double Intake::GetMaxVelocity() const
-{
-	return max_velocity_;
-}
-
-void Intake::SetMaxVelocity(double max_velocity)
-{
-	max_velocity_ = max_velocity;
-}
-
 // State functions:
 void Intake::SetState(State_t state)
 {
@@ -151,10 +154,17 @@ Intake::State_t Intake::GetState() const
 	return state_;
 }
 
-// Mode functions:
+// Control mode functions:
 void Intake::SetMode(Mode_t mode)
 {
-	mode_ = mode;
+	if (mode_ != mode)
+	{
+		mode_ = mode;
+		if (mode_ == Mode_t::VELOCITY)
+			roller_->SetControlMode(CANTalon::ControlMode::kSpeed);
+		else if (mode_ == Mode_t::VBUS)
+			roller_->SetControlMode(CANTalon::ControlMode::kPercentVbus);
+	}
 }
 
 Intake::Mode_t Intake::GetMode() const
