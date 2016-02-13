@@ -32,9 +32,16 @@ public:
 	Shooter();
 	virtual ~Shooter();
 
-public: // TODO ::: DOCUMENTATION
+public:
+	/**
+	 * Enumeration for possible Shooter states.
+	 */
 	enum class State_t {OFF = 0, SPINNINGUP, SPUNUP, SHOOTING, SPINNINGDOWN};
-	enum class Mode_t {VBUS = 0, VELOCITY};
+
+	/**
+	 * Enumeration for possible top roller control modes.
+	 */
+	enum class Mode_t {VELOCITY = 0, VBUS};
 
 // Functions:
 public:
@@ -48,10 +55,12 @@ public:
 
 	/**
 	 * Controls the shooting roller by setting its speed and spinning it
-	 * in an upward direction.
+	 * in an upward direction. If Shooter is in VELOCITY mode, the speed
+	 * parameter is multiplied by the maximum velocity for scaling. If
+	 * in VBUS mode, the roller's speed is set to the parameter.
 	 *
-	 * @param speed the speed of the roller (double between -1.0 and 1.0)
-	 * defaulted to 1.0
+	 * @param speed the scaled speed of the roller (double between -1.0
+	 * and 1.0. defaulted to 1.0).
 	 */
 	void SpinUp(double speed = 1.0);
 
@@ -66,6 +75,19 @@ public:
 	 */
 	void EmergencyStop();
 
+	/**
+	 * @return max_velocity_ the maximum roller velocity
+	 */
+	double GetMaxVelocity() const;
+
+	/**
+	 * Sets the max velocity of the roller to a new value
+	 * @param max_velocity the new maximum roller velocity
+	 */
+	void SetMaxVelocity(double max_velocity);
+
+// Error functions:
+public:
 	/**
 	 * Returns the current error of the roller.
 	 */
@@ -88,18 +110,32 @@ public:
 	 */
 	bool IsAllowable() const;
 
-	// TODO ::: DOCUMENTATION
-	double GetMaxVelocity() const;
-	void SetMaxVelocity(double max_velocity);
-
-// State and Mode functions:
+// State functions:
 public:
-	// Mode functions: TODO ::: Documentation
-	public:
-		Mode_t GetMode() const;
-		void SetMode(Mode_t mode);
-		State_t GetState() const;
-		void SetState(State_t state);
+	/**
+	 * @return state_ the current state of Shooter.
+	 */
+	State_t GetState() const;
+
+	/**
+	 * Sets the current state of Shooter to parameter state
+	 * @param state the new state of Shooter
+	 */
+	void SetState(State_t state);
+
+// Control mode functions:
+public:
+	/**
+	 * @return mode_ the top roller's current control mode
+	 */
+	Mode_t GetMode() const;
+
+	/**
+	 * Sets the control mode to a new one if the roller isn't
+	 * already on that mode.
+	 * @param mode the new mode of the top roller
+	 */
+	void SetMode(Mode_t mode);
 
 // Commands:
 public:
