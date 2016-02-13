@@ -19,7 +19,7 @@
 namespace subsystems
 {
 
-class Drive: public Subsystem
+class Drive//: public Subsystem
 {
 public:
 	enum class Mode_t: uint8_t {
@@ -40,7 +40,7 @@ public:
 
 public:
 	Drive();
-	virtual ~Drive();
+	virtual ~Drive() = default;
 
 public:  /// Configuration functions
 	bool is_initialized() const {return talons_ != nullptr;}
@@ -136,10 +136,10 @@ private:
 
 private:
 	// Configures the motor at master for the current mode
-	void configureMaster(CANTalon &master);
+	bool configureMaster(CANTalon &master);
 
 	// Runs configureMaster on both sides
-	void configureBoth();
+	bool configureBoth();
 
 private:
 	Ptr_t<Talons> talons_ ;

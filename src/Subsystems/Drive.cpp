@@ -8,6 +8,7 @@
 #include "Drive.h"
 
 #include <cmath>
+#include <memory>
 
 namespace subsystems
 {
@@ -16,6 +17,22 @@ Drive::Drive(): talons_(nullptr), mode_(Mode_t::VBus),
 		ticks_per_rev_(1024), wheel_diameter_(0.3048), max_velocity_(10.0), wheel_revs_per_base_rev_(5000),
 		allowable_error_(0.05) // 5 cm of wheel rotation
 {
+}
+
+bool Drive::Initialize()
+{
+	talons_ = std::make_unique<Talons>(1, 2, 3, 4);
+	talons_->left_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
+	talons_->left_slave_.Set(1);
+
+	talons_->right_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
+	talons_->right_slave_.Set(3);
+	return configureBoth();
+}
+
+bool Drive::Configure()
+{
+	return configureBoth();
 }
 
 void Drive::SetMode(Mode_t m)
@@ -182,6 +199,7 @@ void Drive::TankDrive(double left, double right)
 			right *= get_velocity_scale();
 		}
 
+
 		talons_->left_.Set(left, 3);
 		talons_->right_.Set(right, 3);
 		CANJaguar::UpdateSyncGroup(3);
@@ -194,7 +212,42 @@ void Drive::ArcadeDrive(double y, double rotation)
 	if(y < -1.0) y = -1.0;
 	if(rotation > 1.0) rotation = 1.0;
 	if(rotation < -1.0) rotation = -1.0;
-	ArcadeDrive(y + rotation, y - rotation);
+	TankDrive(y + rotation, y - rotation);
+}
+
+bool Drive::configureMaster(CANTalon& master)
+{
+	std::cout << "Configuring a side" << std::endl;
+	master.ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SrxDisableSwitchInputs);
+	master.ConfigNeutralMode(CANTalon::NeutralMode::kNeutralMode_Brake);
+	master.SetFeedbackDevice(CANTalon::FeedbackDevice::QuadEncoder);
+	SetTicksPerRev(get_ticks_per_rev());
+	master.SetPosition(0.0);
+	if(get_mode() == Mode_t::Position)
+	{
+		master.SetControlMode(CANTalon::ControlMode::kPosition);
+		master.SelectProfileSlot(ModePIDSlot_t::PositionPID);
+	}
+	else if(get_mode() == Mode_t::Velocity)
+	{
+		master.SetControlMode(CANTalon::ControlMode::kSpeed);
+		master.SelectProfileSlot(ModePIDSlot_t::VelocityPID);
+	}
+
+	return true;
+}
+
+bool Drive::configureBoth()
+{
+	if(is_initialized())
+	{
+		std::cout << "Configuring Drive" << std::endl;
+		bool left_ret = configureMaster(talons_->left_);
+		bool right_ret = configureMaster(talons_->right_);
+		return left_ret && right_ret;
+	}
+
+	return false;
 }
 
 }
