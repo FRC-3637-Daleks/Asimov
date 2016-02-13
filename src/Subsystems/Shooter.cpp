@@ -3,24 +3,31 @@
 #include "Commands/SpinDown.h"
 #include <math.h>
 
-using Shooter = subsystems::Shooter;
+namespace subsystems
+{
+
 using SpinUp = commands::SpinUp;
 using SpinDown = commands::SpinDown;
 
+// Constructor:
 Shooter::Shooter() : Subsystem("Shooter")
 {
 	top_roller_ = new CANTalon(1);
-	allowed_error_ = 0.1;
+
 	state_ = State_t::OFF;
 	mode_ = Mode_t::VELOCITY;
+
 	max_velocity_ = 30;
+	allowed_error_ = 0.1;
 }
 
+// Destructor:
 Shooter::~Shooter()
 {
 	delete top_roller_;
 }
 
+// Main functions:
 void Shooter::Initialize()
 {
 	top_roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
@@ -37,11 +44,6 @@ void Shooter::Initialize()
 
 void Shooter::SpinUp(double speed)
 {
-	double target = top_roller_->Get() * speed;
-	top_roller_->Set(target);
-
-	///////////////////HALP////////////////////////
-
 	if (mode_ == Mode_t::VELOCITY)
 	{
 		top_roller_->Set(max_velocity_ * speed);
@@ -62,6 +64,17 @@ void Shooter::EmergencyStop()
 	top_roller_->StopMotor();
 }
 
+double Shooter::GetMaxVelocity() const
+{
+	return max_velocity_;
+}
+
+void Shooter::SetMaxVelocity(double max_velocity)
+{
+	max_velocity_ = max_velocity;
+}
+
+// Error functions:
 double Shooter::GetErr() const
 {
 	return top_roller_->GetSetpoint() - top_roller_->Get();
@@ -82,8 +95,7 @@ bool Shooter::IsAllowable() const
 	return (fabs(GetErr()) > fabs(allowed_error_));
 }
 
-
-// States and modes or whatever:
+// State functions:
 Shooter::State_t Shooter::GetState() const
 {
 	return state_;
@@ -94,14 +106,22 @@ void Shooter::SetState(State_t state)
 	state_ = state;
 }
 
-double Shooter::GetMaxVelocity() const
+// Control mode functions:
+Shooter::Mode_t Shooter::GetMode() const
 {
-	return max_velocity_;
+	return mode_;
 }
 
-void Shooter::SetMaxVelocity(double max_velocity)
+void Shooter::SetMode(Mode_t mode)
 {
-	max_velocity_ = max_velocity;
+	if (mode_ != mode)
+	{
+		mode_ = mode;
+		if (mode_ == Mode_t::VELOCITY)
+			top_roller_->SetControlMode(CANTalon::ControlMode::kSpeed);
+		else if (mode_ == Mode_t::VBUS)
+			top_roller_->SetControlMode(CANTalon::ControlMode::kPercentVbus);
+	}
 }
 
 // Command functions:
@@ -114,3 +134,5 @@ SpinDown* Shooter::MakeSpinDown()
 {
 	return new commands::SpinDown(this);
 }
+
+} // end namespace subsystems
