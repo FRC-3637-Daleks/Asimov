@@ -9,49 +9,30 @@
 #define SRC_COMMANDS_PUSHBALL_H_
 #include "Subsystems/Intake.h"
 
+/**
+ * Commands namespace with declaration
+ * of PushBall command group, and nested
+ * Push and Stopper command classes.
+ */
 namespace commands
 {
 
 using Intake = subsystems::Intake;
+using State_t = Intake::State_t;
 
 class PushBall: public CommandGroup
 {
-// Constructors & Destructors:
+// Constructor & destructors:
 public:
 	PushBall(Intake* intake);
 	virtual ~PushBall() = default;
 
-// Functions:
+// Main functions:
 public:
-	/**
-	 * Not implemented. The constructor handles the addition of sequential
-	 * commands and the initializaton of member variables.
-	 */
-	void Initialize() override {};
-
-	/**
-	 * Execute is periodically called (every 20 ms) but is not implemented.
-	 */
-	void Execute() override {};
-
-	/**
-	 * Not implemented.
-	 */
-	bool IsFinished() override {};
-
-	/**
-	 * Does nothing as stopping the rollers is handled by Stopper.
-	 */
-	void End() override {};
-
-	/**
-	 * Does nothing.
-	 */
-	void Interrupted() override {};
-
 	/**
 	 * Sets timeout_ to a specified timeout value, for the purpose of
 	 * waiting to stop turning the rollers.
+	 * @param timeout the new timeout value
 	 */
 	void SetTimeout(double timeout);
 
@@ -62,20 +43,25 @@ public:
 
 protected:
 
+// Nested command classes:
 private:
 	/**
-	 * Push command controlls the Outake Function of the Intake Subsystem,
+	 * Push command controls the Outake Function of the Intake Subsystem,
 	 * responsable for moving the boulder from its storage.
 	 */
 	class Push: public Command
 	{
+	// Constructor & destructor:
 	public:
 		Push(Intake *intake);
 		virtual ~Push() = default;
 
+	// Main functions:
 	public:
 		/**
-		 * Calls the Outake function of Intake to push the ball.
+		 * If the current state of Intake is not HOLDING, an error message
+		 * is printed. Otherwise the state is changed to PUSHING and the
+		 * Outake function of the Intake subsystem is called.
 		 */
 		void Initialize() override;
 
@@ -87,17 +73,17 @@ private:
 		bool IsFinished() override;
 
 		/**
-		 * Execute is periodically called (every 20 ms) but not implemented.
+		 * Not implemented.
 		 */
 		void Execute() override {};
 
 		/**
-		 * Not implemented as stopping the rollers is handled by Stopper.
+		 * Not implemented.
 		 */
 		void End() override {};
 
 		/**
-		 * Not implemented.
+		 * Not implemented. (Push is not interruptible)
 		 */
 		void Interrupted() override {};
 
@@ -106,14 +92,16 @@ private:
 	};
 
 	/**
-	 * Stopper's only responsability is to stop the front roller's movement
+	 * Stopper is responsable for halting the movement of the rollers
 	 */
 	class Stopper: public Command
 	{
+	// Construcotr & destructor:
 	public:
 		Stopper(Intake *intake);
 		virtual ~Stopper() = default;
 
+	// Main functions:
 	public:
 		/**
 		 * Not implemented.
@@ -121,22 +109,23 @@ private:
 		void Initialize() override {};
 
 		/**
-		 * Function only returns true because the purpose is to stop
-		 * the rollers.
+		 * Function only returns true because the purpose is to stop the
+		 * rollers.
 		 */
 		bool IsFinished() override;
 		/**
-		 * Execute is periodically called (every 20 ms) but is not implemented.
+		 * Not implemented.
 		 */
 		void Execute() override {};
 
 		/**
-		 * Calls the Stop function of Intake to stop moving the rollers
+		 * Calls the Stop function of Intake to stop moving the rollers,
+		 * and sets the state to OFF.
 		 */
 		void End() override;
 
 		/**
-		 * Not implemented.
+		 * Not implemented (Stopper is not interruptible).
 		 */
 		void Interrupted() override {};
 
@@ -154,4 +143,3 @@ private:
 }// end namespace commands
 
 #endif /* SRC_COMMANDS_PUSHBALL_H_ */
-
