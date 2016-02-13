@@ -27,17 +27,29 @@ namespace subsystems
 
 class Intake : public Subsystem
 {
-// Constructor and Destructor:
+// Constructor & destructor:
 public:
 	Intake();
 	virtual ~Intake();
 
-// Functions:
+// Enumerations // TODO ::: DOCUMENTATION
+public:
+	enum class State_t {OFF = 0, TAKING, HOLDING, PUSHING, SHOOTING};
+	enum class Mode_t {VELOCITY = 0, VBUS};
+
+// Main functions:
 public:
 	/**
-	 * Returns true if the mechanical switch (detector_) is
-	 * pressed on, and false otherwise. Used to determine
-	 * whether or not to call Stop(), and if commands should end.
+	 * Initializes the settings of the front roller. The roller sets
+	 * a Quadrature Encoder as its feedback device, and sets
+	 * maximum and minumum voltage rates.
+	 */
+	void Initialize();
+
+	/**
+	 * Returns true if the mechanical switch (detector_) is pressed
+	 * on, and false otherwise. Used to determine whether or not to
+	 * call Stop(), and if commands should end.
 	 */
 	bool CheckSwitch() const;
 
@@ -72,7 +84,8 @@ public:
 	 */
 	void SetSpeed(double speed);
 
-	/** Returns the front roller's current speed ( value between -1 and 1)
+	/**
+	 * Returns the front roller's current speed ( value between -1 and 1)
 	 */
 	double GetSpeed() const;
 
@@ -89,7 +102,7 @@ public:
 	void SetIntakeSpeed(double intake_speed);
 
 	/**
-	 * Sets the push_speedP (auto) variable to a new speed (-1 to 1)
+	 * Sets the push_speed (auto) variable to a new speed (-1 to 1)
 	 * @param push_speed the new automatic push speed
 	 */
 	void SetPushSpeed(double push_speed);
@@ -104,7 +117,53 @@ public:
 	 */
 	double GetPushSpeed() const;
 
-// Commands:
+	// TODO ::: DOCUMENTATION
+	double GetMaxVelocity() const;
+	void SetMaxVelocity(double max_velocity);
+
+// Error Functions:
+public:
+		/**
+		 * Returns the current error of the roller.
+		 */
+		double GetErr() const;
+
+		/**
+		 * Sets the allowed error of the roller.
+		 * @param err the new allowable error
+		 */
+		void SetAllowedError(double err);
+
+		/**
+		 * Returns the allowed error of the roller.
+		 */
+		double GetAllowedError() const;
+
+		/**
+		 * Returns whether the current error is greater than the allowable
+		 * error, false if otherwise.
+		 */
+		bool IsAllowable() const;
+
+// State functions:
+public:
+	/**
+	 * @return state_ the current state of Intake
+	 */
+	State_t GetState() const;
+
+	/**
+	 * Sets the current state of Intake to state.
+	 * @param state the new state of Intake.
+	 */
+	void SetState(State_t state);
+
+// Mode functions: TODO ::: DOCUMENTATION
+public:
+	Mode_t GetMode() const;
+	void SetMode(Mode_t mode);
+
+// Command functions:
 public:
 	/**
 	 * Creates new IntakeBall command, and passes class instance as argument
@@ -121,8 +180,12 @@ protected:
 private:
 	CANTalon *roller_;
 	DigitalInput *detector_;
+	State_t state_;
+	Mode_t mode_;
 	double intake_speed_;
 	double push_speed_;
+	double allowed_error_;
+	double max_velocity_;
 };
 
 } // end namespace subsystems
