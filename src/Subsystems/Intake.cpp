@@ -16,11 +16,11 @@ using PushBall = commands::PushBall;
 // Constructor:
 Intake::Intake() : Subsystem("Intake")
 {
-	roller_ = new CANTalon(1);
-	detector_ = new DigitalInput(2);
+	roller_ = new CANTalon(5);
+	detector_ = new DigitalInput(0);
 
 	// Default values:
-	intake_speed_ = 1.0;
+	intake_speed_ = 0.8;
 	push_speed_ = -1.0;
 
 	state_ = State_t::OFF;
@@ -43,9 +43,10 @@ void Intake::Initialize()
 	roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
 	roller_->ConfigEncoderCodesPerRev(1024);
 	roller_->SetSensorDirection(false);
+	roller_->SetInverted(true);
 	roller_->SelectProfileSlot(0);
 	roller_->SetVoltageRampRate(0.0);
-	roller_->SetCloseLoopRampRate(0.0);
+	roller_->SetCloseLoopRampRate(5.0);
 
 	// Configure max and min voltage outputs
 	roller_->ConfigNominalOutputVoltage(0.0, 0.0);
@@ -54,7 +55,7 @@ void Intake::Initialize()
 
 bool Intake::CheckSwitch() const
 {
-	return (detector_->Get());
+	return !(detector_->Get());
 }
 
 void Intake::TakeBall(bool check)
