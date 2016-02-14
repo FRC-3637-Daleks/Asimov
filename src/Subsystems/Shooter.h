@@ -9,6 +9,8 @@
 #define SRC_SUBSYSTEMS_SHOOTER_H_
 #include "WPILib.h"
 
+//TODO ::: MAKE SHOOT
+
 /**
  * Has forward declarations of command classes.
  */
