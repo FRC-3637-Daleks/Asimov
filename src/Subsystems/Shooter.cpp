@@ -15,7 +15,8 @@ Shooter::Shooter() : Subsystem("Shooter")
 	top_roller_ = new CANTalon(6);
 
 	state_ = State_t::OFF;
-	mode_ = Mode_t::VELOCITY;
+	mode_ = Mode_t::VBUS;
+	SetMode(Mode_t::VELOCITY);
 
 	max_velocity_ = 30;
 	allowed_error_ = 0.1;
