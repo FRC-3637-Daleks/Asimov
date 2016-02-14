@@ -1,22 +1,29 @@
 #include "WPILib.h"
-
 #include "Subsystems/Intake.h"
 #include "Subsystems/Shooter.h"
+#include <math.h>
+
+using Intake = subsystems::Intake;
+using Shooter = subsystems::Shooter;
+using IntakeBall = commands::IntakeBall;
 
 class Asimov: public IterativeRobot
 {
-private:
-	subsystems::Intake intake_;
-	Joystick gamepad_;
-
 public:
-	Asimov(): gamepad_(2) {}
+	Asimov() {}
 
 private:
 	// Init
 	void RobotInit() override
 	{
-		intake_.Initialize();
+		intake_ = new Intake();
+		intake_->Initialize();
+		shoot_ = new Shooter();
+		xbox_ = new Joystick(1);
+		mode = AUTO;
+		lock = false;
+
+//		take_ = intake_->MakeIntakeBall();
 	}
 
 	// Disabled
@@ -55,30 +62,71 @@ private:
 	// Test
 	void TestInit() override
 	{
-		intake_.SetMode(subsystems::Intake::Mode_t::VBUS);
+
 	}
 
 	void TestPeriodic() override
 	{
-		if(gamepad_.GetRawButton(1))
+		if (xbox_->GetRawButton(A))
 		{
-			intake_.TakeBall(true);
-		}
-		else if(gamepad_.GetRawButton(2))
-		{
-			intake_.TakeBall(false);
-		}
-		else if(gamepad_.GetRawButton(3))
-		{
-			intake_.OutakeBall();
-		}
-		else
-		{
-			intake_.SetSpeed(gamepad_.GetRawAxis(0));
+			mode = AUTO;
 		}
 
+		else if (xbox_->GetRawButton(B))
+		{
+			mode = MANUAL;
+		}
+
+		else if (xbox_->GetRawButton(X))
+		{
+			mode = PUSH;
+		}
+
+		if (xbox_->GetRawButton(L_TRIGGER))
+		{
+			lock = true;
+		}
+
+		else if(xbox_->GetRawAxis(BACK))
+		{
+			lock = false;
+		}
+
+		if(!lock)
+		{
+			speed = xbox_->GetRawAxis(L_TRIG);
+		}
+
+		shoot_->SpinUp(speed);
+
+		switch (mode)
+		{
+		case AUTO:
+			intake_->TakeBall(true);
+			break;
+		case MANUAL:
+			if (fabs(xbox_->GetRawAxis(1) < 0.5))
+				intake_->Stop();
+			else
+				intake_->SetSpeed(xbox_->GetRawAxis(1)); //needs to be right stick
+			break;
+		case PUSH:
+			intake_->OutakeBall();
+			break;
+		}
 	}
+
+private:
+	Intake *intake_;
+	Joystick *xbox_;
+	Shooter *shoot_;
+
+	enum Modes {AUTO = 0, MANUAL, PUSH};
+	Modes mode;
+	enum Button {A = 1, B, X, Y, L_TRIGGER, R_TRIGGER, BACK, START, L_STICK, R_STICK};
+	enum Axes {L_XAXIS = 0, L_YAXIS, L_TRIG, R_TRIG, R_XAXIS, R_YAXIS};
+	double speed;
+	bool lock;
 };
 
 START_ROBOT_CLASS(Asimov)
-
