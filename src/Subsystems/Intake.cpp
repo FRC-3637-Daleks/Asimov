@@ -16,8 +16,8 @@ using PushBall = commands::PushBall;
 // Constructor:
 Intake::Intake() : Subsystem("Intake")
 {
-	roller_ = new CANTalon(1);
-	detector_ = new DigitalInput(2);
+	roller_ = new CANTalon(5);
+	detector_ = new DigitalInput(0);
 
 	// Default values:
 	intake_speed_ = 1.0;
@@ -54,7 +54,7 @@ void Intake::Initialize()
 
 bool Intake::CheckSwitch() const
 {
-	return (detector_->Get());
+	return !(detector_->Get());
 }
 
 void Intake::TakeBall(bool check)
