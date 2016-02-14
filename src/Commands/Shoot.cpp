@@ -8,7 +8,8 @@ namespace commands
 {
 
 //Constructor:
-Shoot::Shoot(Intake* intake, Shooter* shooter)
+
+Shoot::Shoot(subsystems::Intake* intake, Shooter* shooter)
 {
 	intake_ = intake;
 	shooter_ = shooter;

@@ -8,6 +8,7 @@
 #ifndef SRC_COMMANDS_SHOOT_H_
 #define SRC_COMMANDS_SHOOT_H_
 #include "Subsystems/Shooter.h"
+#include "Subsystems/Intake.h"
 
 /**
  * Commands namespace with declaration
@@ -23,7 +24,7 @@ class Shoot : public Command
 {
 // Constructor & destructor:
 public:
-	Shoot(Intake* intake, Shooter* shooter);
+	Shoot(subsystems::Intake* intake, Shooter* shooter);
 	virtual ~Shoot() = default;
 
 // Main functions:
@@ -37,12 +38,12 @@ public:
 	/**
 	 *
 	 */
-	void Execute() override;
+	void Execute() override {};
 
 	/**
 	 *
 	 */
-	bool IsFinished() override;
+	bool IsFinished() override {};
 
 	/**
 	 *
@@ -52,12 +53,12 @@ public:
 	/**
 	 *
 	 */
-	void Interrupted() override;
+	void Interrupted() override {};
 
 protected:
 
 private:
-	Intake *intake_;
+	subsystems::Intake *intake_;
 	Shooter *shooter_;
 };
 

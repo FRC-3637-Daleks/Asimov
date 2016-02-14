@@ -17,11 +17,12 @@ private:
 	void RobotInit() override
 	{
 		intake_ = new Intake();
-		intake_->Initialize();
 		shoot_ = new Shooter();
 		xbox_ = new Joystick(1);
 		mode = AUTO;
 		lock = false;
+
+		intake_->SetMode(Intake::Mode_t::VBUS);
 
 //		take_ = intake_->MakeIntakeBall();
 	}
@@ -62,7 +63,8 @@ private:
 	// Test
 	void TestInit() override
 	{
-
+		intake_->Initialize();
+		shoot_->Initialize();
 	}
 
 	void TestPeriodic() override
@@ -87,7 +89,7 @@ private:
 			lock = true;
 		}
 
-		else if(xbox_->GetRawAxis(BACK))
+		else if(xbox_->GetRawButton(BACK))
 		{
 			lock = false;
 		}
@@ -105,10 +107,10 @@ private:
 			intake_->TakeBall(true);
 			break;
 		case MANUAL:
-			if (fabs(xbox_->GetRawAxis(1) < 0.5))
+			if (fabs(xbox_->GetRawAxis(R_YAXIS)) < 0.05)
 				intake_->Stop();
 			else
-				intake_->SetSpeed(xbox_->GetRawAxis(1)); //needs to be right stick
+				intake_->SetSpeed(xbox_->GetRawAxis(R_YAXIS)); //needs to be right stick
 			break;
 		case PUSH:
 			intake_->OutakeBall();
