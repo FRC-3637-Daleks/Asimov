@@ -137,7 +137,7 @@ public:
 	 */
 	void SetMode(Mode_t mode);
 
-// Commands:
+// Command functions:
 public:
 	/**
 	 * Creates new SpinUp command, and passes class instance as argument.
