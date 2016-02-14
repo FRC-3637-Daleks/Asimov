@@ -1,0 +1,2 @@
+# Commands
+This folder contains classes pertaining to the WPILib construct known as a command. Each file should contain code for one or more Command of at most one subsystem per file. These classes should derive the Command or CommandGroup class declared in the WPI Library
