@@ -37,12 +37,10 @@ private:
 	// Teleop
 	void TeleopInit() override
 	{
-
 	}
 
 	void TeleopPeriodic() override
 	{
-		Scheduler::GetInstance()->Run();
 	}
 
 	// Autonomous
@@ -75,9 +73,11 @@ private:
 
 	void TestDrivePeriodic()
 	{
-		if(left_stick_.GetButton(Joystick::ButtonType::kTriggerButton) &&
+		if(left_stick_.GetButton(Joystick::ButtonType::kTriggerButton) ||
 				right_stick_.GetButton(Joystick::ButtonType::kTriggerButton))
+		{
 			drive_.SetMode(subsystems::Drive::Mode_t::VBus);
+		}
 		else
 			drive_.SetMode(subsystems::Drive::Mode_t::Velocity);
 
@@ -95,7 +95,16 @@ private:
 			drive_.ArcadeDrive(right_stick_.GetY() * fabs(right_stick_.GetY()),
 							left_stick_.GetX() * fabs(left_stick_.GetX()));
 
+		UpdateDriveDash();
+	}
 
+	void UpdateDriveDash()
+	{
+		SmartDashboard::PutNumber("Left Setpoint", drive_.GetLeftSetPointRPM());
+		SmartDashboard::PutNumber("Left Speed", drive_.GetLeftRPM());
+
+		SmartDashboard::PutNumber("Right Setpoint", drive_.GetRightSetPointRPM());
+		SmartDashboard::PutNumber("Right Speed", drive_.GetRightRPM());
 	}
 };
 

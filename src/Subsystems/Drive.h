@@ -13,6 +13,7 @@
 
 // STD Includes
 #include <memory>
+#include <string>
 
 #define PI 3.1415926535897
 
@@ -37,6 +38,9 @@ public:
 	using MetersPerSecond_t = double;
 	template<class TalonsT> using Ptr_t = std::unique_ptr<TalonsT>;
 	using Ticks_t = uint32_t;
+
+public:
+	static std::string ModeToString(Mode_t mode);
 
 public:
 	Drive();
@@ -86,6 +90,10 @@ public:  /// Position tracking functions
 	/// Returns rpm for a side
 	double GetLeftRPM() const;
 	double GetRightRPM() const;
+
+	// Returns setpoints for a side
+	double GetLeftSetPointRPM() const;
+	double GetRightSetPointRPM() const;
 
 	/// Returns velocity of robot in meters per second based on average of right and left wheel revs per second
 	MetersPerSecond_t GetVelocity() const;
