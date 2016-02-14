@@ -94,6 +94,15 @@ private:
 			lock = false;
 		}
 
+		if(xbox_->GetRawButton(START))
+		{
+			shoot_->SetMode(Shooter::Mode_t::VBUS);
+		}
+		else
+		{
+			shoot_->SetMode(Shooter::Mode_t::VELOCITY);
+		}
+
 		if(!lock)
 		{
 			speed = xbox_->GetRawAxis(L_TRIG);

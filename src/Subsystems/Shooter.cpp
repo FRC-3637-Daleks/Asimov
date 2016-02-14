@@ -18,7 +18,7 @@ Shooter::Shooter() : Subsystem("Shooter")
 	mode_ = Mode_t::VBUS;
 	SetMode(Mode_t::VELOCITY);
 
-	max_velocity_ = 30;
+	max_velocity_ = 2400000;
 	allowed_error_ = 0.1;
 }
 
@@ -34,10 +34,11 @@ void Shooter::Initialize()
 	top_roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
 	top_roller_->ConfigEncoderCodesPerRev(2);
 	top_roller_->SetInverted(true);
+	top_roller_->SetClosedLoopOutputDirection(true);
 	top_roller_->SetSensorDirection(true);
 	top_roller_->SelectProfileSlot(0);
 	top_roller_->SetVoltageRampRate(0.0);
-	top_roller_->SetCloseLoopRampRate(0.0);
+	//top_roller_->SetCloseLoopRampRate(0.0);
 
 	// Set max and min voltage ouput, dissalows negative voltage
 	top_roller_->ConfigNominalOutputVoltage(0.0, 0.0);
