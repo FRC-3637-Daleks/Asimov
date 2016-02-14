@@ -54,9 +54,9 @@ public:
 	void End() override;
 
 	/**
-	 * Not implemented.
+	 * Calls emergency stop and changes Shooter state.
 	 */
-	void Interrupted() override {};
+	void Interrupted() override;
 
 protected:
 

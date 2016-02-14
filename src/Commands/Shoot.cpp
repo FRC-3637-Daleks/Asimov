@@ -14,14 +14,14 @@ Shoot::Shoot(Intake* intake, Shooter* shooter, double shoot_time)
 	shooter_ = shooter;
 	shoot_time_ = shoot_time;
 	timer_ = new Timer;
+	SetInterruptible(false);
 }
 
 void Shoot::Initialize()
 {
 	if (shooter_->GetState() == State_t::SPUNUP)
 	{
-		if (timer_->Get() == 0.0)
-			timer_->Start();
+		timer_->Start();
 		shooter_->SetState(Shooter::State_t::SHOOTING);
 		intake_->SetState(Intake::State_t::SHOOTING);
 		intake_->ShootBall();

@@ -11,6 +11,7 @@ namespace commands
 SpinDown::SpinDown(Shooter* shooter) : Command("Spin Down")
 {
 	shooter_ = shooter;
+	SetInterruptible(true);
 }
 
 // Main functions:
@@ -34,6 +35,12 @@ bool SpinDown::IsFinished()
 
 void SpinDown::End()
 {
+	shooter_->SetState(State_t::OFF);
+}
+
+void SpinDown::Interrupted()
+{
+	shooter_->EmergencyStop();
 	shooter_->SetState(State_t::OFF);
 }
 
