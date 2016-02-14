@@ -32,7 +32,7 @@ public:
 	Intake();
 	virtual ~Intake();
 
-// Enumerations
+// Enumerations:
 public:
 	/**
 	 * Enumeration for the Intake subsystem's possible states
@@ -80,6 +80,12 @@ public:
 	 * NOTE: OutakeBall is controlled by the PushBall command.
 	 */
 	void OutakeBall();
+
+	/**
+	 * Controls the front rollers to drive in the ball while shooting
+	 * upward. NOTE: ShootBall is controlled by the Shoot command.
+	 */
+	void ShootBall();
 
 	/**
 	 * Sets the speed and direction of the front roller. Values of -1 or
@@ -134,6 +140,17 @@ public:
 	 * @param max_velocity the new maximum roller velocity
 	 */
 	void SetMaxVelocity(double max_velocity);
+
+	/**
+	 * Sets the shoot velocity to a new value
+	 * @param shoot_velocity the new shooter roller velocity
+	 */
+	void SetShootVelocity(double shoot_velocity);
+
+	/**
+	 * @return shoot_velocity_ the shooter velocity
+	 */
+	double GetShootVelocity() const;
 
 // Error Functions:
 public:
@@ -210,6 +227,7 @@ private:
 	double push_speed_;
 	double allowed_error_;
 	double max_velocity_;
+	double shoot_velocity_;
 };
 
 } // end namespace subsystems

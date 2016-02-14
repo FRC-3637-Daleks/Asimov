@@ -28,6 +28,7 @@ Intake::Intake() : Subsystem("Intake")
 
 	max_velocity_ = 30;
 	allowed_error_ = 0.1;
+	shoot_velocity_ = 1.0;
 }
 
 // Destructor:
@@ -69,6 +70,11 @@ void Intake::TakeBall(bool check)
 void Intake::OutakeBall()
 {
 	SetSpeed(push_speed_);
+}
+
+void Intake::ShootBall()
+{
+	SetSpeed(shoot_velocity_);
 }
 
 void Intake::SetSpeed(double speed)
@@ -121,6 +127,16 @@ double Intake::GetMaxVelocity() const
 void Intake::SetMaxVelocity(double max_velocity)
 {
 	max_velocity_ = max_velocity;
+}
+
+void Intake::SetShootVelocity(double shoot_velocity)
+{
+	shoot_velocity_ = shoot_velocity;
+}
+
+double Intake::GetShootVelocity() const
+{
+	return shoot_velocity_;
 }
 
 // Error functions:
