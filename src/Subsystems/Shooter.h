@@ -88,6 +88,11 @@ public:
 	 */
 	void SetMaxVelocity(double max_velocity);
 
+	/**
+	 * @return the current speed of the top roller
+	 */
+	double GetSpeed() const;
+
 // Error functions:
 public:
 	/**
