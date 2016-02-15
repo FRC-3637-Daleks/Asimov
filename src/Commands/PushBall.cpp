@@ -9,24 +9,26 @@ namespace commands
 {
 
 // PushBall constructor:
-PushBall::PushBall(Intake *intake) : CommandGroup("PushBall")
+PushBall::PushBall(Intake *intake, double time) : CommandGroup("PushBall")
 {
 	intake_ = intake;
+	timeout_ = time;
 	push_ = new Push(intake);
 	stop_ = new Stopper(intake);
-	timeout_ = 0.0;
+	wait_ = new WaitCommand(timeout_);
 
 	SetInterruptible(false);
 
 	this->AddSequential(push_);
-	this->AddSequential(new WaitCommand(timeout_));
+	this->AddSequential(wait_);
 	this->AddSequential(stop_);
 }
 
 // PushBall main functions:
-void PushBall::AddedTime(double timeout)
+void PushBall::SetAddedTime(double timeout)
 {
 	timeout_ = timeout;
+	wait_->SetTimeout(timeout_);
 }
 
 double PushBall::GetAddedTime() const

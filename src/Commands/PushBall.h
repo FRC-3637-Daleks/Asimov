@@ -25,7 +25,7 @@ class PushBall: public CommandGroup
 using State_t = Intake::State_t;
 // Constructor & destructors:
 public:
-	PushBall(Intake* intake);
+	PushBall(Intake* intake, double time = 1.0);
 	virtual ~PushBall() = default;
 
 // Main functions:
@@ -35,7 +35,7 @@ public:
 	 * waiting to stop turning the rollers.
 	 * @param timeout the new timeout value
 	 */
-	void AddedTime(double timeout);
+	void SetAddedTime(double timeout);
 
 	/**
 	 * @return timeout_ the current timeout value for the WaitCommand.
@@ -138,6 +138,7 @@ private:
 	Intake *intake_;
 	Push *push_;
 	Stopper *stop_;
+	WaitCommand *wait_;
 	double timeout_;
 };
 
