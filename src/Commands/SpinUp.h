@@ -8,6 +8,7 @@
 #ifndef SRC_COMMANDS_SPINUP_H_
 #define SRC_COMMANDS_SPINUP_H_
 #include "Subsystems/Shooter.h"
+#include "WPILib.h"
 
 /**
  * Commands namespace with declaration
@@ -23,7 +24,7 @@ class SpinUp : public Command
 using State_t = Shooter::State_t;
 // Constructor & destructor:
 public:
-	SpinUp(Shooter* shooter, double speed = 1.0);
+	SpinUp(Shooter* shooter, double speed = 1.0, double wait_time = 0.25);
 	virtual ~SpinUp() = default;
 
 // Main functions:
@@ -76,6 +77,8 @@ protected:
 private:
 	Shooter *shooter_;
 	double speed_;
+	double wait_time_;
+	Timer *timer_;
 };
 
 }// end namespce commands

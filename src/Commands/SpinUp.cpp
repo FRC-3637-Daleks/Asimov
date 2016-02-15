@@ -8,10 +8,12 @@ namespace commands
 {
 
 // Constructor:
-SpinUp::SpinUp(Shooter *shooter, double speed) : Command("Spin Up")
+SpinUp::SpinUp(Shooter *shooter, double speed, double wait_time) : Command("Spin Up")
 {
 	shooter_ = shooter;
 	speed_ = speed;
+	wait_time_ = wait_time;
+	timer_ = new Timer;
 	SetInterruptible(true);
 }
 
@@ -22,6 +24,7 @@ void SpinUp::Initialize()
 	State_t currState = shooter_->GetState(); // For readability
 	if (currState == State_t::OFF || currState == State_t::SPINNINGUP)
 	{
+		timer_->Start();
 		shooter_->SpinUp(speed_);
 		if (currState != State_t::SPINNINGUP)
 			shooter_->SetState(State_t::SPINNINGUP);
@@ -34,7 +37,7 @@ void SpinUp::Initialize()
 
 bool SpinUp::IsFinished()
 {
-	return !shooter_->IsAllowable();
+	return (!shooter_->IsAllowable()) && (timer_->Get() > wait_time_);
 }
 
 void SpinUp::End()

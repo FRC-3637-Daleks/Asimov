@@ -31,13 +31,6 @@ public:
 // Main functions:
 public:
 	/**
-	 * Sets timeout_ to a specified timeout value, for the purpose of
-	 * waiting to stop turning the rollers.
-	 * @param timeout the new timeout value
-	 */
-	void SetAddedTime(double timeout);
-
-	/**
 	 * @return timeout_ the current timeout value for the WaitCommand.
 	 */
 	double GetAddedTime() const;
