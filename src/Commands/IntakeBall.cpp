@@ -17,7 +17,7 @@ IntakeBall::IntakeBall(Intake * intake) : Command("IntakeBall")
 // Main functions:
 void IntakeBall::Initialize()
 {
-	std::cout << "Intake : IntakeBall : Started";
+	std::cout << "Intake : IntakeBall : Started" << std::endl;
 	if (intake_->GetState() == State_t::OFF)
 	{
 		intake_->SetState(State_t::TAKING);
@@ -36,14 +36,14 @@ bool IntakeBall::IsFinished()
 
 void IntakeBall::End()
 {
-	std::cout << "Intake : IntakeBall : Ended";
+	std::cout << "Intake : IntakeBall : Ended" << std::endl;
 	intake_->Stop();
 	intake_->SetState(State_t::HOLDING);
 }
 
 void IntakeBall::Interrupted()
 {
-	std::cout << "Intake : IntakeBall : Interrupted";
+	std::cout << "Intake : IntakeBall : Interrupted " << std::endl;
 	intake_->Stop();
 	intake_->SetState(State_t::OFF);
 }

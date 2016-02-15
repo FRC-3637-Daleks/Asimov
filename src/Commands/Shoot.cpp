@@ -19,7 +19,7 @@ Shoot::Shoot(Intake* intake, Shooter* shooter, double shoot_time)
 
 void Shoot::Initialize()
 {
-	std::cout << "Intake and Shooter : Shoot : Started";
+	std::cout << "Intake and Shooter : Shoot : Started" << std::endl;
 	if (shooter_->GetState() == State_t::SPUNUP)
 	{
 		timer_->Start();
@@ -35,7 +35,7 @@ void Shoot::Initialize()
 
 void Shoot::End()
 {
-	std::cout << "Intake and Shooter : Shoot : Ended";
+	std::cout << "Intake and Shooter : Shoot : Ended" << std::endl;
 	shooter_->SetState(Shooter::State_t::SPUNUP);
 	intake_->SetState(Intake::State_t::OFF);
 	intake_->Stop();
@@ -48,7 +48,7 @@ bool Shoot::IsFinished()
 
 void Shoot::Interrupted()
 {
-	std::cout << "Intake and Shooter : Shoot : Interrupted";
+	std::cout << "Intake and Shooter : Shoot : Interrupted" << std::endl;
 	End();
 }
 
