@@ -61,6 +61,11 @@ bool PushBall::Push::IsFinished()
 	return !intake_->CheckSwitch();
 }
 
+void PushBall::Push::End()
+{
+	std::cout << "Intake : PushBall : Push : Ended" << std::endl;
+}
+
 // Stopper constructor:
 PushBall::Stopper::Stopper(Intake *intake)
 {

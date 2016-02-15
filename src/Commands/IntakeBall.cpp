@@ -25,7 +25,7 @@ void IntakeBall::Initialize()
 	}
 	else
 	{
-		std::cout << "ERROR: Invalid starting state (Should be \"OFF\")";
+		std::cout << "ERROR: Invalid starting state (Should be \"OFF\")" << std::endl;
 	}
 }
 

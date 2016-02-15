@@ -81,7 +81,7 @@ private:
 		/**
 		 * Not implemented.
 		 */
-		void End() override {};
+		void End() override;
 
 		/**
 		 * Not implemented. (Push is not interruptible)
