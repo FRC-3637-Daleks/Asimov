@@ -17,10 +17,10 @@ namespace commands
 {
 
 using Intake = subsystems::Intake;
-using State_t = Intake::State_t;
 
 class IntakeBall : public Command
 {
+using State_t = Intake::State_t;
 // Constructor & destructor:
 public:
 	IntakeBall(Intake* intake);

@@ -20,10 +20,10 @@ namespace commands
 
 using Shooter = subsystems::Shooter;
 using Intake = subsystems::Intake;
-using State_t = Shooter::State_t;
 
 class Shoot : public Command
 {
+using State_t = Shooter::State_t;
 // Constructor & destructor:
 public:
 	Shoot(Intake* intake, Shooter* shooter, double shoot_time);

@@ -18,10 +18,11 @@ namespace commands
 {
 
 using Intake = subsystems::Intake;
-using State_t = Intake::State_t;
+
 
 class PushBall: public CommandGroup
 {
+using State_t = Intake::State_t;
 // Constructor & destructors:
 public:
 	PushBall(Intake* intake);

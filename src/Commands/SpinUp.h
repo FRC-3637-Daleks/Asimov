@@ -17,10 +17,10 @@ namespace commands
 {
 
 using Shooter = subsystems::Shooter;
-using State_t = Shooter::State_t;
 
 class SpinUp : public Command
 {
+using State_t = Shooter::State_t;
 // Constructor & destructor:
 public:
 	SpinUp(Shooter* shooter, double speed = 1.0);
