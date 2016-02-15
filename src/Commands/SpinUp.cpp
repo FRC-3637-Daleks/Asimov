@@ -12,6 +12,7 @@ SpinUp::SpinUp(Shooter *shooter, double speed) : Command("Spin Up")
 {
 	shooter_ = shooter;
 	speed_ = speed;
+	SetInterruptible(true);
 }
 
 // Main functions:
