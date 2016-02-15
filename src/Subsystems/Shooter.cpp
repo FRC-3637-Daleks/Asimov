@@ -79,7 +79,7 @@ void Shooter::SetMaxVelocity(double max_velocity)
 
 double Shooter::GetSpeed() const
 {
-	return top_roller_->Get();
+	return top_roller_->GetSpeed();
 }
 
 // Error functions:
