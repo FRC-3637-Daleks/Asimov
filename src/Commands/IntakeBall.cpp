@@ -46,7 +46,10 @@ void IntakeBall::Interrupted()
 {
 	std::cout << "Intake : IntakeBall : Interrupted " << std::endl;
 	intake_->Stop();
-	intake_->SetState(State_t::OFF);
+	if (intake_->CheckSwitch())
+		intake_->SetState(State_t::HOLDING);
+	else
+		intake_->SetState(State_t::OFF);
 }
 
 } // end namespace commands
