@@ -52,7 +52,7 @@ void PushBall::Push::Initialize()
 	}
 	else
 	{
-		std::cout << "ERROR: Invalid starting state (should be \"HOLDING\")";
+		std::cout << "ERROR: Invalid starting state (should be \"HOLDING\")" << std::endl;
 	}
 }
 

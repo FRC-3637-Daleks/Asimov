@@ -29,7 +29,7 @@ void Shoot::Initialize()
 	}
 	else
 	{
-		std::cout << "ERROR: Invalid starting state (should be \"SPUNUP\")";
+		std::cout << "ERROR: Invalid starting state (should be \"SPUNUP\")" << std::endl;
 	}
 }
 
