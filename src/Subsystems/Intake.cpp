@@ -148,7 +148,6 @@ double Intake::GetErr() const
 void Intake::SetAllowedError(double err)
 {
 	allowed_error_ = err;
-	roller_->SetAllowableClosedLoopErr(allowed_error_);
 }
 
 double Intake::GetAllowedError() const

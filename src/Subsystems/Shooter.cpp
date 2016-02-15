@@ -91,7 +91,6 @@ double Shooter::GetErr() const
 void Shooter::SetAllowedError(double err)
 {
 	allowed_error_ = err;
-	top_roller_->SetAllowableClosedLoopErr(allowed_error_);
 }
 
 double Shooter::GetAllowedError() const
