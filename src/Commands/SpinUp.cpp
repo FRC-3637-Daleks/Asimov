@@ -24,6 +24,7 @@ void SpinUp::Initialize()
 	State_t currState = shooter_->GetState(); // For readability
 	if (currState == State_t::OFF || currState == State_t::SPINNINGUP)
 	{
+		timer_->Reset();
 		timer_->Start();
 		shooter_->SpinUp(speed_);
 		if (currState != State_t::SPINNINGUP)

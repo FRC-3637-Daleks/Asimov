@@ -22,6 +22,7 @@ void Shoot::Initialize()
 	std::cout << "Intake and Shooter : Shoot : Started" << std::endl;
 	if (shooter_->GetState() == State_t::SPUNUP)
 	{
+		timer_->Reset();
 		timer_->Start();
 		shooter_->SetState(Shooter::State_t::SHOOTING);
 		intake_->SetState(Intake::State_t::SHOOTING);
