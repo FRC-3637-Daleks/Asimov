@@ -32,6 +32,7 @@ void SpinUp::Initialize()
 	else
 	{
 		std::cout << "ERROR: Invalid starting state (should be \"OFF\" or \"SPINNINGUP\")" << std::endl;
+		Cancel();
 	}
 }
 

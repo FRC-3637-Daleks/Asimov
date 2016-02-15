@@ -25,7 +25,15 @@ PushBall::PushBall(Intake *intake, double time) : CommandGroup("PushBall")
 }
 
 // PushBall main functions:
-
+void PushBall::Initialize()
+{
+	std::cout << "Intake : PushBall : Started";
+	if (intake_->GetState() != State_t::HOLDING)
+	{
+		std::cout << "ERROR: Invalid starting state (should be \"HOLDING\")" << std::endl;
+		Cancel();
+	}
+}
 double PushBall::GetAddedTime() const
 {
 	return timeout_;
@@ -42,15 +50,8 @@ PushBall::Push::Push(Intake *intake)
 void PushBall::Push::Initialize()
 {
 	std::cout << "Intake : PushBall : Push : Started" << std::endl;
-	if (intake_->GetState() == State_t::HOLDING)
-	{
-		intake_->SetState(State_t::PUSHING);
-		intake_->OutakeBall();
-	}
-	else
-	{
-		std::cout << "ERROR: Invalid starting state (should be \"HOLDING\")" << std::endl;
-	}
+	intake_->SetState(State_t::PUSHING);
+	intake_->OutakeBall();
 }
 
 bool PushBall::Push::IsFinished()

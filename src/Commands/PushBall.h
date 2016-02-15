@@ -31,6 +31,10 @@ public:
 // Main functions:
 public:
 	/**
+	 * TODO : Documentation
+	 */
+	void Initialize() override;
+	/**
 	 * @return timeout_ the current timeout value for the WaitCommand.
 	 */
 	double GetAddedTime() const;

@@ -11,6 +11,7 @@ namespace commands
 IntakeBall::IntakeBall(Intake * intake) : Command("IntakeBall")
 {
 	intake_ = intake;
+	can_run_ = true;
 	SetInterruptible(true);
 }
 
@@ -26,6 +27,7 @@ void IntakeBall::Initialize()
 	else
 	{
 		std::cout << "ERROR: Invalid starting state (Should be \"OFF\")" << std::endl;
+		Cancel();
 	}
 }
 

@@ -26,6 +26,7 @@ void SpinDown::Initialize()
 	else
 	{
 		std::cout << "ERROR: Invalid starting state (Should be \"SPUNUP\")" << std::endl;
+		Cancel();
 	}
 }
 
