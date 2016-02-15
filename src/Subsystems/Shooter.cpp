@@ -133,9 +133,9 @@ void Shooter::SetMode(Mode_t mode)
 }
 
 // Command functions:
-SpinUp* Shooter::MakeSpinUp()
+SpinUp* Shooter::MakeSpinUp(double speed)
 {
-	return new commands::SpinUp(this, 1.0);
+	return new commands::SpinUp(this, speed);
 }
 
 SpinDown* Shooter::MakeSpinDown()

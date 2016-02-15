@@ -149,7 +149,7 @@ public:
 	/**
 	 * Creates new SpinUp command, and passes class instance as argument.
 	 */
-	commands::SpinUp * MakeSpinUp();
+	commands::SpinUp * MakeSpinUp(double speed = 1.0);
 
 	/**
 	 * Creates new SpinDown command, and passes class instance as argument.
