@@ -85,8 +85,12 @@ private:
 		 */
 		void Interrupted() override {};
 
+		// TODO : Documentation
+		void SetCanceled();
+
 	private:
 		Intake *intake_;
+		bool canceled;
 	};
 
 	/**

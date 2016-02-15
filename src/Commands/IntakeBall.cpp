@@ -44,7 +44,7 @@ void IntakeBall::End()
 
 void IntakeBall::Interrupted()
 {
-	std::cout << "Intake : IntakeBall : Interrupted " << std::endl;
+	std::cout << "Intake : IntakeBall : Interrupted" << std::endl;
 	intake_->Stop();
 	if (intake_->CheckSwitch())
 		intake_->SetState(State_t::HOLDING);

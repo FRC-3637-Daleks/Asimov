@@ -20,7 +20,7 @@ SpinUp::SpinUp(Shooter *shooter, double speed, double wait_time) : Command("Spin
 // Main functions:
 void SpinUp::Initialize()
 {
-	std::cout << "Shooter : SpinUp : Started" << std::endl;
+	std::cout << "Shooter : SpinUp : Started with speed = " << speed_ << " and wait time = " << wait_time_ << std::endl;
 	State_t currState = shooter_->GetState(); // For readability
 	if (currState == State_t::OFF || currState == State_t::SPINNINGUP)
 	{
