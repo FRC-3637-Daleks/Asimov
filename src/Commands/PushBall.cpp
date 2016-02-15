@@ -27,11 +27,10 @@ PushBall::PushBall(Intake *intake, double time) : CommandGroup("PushBall")
 // PushBall main functions:
 void PushBall::Initialize()
 {
-	std::cout << "Intake : PushBall : Started";
-	if (intake_->GetState() != State_t::HOLDING)
+	std::cout << "Intake : PushBall : Started with timeout = " << timeout_ << std::endl;
+	if (1)
 	{
-		std::cout << "ERROR: Invalid starting state (should be \"HOLDING\")" << std::endl;
-		Cancel();
+
 	}
 }
 double PushBall::GetAddedTime() const
@@ -43,6 +42,7 @@ double PushBall::GetAddedTime() const
 PushBall::Push::Push(Intake *intake)
 {
 	intake_ = intake;
+	canceled = false;
 	SetInterruptible(false);
 }
 
@@ -56,12 +56,18 @@ void PushBall::Push::Initialize()
 
 bool PushBall::Push::IsFinished()
 {
-	return !intake_->CheckSwitch();
+	return canceled || !intake_->CheckSwitch();
 }
 
 void PushBall::Push::End()
 {
+	canceled = false;
 	std::cout << "Intake : PushBall : Push : Ended" << std::endl;
+}
+
+void PushBall::Push::SetCanceled()
+{
+	canceled = true;
 }
 
 // Stopper constructor:

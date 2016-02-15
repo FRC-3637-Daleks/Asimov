@@ -19,7 +19,7 @@ Shoot::Shoot(Intake* intake, Shooter* shooter, double shoot_time)
 
 void Shoot::Initialize()
 {
-	std::cout << "Intake and Shooter : Shoot : Started" << std::endl;
+	std::cout << "Intake and Shooter : Shoot : Started with shoot time = " << shoot_time_ << std::endl;
 	if (shooter_->GetState() == State_t::SPUNUP)
 	{
 		timer_->Reset();
