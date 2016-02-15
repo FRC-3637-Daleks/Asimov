@@ -44,6 +44,7 @@ PushBall::Push::Push(Intake *intake)
 // Push main functions
 void PushBall::Push::Initialize()
 {
+	std::cout << "Intake : PushBall : Push : Started";
 	if (intake_->GetState() == State_t::HOLDING)
 	{
 		intake_->SetState(State_t::PUSHING);
@@ -63,6 +64,7 @@ bool PushBall::Push::IsFinished()
 // Stopper constructor:
 PushBall::Stopper::Stopper(Intake *intake)
 {
+	std::cout << "Intake : PushBall : Stopper : Started";
 	intake_ = intake;
 	SetInterruptible(false);
 }
@@ -75,6 +77,7 @@ bool PushBall::Stopper::IsFinished()
 
 void PushBall::Stopper::End()
 {
+	std::cout << "Intake : PushBall : Stopper : Ended";
 	intake_->Stop();
 	intake_->SetState(State_t::OFF);
 }

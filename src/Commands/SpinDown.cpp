@@ -17,6 +17,7 @@ SpinDown::SpinDown(Shooter* shooter) : Command("Spin Down")
 // Main functions:
 void SpinDown::Initialize()
 {
+	std::cout << "Shooter : SpinDown : Started";
 	if (shooter_->GetState() == State_t::SPUNUP)
 	{
 		shooter_->SpinDown();
@@ -35,11 +36,13 @@ bool SpinDown::IsFinished()
 
 void SpinDown::End()
 {
+	std::cout << "Shooter : SpinDown : Ended";
 	shooter_->SetState(State_t::OFF);
 }
 
 void SpinDown::Interrupted()
 {
+	std::cout << "Shooter : SpinDown : Interrupted";
 	shooter_->EmergencyStop();
 	shooter_->SetState(State_t::OFF);
 }

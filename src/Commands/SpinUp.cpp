@@ -18,6 +18,7 @@ SpinUp::SpinUp(Shooter *shooter, double speed) : Command("Spin Up")
 // Main functions:
 void SpinUp::Initialize()
 {
+	std::cout << "Shooter : SpinUp : Started";
 	State_t currState = shooter_->GetState(); // For readability
 	if (currState == State_t::OFF || currState == State_t::SPINNINGUP)
 	{
@@ -38,11 +39,13 @@ bool SpinUp::IsFinished()
 
 void SpinUp::End()
 {
+	std::cout << "Shooter : SpinUp : Ended";
 	shooter_->SetState(State_t::SPUNUP);
 }
 
 void SpinUp::Interrupted()
 {
+	std::cout << "Shooter : SpinUp : Interrupted";
 	shooter_->EmergencyStop();
 	shooter_->SetState(State_t::OFF);
 }
