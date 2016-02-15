@@ -1,7 +1,14 @@
 #include "WPILib.h"
 #include "Subsystems/Intake.h"
 #include "Subsystems/Shooter.h"
+#include "Commands/IntakeBall.h"
+#include "Commands/PushBall.h"
+#include "Commands/SpinUp.h"
+#include "Commands/SpinDown.h"
+#include "Commands/Shoot.h"
+
 #include <math.h>
+#include <vector>
 
 using Intake = subsystems::Intake;
 using Shooter = subsystems::Shooter;
@@ -23,6 +30,40 @@ private:
 		lock = false;
 
 		intake_->SetMode(Intake::Mode_t::VBUS);
+
+		shoot_->SetAllowedError(900);
+
+		commands.push_back(intake_->MakeIntakeBall());
+		triggers.push_back(new JoystickButton(xbox_, A));
+		triggers.back()->WhenPressed(commands.back());
+
+		triggers.push_back(new JoystickButton(xbox_, START));
+		triggers.back()->CancelWhenPressed(commands.back());
+
+		auto push_ball_command = intake_->MakePushBall();
+
+		triggers.push_back(new JoystickButton(xbox_, B));
+		commands.push_back(push_ball_command);
+		triggers.back()->WhenPressed(commands.back());
+
+		triggers.push_back(new JoystickButton(xbox_, Y));
+		commands.push_back(shoot_->MakeSpinUp());
+		triggers.back()->WhenPressed(commands.back());
+
+		triggers.push_back(new JoystickButton(xbox_, X));
+		triggers.back()->CancelWhenPressed(commands.back());
+
+		commands.push_back(shoot_->MakeSpinDown());
+		triggers.back()->WhenPressed(commands.back());
+
+		triggers.push_back(new JoystickButton(xbox_, R_TRIGGER));
+		commands.push_back(new commands::Shoot(intake_, shoot_, 2));
+		triggers.back()->WhenPressed(commands.back());
+
+		intake_->SetShootVelocity(0.8);
+
+		intake_->Initialize();
+		shoot_->Initialize();
 
 //		take_ = intake_->MakeIntakeBall();
 	}
@@ -46,6 +87,7 @@ private:
 	void TeleopPeriodic() override
 	{
 		Scheduler::GetInstance()->Run();
+		UpdateDash();
 	}
 
 	// Autonomous
@@ -62,8 +104,6 @@ private:
 	// Test
 	void TestBoulderInit()
 	{
-		intake_->Initialize();
-		shoot_->Initialize();
 	}
 
 	void TestBoulderPeriodic()
@@ -130,13 +170,15 @@ private:
 
 	void UpdateDash()
 	{
-		SmartDashboard::PutNumber("Shooter Speed", shoot_->GetSpeed());
+		SmartDashboard::PutNumber("Shooter Error", shoot_->GetErr());
 	}
 
 private:
 	Intake *intake_;
 	Joystick *xbox_;
 	Shooter *shoot_;
+	std::vector<Command*> commands;
+	std::vector<JoystickButton*> triggers;
 
 	enum Modes {AUTO = 0, MANUAL, PUSH};
 	Modes mode;
