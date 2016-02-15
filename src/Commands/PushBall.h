@@ -25,7 +25,7 @@ class PushBall: public CommandGroup
 using State_t = Intake::State_t;
 // Constructor & destructors:
 public:
-	PushBall(Intake* intake, double time = 1.0);
+	PushBall(Intake* intake, double time = 0.5);
 	virtual ~PushBall() = default;
 
 // Main functions:
