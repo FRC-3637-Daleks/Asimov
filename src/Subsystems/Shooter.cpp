@@ -34,7 +34,7 @@ void Shooter::Initialize()
 	top_roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
 	top_roller_->ConfigEncoderCodesPerRev(2);
 	top_roller_->SetInverted(true);
-	top_roller_->SetClosedLoopOutputDirection(true);
+	top_roller_->SetClosedLoopOutputDirection(false);
 	top_roller_->SetSensorDirection(true);
 	top_roller_->SelectProfileSlot(0);
 	top_roller_->SetVoltageRampRate(0.0);
@@ -42,7 +42,7 @@ void Shooter::Initialize()
 
 	// Set max and min voltage ouput, dissalows negative voltage
 	top_roller_->ConfigNominalOutputVoltage(0.0, 0.0);
-	top_roller_->ConfigPeakOutputVoltage(0.0, -12.0);
+	top_roller_->ConfigPeakOutputVoltage(0, -12.0);
 }
 
 void Shooter::SpinUp(double speed)

@@ -41,7 +41,6 @@ private:
 	// Teleop
 	void TeleopInit() override
 	{
-
 	}
 
 	void TeleopPeriodic() override
@@ -61,13 +60,13 @@ private:
 	}
 
 	// Test
-	void TestInit() override
+	void TestBoulderInit()
 	{
 		intake_->Initialize();
 		shoot_->Initialize();
 	}
 
-	void TestPeriodic() override
+	void TestBoulderPeriodic()
 	{
 		if (xbox_->GetRawButton(A))
 		{
@@ -125,6 +124,13 @@ private:
 			intake_->OutakeBall();
 			break;
 		}
+
+		UpdateDash();
+	}
+
+	void UpdateDash()
+	{
+		SmartDashboard::PutNumber("Shooter Speed", shoot_->GetSpeed());
 	}
 
 private:
