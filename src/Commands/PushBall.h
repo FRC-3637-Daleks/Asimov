@@ -35,12 +35,12 @@ public:
 	 * waiting to stop turning the rollers.
 	 * @param timeout the new timeout value
 	 */
-	void SetTimeout(double timeout);
+	void AddedTime(double timeout);
 
 	/**
 	 * @return timeout_ the current timeout value for the WaitCommand.
 	 */
-	double GetTimeout() const;
+	double GetAddedTime() const;
 
 protected:
 

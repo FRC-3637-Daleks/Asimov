@@ -24,12 +24,12 @@ PushBall::PushBall(Intake *intake) : CommandGroup("PushBall")
 }
 
 // PushBall main functions:
-void PushBall::SetTimeout(double timeout)
+void PushBall::AddedTime(double timeout)
 {
 	timeout_ = timeout;
 }
 
-double PushBall::GetTimeout() const
+double PushBall::GetAddedTime() const
 {
 	return timeout_;
 }
