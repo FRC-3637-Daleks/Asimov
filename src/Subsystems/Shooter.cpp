@@ -85,12 +85,13 @@ double Shooter::GetSpeed() const
 // Error functions:
 double Shooter::GetErr() const
 {
-	return top_roller_->GetSetpoint() - top_roller_->Get();
+	return top_roller_->GetClosedLoopError();
 }
 
 void Shooter::SetAllowedError(double err)
 {
 	allowed_error_ = err;
+	top_roller_->SetAllowableClosedLoopErr(allowed_error_);
 }
 
 double Shooter::GetAllowedError() const

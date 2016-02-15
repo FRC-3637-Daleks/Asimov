@@ -142,12 +142,13 @@ double Intake::GetShootVelocity() const
 // Error functions:
 double Intake::GetErr() const
 {
-	return roller_->GetSetpoint() - roller_->Get();
+	return roller_->GetClosedLoopError();
 }
 
 void Intake::SetAllowedError(double err)
 {
 	allowed_error_ = err;
+	roller_->SetAllowableClosedLoopErr(allowed_error_);
 }
 
 double Intake::GetAllowedError() const
