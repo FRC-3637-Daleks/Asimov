@@ -23,10 +23,11 @@ namespace subsystems
 class Swiss: public Subsystem
 {
 public:
-	enum state_t {max=0, door, cheval, min, end};
+	enum state_t {max=0, door, cheval, min, N};
+	enum Mode_t {Velocity=0, Position};
 
 private:
-	static double states[4];
+	static double states[state_t::N];
 	state_t position;
 	CANTalon *swisstalon;
 
@@ -38,6 +39,7 @@ public:
 	void LiftDoor();
 	void LowerCheval();
 	state_t GetState();
+	Mode_t mode;
 };
 
 
