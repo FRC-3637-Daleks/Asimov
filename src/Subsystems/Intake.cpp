@@ -27,8 +27,8 @@ Intake::Intake() : Subsystem("Intake")
 	mode_ = Mode_t::VBUS;
 	SetMode(Mode_t::VELOCITY);
 
-	max_velocity_ = 5360.0;
-	allowed_error_ = 0.1;
+	max_velocity_ = 1000.0;
+	allowed_error_ = 100;
 	shoot_velocity_ = 1.0;
 }
 
@@ -43,7 +43,7 @@ Intake::~Intake()
 void Intake::Initialize()
 {
 	roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
-	roller_->ConfigEncoderCodesPerRev(1024);
+	roller_->ConfigEncoderCodesPerRev(8);
 	roller_->SetSensorDirection(true);
 	roller_->SetInverted(true);
 	roller_->SelectProfileSlot(0);
