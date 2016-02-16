@@ -11,14 +11,14 @@ namespace commands
 SpinDown::SpinDown(Shooter* shooter) : Command("Spin Down")
 {
 	shooter_ = shooter;
-	SetInterruptible(true);
+	SetInterruptible(false);
 }
 
 // Main functions:
 void SpinDown::Initialize()
 {
 	std::cout << "Shooter : SpinDown : Started" << std::endl;
-	if (shooter_->GetState() == State_t::SPUNUP)
+	if (shooter_->GetState() != State_t::SHOOTING)  // Should only cancel if it was in the Shooting state
 	{
 		shooter_->SpinDown();
 		shooter_->SetState(State_t::SPINNINGDOWN);
@@ -44,8 +44,11 @@ void SpinDown::End()
 void SpinDown::Interrupted()
 {
 	std::cout << "Shooter : SpinDown : Interrupted" << std::endl;
-	shooter_->EmergencyStop();
-	shooter_->SetState(State_t::OFF);
+	if(shooter_->GetState() != State_t::SHOOTING)
+	{
+		shooter_->EmergencyStop();
+		shooter_->SetState(State_t::OFF);
+	}
 }
 
 }// end namespace commands

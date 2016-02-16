@@ -22,7 +22,7 @@ void SpinUp::Initialize()
 {
 	std::cout << "Shooter : SpinUp : Started with speed = " << speed_ << " and wait time = " << wait_time_ << std::endl;
 	State_t currState = shooter_->GetState(); // For readability
-	if (currState == State_t::OFF || currState == State_t::SPINNINGUP)
+	if (currState == State_t::OFF || currState == State_t::SPINNINGUP || currState == State_t::SPUNUP)
 	{
 		timer_->Reset();
 		timer_->Start();
@@ -51,8 +51,8 @@ void SpinUp::End()
 void SpinUp::Interrupted()
 {
 	std::cout << "Shooter : SpinUp : Interrupted" << std::endl;
-	shooter_->EmergencyStop();
-	shooter_->SetState(State_t::OFF);
+	//shooter_->EmergencyStop();
+	//shooter_->SetState(State_t::OFF);
 }
 
 void SpinUp::SetSpeed(double speed)

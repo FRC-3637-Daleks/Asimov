@@ -20,7 +20,7 @@ Shoot::Shoot(Intake* intake, Shooter* shooter, double shoot_time)
 void Shoot::Initialize()
 {
 	std::cout << "Intake and Shooter : Shoot : Started with shoot time = " << shoot_time_ << std::endl;
-	if (shooter_->GetState() == State_t::SPUNUP)
+	if (shooter_->GetState() == Shooter::State_t::SPUNUP && intake_->GetState() == Intake::State_t::HOLDING)
 	{
 		timer_->Reset();
 		timer_->Start();
@@ -38,7 +38,7 @@ void Shoot::Initialize()
 void Shoot::End()
 {
 	std::cout << "Intake and Shooter : Shoot : Ended" << std::endl;
-	shooter_->SetState(Shooter::State_t::SPUNUP);
+	// shooter_->SetState(Shooter::State_t::SPUNUP); Shouldn't touch shooter state
 	intake_->SetState(Intake::State_t::OFF);
 	intake_->Stop();
 }
@@ -51,7 +51,8 @@ bool Shoot::IsFinished()
 void Shoot::Interrupted()
 {
 	std::cout << "Intake and Shooter : Shoot : Interrupted" << std::endl;
-	End();
+	if(intake_->GetState() == Intake::State_t::SHOOTING)  // Prevents shooter from ending in wrong state after cancel
+		End();
 }
 
 void Shoot::SetShootTime(double shoot_time)
