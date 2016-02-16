@@ -1,0 +1,3 @@
+[submodule "dalek-manager-lib"]
+	path = dalek-manager-lib
+	url = ./dalek-manager-lib

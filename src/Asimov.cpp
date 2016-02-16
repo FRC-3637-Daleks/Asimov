@@ -1,3 +1,7 @@
+#include "Log/SystemData.h"
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+
 #include "WPILib.h"
 
 class Asimov: public IterativeRobot
@@ -9,7 +13,9 @@ private:
 	// Init
 	void RobotInit() override
 	{
-
+		using namespace dman;
+		TextLog::Log(MessageData(MessageData::INFO, 0), SystemData("Asimov", "RobotInit", "Robot")) <<
+				"RobotInit complete";
 	}
 
 	// Disabled
