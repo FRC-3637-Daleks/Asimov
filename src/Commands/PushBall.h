@@ -32,6 +32,7 @@ public:
 public:
 	/**
 	 * TODO : Documentation
+	 * So far does nothing
 	 */
 	void Initialize() override;
 	/**
@@ -85,7 +86,9 @@ private:
 		 */
 		void Interrupted() override {};
 
-		// TODO : Documentation
+		/**
+		 * Sets the boolean flag canceled to true.
+		 */
 		void SetCanceled();
 
 	private:
