@@ -57,12 +57,10 @@ private:
 	// Test
 	void TestInit() override
 	{
-		TestDriveInit();
 	}
 
 	void TestPeriodic() override
 	{
-		TestDrivePeriodic();
 	}
 
 	void TestDriveInit()
