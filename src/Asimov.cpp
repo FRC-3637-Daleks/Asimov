@@ -38,7 +38,7 @@ private:
 
 		intake_ = new Intake();
 		shoot_ = new Shooter();
-		xbox_ = new Joystick(1);
+		xbox_ = new Joystick(2);
 		mode = AUTO;
 		lock = false;
 
@@ -119,11 +119,13 @@ private:
 	void TestInit()
 	{
 		TestBoulderInit();
+		TestDriveInit();
 	}
 
 	void TestPeriodic()
 	{
 		TestBoulderPeriodic();
+		TestDrivePeriodic();
 	}
 
 	// Test
