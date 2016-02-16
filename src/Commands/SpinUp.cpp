@@ -14,6 +14,7 @@ SpinUp::SpinUp(Shooter *shooter, double speed, double wait_time) : Command("Spin
 	speed_ = speed;
 	wait_time_ = wait_time;
 	timer_ = new Timer;
+	Requires(shooter);
 	SetInterruptible(true);
 }
 

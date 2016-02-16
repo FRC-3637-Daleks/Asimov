@@ -14,6 +14,7 @@ Shoot::Shoot(Intake* intake, Shooter* shooter, double shoot_time)
 	shooter_ = shooter;
 	shoot_time_ = shoot_time;
 	timer_ = new Timer;
+	Requires(intake);
 	SetInterruptible(false);
 }
 
@@ -38,7 +39,8 @@ void Shoot::Initialize()
 void Shoot::End()
 {
 	std::cout << "Intake and Shooter : Shoot : Ended" << std::endl;
-	// shooter_->SetState(Shooter::State_t::SPUNUP); Shouldn't touch shooter state
+	if(shooter_->GetState() == Shooter::State_t::SHOOTING)
+		shooter_->SetState(Shooter::State_t::SPUNUP);
 	intake_->SetState(Intake::State_t::OFF);
 	intake_->Stop();
 }

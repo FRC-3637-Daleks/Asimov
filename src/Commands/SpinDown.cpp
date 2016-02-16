@@ -12,6 +12,7 @@ SpinDown::SpinDown(Shooter* shooter) : Command("Spin Down")
 {
 	shooter_ = shooter;
 	SetInterruptible(false);
+	Requires(shooter);
 }
 
 // Main functions:

@@ -43,6 +43,7 @@ PushBall::Push::Push(Intake *intake)
 {
 	intake_ = intake;
 	canceled = false;
+	Requires(intake);
 	SetInterruptible(false);
 }
 
@@ -75,6 +76,7 @@ PushBall::Stopper::Stopper(Intake *intake)
 {
 	std::cout << "Intake : PushBall : Stopper : Started" << std::endl;
 	intake_ = intake;
+	Requires(intake);
 	SetInterruptible(false);
 }
 

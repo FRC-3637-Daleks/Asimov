@@ -60,7 +60,7 @@ private:
 		commands.push_back(new commands::Shoot(intake_, shoot_, 2));
 		triggers.back()->WhenPressed(commands.back());
 
-		intake_->SetShootVelocity(0.8);
+		intake_->SetShootVelocity(1.0);
 
 		intake_->Initialize();
 		shoot_->Initialize();
@@ -99,6 +99,16 @@ private:
 	void AutonomousPeriodic() override
 	{
 		Scheduler::GetInstance()->Run();
+	}
+
+	void TestInit()
+	{
+		TestBoulderInit();
+	}
+
+	void TestPeriodic()
+	{
+		TestBoulderPeriodic();
 	}
 
 	// Test
