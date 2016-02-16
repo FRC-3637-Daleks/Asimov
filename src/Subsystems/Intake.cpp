@@ -20,13 +20,14 @@ Intake::Intake() : Subsystem("Intake")
 	detector_ = new DigitalInput(0);
 
 	// Default values:
-	intake_speed_ = 0.8;
+	intake_speed_ = 0.5;
 	push_speed_ = -1.0;
 
 	state_ = State_t::OFF;
-	mode_ = Mode_t::VELOCITY;
+	mode_ = Mode_t::VBUS;
+	SetMode(Mode_t::VELOCITY);
 
-	max_velocity_ = 30;
+	max_velocity_ = 5360.0;
 	allowed_error_ = 0.1;
 	shoot_velocity_ = 1.0;
 }
@@ -43,11 +44,11 @@ void Intake::Initialize()
 {
 	roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
 	roller_->ConfigEncoderCodesPerRev(1024);
-	roller_->SetSensorDirection(false);
+	roller_->SetSensorDirection(true);
 	roller_->SetInverted(true);
 	roller_->SelectProfileSlot(0);
 	roller_->SetVoltageRampRate(0.0);
-	roller_->SetCloseLoopRampRate(5.0);
+	//roller_->SetCloseLoopRampRate(5.0);
 
 	// Configure max and min voltage outputs
 	roller_->ConfigNominalOutputVoltage(0.0, 0.0);

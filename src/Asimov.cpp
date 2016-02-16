@@ -25,11 +25,11 @@ private:
 	{
 		intake_ = new Intake();
 		shoot_ = new Shooter();
-		xbox_ = new Joystick(1);
+		xbox_ = new Joystick(2);
 		mode = AUTO;
 		lock = false;
 
-		intake_->SetMode(Intake::Mode_t::VBUS);
+		intake_->SetMode(Intake::Mode_t::VELOCITY);
 
 		shoot_->SetAllowedError(900);
 
@@ -146,10 +146,12 @@ private:
 		if(xbox_->GetRawButton(START))
 		{
 			shoot_->SetMode(Shooter::Mode_t::VBUS);
+			intake_->SetMode(Intake::Mode_t::VBUS);
 		}
 		else
 		{
 			shoot_->SetMode(Shooter::Mode_t::VELOCITY);
+			intake_->SetMode(Intake::Mode_t::VBUS);
 		}
 
 		if(!lock)
