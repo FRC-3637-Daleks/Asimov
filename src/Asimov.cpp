@@ -31,7 +31,7 @@ private:
 
 		intake_->SetMode(Intake::Mode_t::VELOCITY);
 
-		shoot_->SetAllowedError(900);
+		shoot_->SetAllowedError(1000);
 
 		commands.push_back(intake_->MakeIntakeBall());
 		triggers.push_back(new JoystickButton(xbox_, A));
