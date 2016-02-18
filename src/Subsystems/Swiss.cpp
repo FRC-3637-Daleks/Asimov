@@ -11,19 +11,15 @@ using state_t = subsystems::Swiss::state_t;
 double Swiss::tickToDegree = 90; //measure and change later
 double Swiss::maxVelocity = .5; //measure and change later
 
-double Swiss::states[4] = {
-		80.0 , 3.0 , 2.0 , 1.0
-};
+double Swiss::states[] = {90, 50, 20, 0, 10};
 
 
-
-
-Swiss::Swiss(int deviceNumber, double P, double D) : Subsystem("Swiss"){
+Swiss::Swiss(int deviceNumber, double P, double I, double D) : Subsystem("Swiss"){
 	swisstalon = new CANTalon(deviceNumber);
 	swisstalon->SetFeedbackDevice(CANTalon::FeedbackDevice::AnalogPot);
 	swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
 	swisstalon->ConfigPotentiometerTurns(1);
-	swisstalon->SetPID(P, 0, D);
+	swisstalon->SetPID(P, I, D);
 	swisstalon->ConfigNeutralMode(CANSpeedController::kNeutralMode_Brake);
 	swisstalon->ConfigForwardLimit(max);
 	swisstalon->ConfigReverseLimit(min);
@@ -38,6 +34,9 @@ void Swiss::SetPIDValues(double p1, double p2, double p3, double v1, double v2, 
 	vPid.i = v2;
 	vPid.d = v3;
 
+}
+Swiss::mode_t Swiss::GetMode(){
+	return mode;
 }
 void Swiss::SetMode(mode_t m){
 	if(mode == m){
