@@ -140,6 +140,11 @@ double Intake::GetShootVelocity() const
 	return shoot_velocity_;
 }
 
+double Intake::GetCurrentPosition() const
+{
+	return roller_->GetPosition();
+}
+
 // Error functions:
 double Intake::GetErr() const
 {
