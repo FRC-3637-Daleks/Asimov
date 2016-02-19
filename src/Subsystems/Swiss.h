@@ -46,7 +46,12 @@ public:
 
 	Swiss(int deviceNumber, double P, double I, double D);
 	void SetPIDValues(double p1, double p2, double v1, double v2, double b1, double b2);
-	void SetVelocity(double v);
+
+	/** If change mode is true it will change the mode of the system to velocity.
+	 * Otherwise it will just set the talon to v
+	 *
+	 */
+	void SetVelocity(double v, bool changeMode = true);
 	void SetVoltage(double v);
 	void SetMode(mode_t m);
 	mode_t GetMode();

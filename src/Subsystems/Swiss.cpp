@@ -65,9 +65,15 @@ void Swiss::SetMode(mode_t m){
 state_t Swiss::GetState(){
 	return position;
 }
-void Swiss::SetVelocity(double v){
-	SetMode(velocity);
-	swisstalon->Set(maxVelocity * v);
+
+void Swiss::SetVelocity(double v, bool changeMode){
+	if(changeMode)
+		SetMode(velocity);
+
+	if(mode == mode_t::velocity)
+		swisstalon->Set(maxVelocity * v);
+	else if(mode == mode_t::vbus)
+		swisstalon->Set(v);
 }
 void Swiss::SetVoltage(double v){
 	SetMode(vbus);
@@ -76,7 +82,6 @@ void Swiss::SetVoltage(double v){
 void Swiss::MaxHeight(){
 	SetState(max);
 	//position = state[0];
-
 }
 
 void Swiss::MinHeight(){
