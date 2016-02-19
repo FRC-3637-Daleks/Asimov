@@ -75,6 +75,18 @@ void Swiss::SetVelocity(double v, bool changeMode){
 	else if(mode == mode_t::vbus)
 		swisstalon->Set(v);
 }
+
+void Swiss::getPos(){
+
+
+}
+
+void Swiss::getDiff(){
+
+
+
+}
+
 void Swiss::SetVoltage(double v){
 	SetMode(vbus);
 	swisstalon->Set(v);
