@@ -77,11 +77,8 @@ private:
 
 	void TestSwiss()
 	{
-
-
 		StateThing();
-		while (swissCheez.GetMode()==Swiss::mode_t::pos){
-
+		if (swissCheez.GetMode()==Swiss::mode_t::pos) {
 			if(derp.GetRawButton(1)){
 				swissCheez.MinHeight();
 			}
@@ -98,9 +95,8 @@ private:
 				swissCheez.LowerPort();
 			}
 
-		}
-		while (swissCheez.GetMode()==Swiss::mode_t::velocity){
-			swissCheez.SetVelocity(derp.GetRawAxis(1));
+		} else {
+			swissCheez.SetVelocity(derp.GetRawAxis(1), false);
 		}
 	}
 };
