@@ -27,21 +27,77 @@ std::string Drive::ModeToString(Mode_t mode)
 	}
 }
 
-Drive::Drive(): talons_(nullptr), mode_(Mode_t::VBus),
+Drive::Drive(): Subsystem("Drive"), System("Drive"), talons_(nullptr), mode_(Mode_t::VBus),
 		ticks_per_rev_(761), wheel_diameter_(0.3048), max_velocity_(120.0), wheel_revs_per_base_rev_(5000),
 		allowable_error_(0.05) // 5 cm of wheel rotation
 {
 }
 
-bool Drive::Initialize()
+void Drive::initTalons()
 {
-	talons_ = std::make_unique<Talons>(3, 4, 1, 2);
-
-	return configureBoth();
+	auto& ports = GetPortSpace("CAN");
+	if(!is_initialized())
+		talons_ = std::make_unique<Talons>(ports("left"), ports("left_slave"),
+										   ports("right"), ports("right_slave"));
 }
 
-bool Drive::Configure()
+bool Drive::configureMaster(CANTalon& master)
 {
+	std::cout << "Configuring a side" << std::endl;
+	master.ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SrxDisableSwitchInputs);
+	master.ConfigNeutralMode(CANTalon::NeutralMode::kNeutralMode_Brake);
+	master.SetFeedbackDevice(CANTalon::FeedbackDevice::QuadEncoder);
+	SetTicksPerRev(get_ticks_per_rev());
+	master.SetPosition(0.0);
+
+	master.SetVoltageRampRate(50.0);
+
+	if(get_mode() == Mode_t::Position)
+	{
+		master.SetControlMode(CANTalon::ControlMode::kPosition);
+		master.SelectProfileSlot(ModePIDSlot_t::PositionPID);
+	}
+	else if(get_mode() == Mode_t::Velocity)
+	{
+		master.SetControlMode(CANTalon::ControlMode::kSpeed);
+		master.SelectProfileSlot(ModePIDSlot_t::VelocityPID);
+	}
+	else if(get_mode() == Mode_t::VBus)
+	{
+		master.SetControlMode(CANTalon::ControlMode::kPercentVbus);
+	}
+
+	return true;
+}
+
+bool Drive::configureBoth()
+{
+	if(is_initialized())
+	{
+		std::cout << "Configuring Drive" << std::endl;
+		bool left_ret = configureMaster(talons_->left_);
+		talons_->left_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
+		talons_->left_slave_.Set(3);
+		talons_->left_.SetInverted(false);
+		talons_->left_.SetSensorDirection(false);
+
+		bool right_ret = configureMaster(talons_->right_);
+		talons_->right_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
+		talons_->right_slave_.Set(1);
+		talons_->right_.SetInverted(true);
+		talons_->right_.SetSensorDirection(true);
+
+		return left_ret && right_ret;
+	}
+
+	return false;
+}
+
+
+bool Drive::doConfigure()
+{
+	if(!is_initialized())
+		initTalons();
 	return configureBoth();
 }
 
@@ -240,58 +296,6 @@ void Drive::ArcadeDrive(double y, double rotation)
 	if(rotation > 1.0) rotation = 1.0;
 	if(rotation < -1.0) rotation = -1.0;
 	TankDrive(y - rotation, y + rotation);
-}
-
-bool Drive::configureMaster(CANTalon& master)
-{
-	std::cout << "Configuring a side" << std::endl;
-	master.ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SrxDisableSwitchInputs);
-	master.ConfigNeutralMode(CANTalon::NeutralMode::kNeutralMode_Brake);
-	master.SetFeedbackDevice(CANTalon::FeedbackDevice::QuadEncoder);
-	SetTicksPerRev(get_ticks_per_rev());
-	master.SetPosition(0.0);
-
-	master.SetVoltageRampRate(50.0);
-
-	if(get_mode() == Mode_t::Position)
-	{
-		master.SetControlMode(CANTalon::ControlMode::kPosition);
-		master.SelectProfileSlot(ModePIDSlot_t::PositionPID);
-	}
-	else if(get_mode() == Mode_t::Velocity)
-	{
-		master.SetControlMode(CANTalon::ControlMode::kSpeed);
-		master.SelectProfileSlot(ModePIDSlot_t::VelocityPID);
-	}
-	else if(get_mode() == Mode_t::VBus)
-	{
-		master.SetControlMode(CANTalon::ControlMode::kPercentVbus);
-	}
-
-	return true;
-}
-
-bool Drive::configureBoth()
-{
-	if(is_initialized())
-	{
-		std::cout << "Configuring Drive" << std::endl;
-		bool left_ret = configureMaster(talons_->left_);
-		talons_->left_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
-		talons_->left_slave_.Set(3);
-		talons_->left_.SetInverted(false);
-		talons_->left_.SetSensorDirection(false);
-
-		bool right_ret = configureMaster(talons_->right_);
-		talons_->right_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
-		talons_->right_slave_.Set(1);
-		talons_->right_.SetInverted(true);
-		talons_->right_.SetSensorDirection(true);
-
-		return left_ret && right_ret;
-	}
-
-	return false;
 }
 
 }
