@@ -76,13 +76,17 @@ void Swiss::SetVelocity(double v, bool changeMode){
 		swisstalon->Set(v);
 }
 
-void Swiss::getPos(){
-
-
+double Swiss::GetPos(){
+	return swisstalon->GetPosition();
 }
 
-void Swiss::getDiff(){
-
+double Swiss::GetDiff(){
+	if(GetMode()== Swiss::mode_t::pos){
+		return GetState()-GetPos();
+	}
+	else{
+		return 0;
+	}
 
 
 }
@@ -121,5 +125,17 @@ void Swiss::SetState(state_t s){
 	SetMode(pos);
 	position = s;
 	swisstalon->Set(states[position]);
+}
+
+bool Swiss::IsCloseNuff(){
+	if (GetDiff()> 5){
+		return false;
+	}
+	else{
+		return true;
+	}
+}
+void Swiss::Hold(){
+	swisstalon->Set(GetPos());
 }
 

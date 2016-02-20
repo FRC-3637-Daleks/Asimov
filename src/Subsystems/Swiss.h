@@ -57,10 +57,14 @@ public:
 	mode_t GetMode();
 	void SetState(state_t s);
 	void MaxHeight();
+	double GetPos();
+	double GetDiff();
 	void MinHeight();
 	void LowerPort();
 	void LiftDoor();
 	void LowerCheval();
+	bool IsCloseNuff();
+	void Hold();
 	state_t GetState();
 };
 

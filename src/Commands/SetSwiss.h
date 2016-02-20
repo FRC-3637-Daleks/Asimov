@@ -13,11 +13,12 @@ namespace commands
 {
 
 using Swiss = subsystems::Swiss;
-class SetSwiss : public Command{
+class SetSwiss : public Command
+{
 	using state_t = Swiss::state_t;
 
 public:
-	SetSwiss(Intake* intake);
+	SetSwiss(Swiss* swiss, state_t sta);
 	virtual ~SetSwiss();
 
 public:
@@ -25,11 +26,9 @@ public:
 	void Initialize() override;
 
 
-	void Execute() override {};
+	void Execute() override ;
 
-	void getPos();
 
-	void getDiff();
 
 	bool IsFinished() override;
 
@@ -44,6 +43,7 @@ protected:
 
 private:
 	Swiss *swiss_;
+	state_t stat;
 };
 
 } // end namespace commands
