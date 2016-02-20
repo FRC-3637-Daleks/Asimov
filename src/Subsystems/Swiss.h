@@ -53,7 +53,7 @@ public:
 	 */
 	void SetVelocity(double v, bool changeMode = true);
 	void SetVoltage(double v);
-	void SetMode(mode_t m);
+	void SetMode(mode_t m, bool force);
 	mode_t GetMode();
 	void SetState(state_t s);
 	void MaxHeight();

@@ -38,11 +38,14 @@ void Swiss::SetPIDValues(double p1, double p2, double p3, double v1, double v2, 
 Swiss::mode_t Swiss::GetMode(){
 	return mode;
 }
-void Swiss::SetMode(mode_t m){
-	if(mode == m){
-		return;
+void Swiss::SetMode(mode_t m, bool force){
+
+	if(!force){
+		if(mode == m){
+					return;
+		}
 	}
-	else if(m == pos){
+	if(m == pos){
 		swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
 		mode = m;
 		swisstalon->SelectProfileSlot(0);
@@ -62,13 +65,14 @@ void Swiss::SetMode(mode_t m){
 		return;
 	}
 }
+
 state_t Swiss::GetState(){
 	return position;
 }
 
 void Swiss::SetVelocity(double v, bool changeMode){
 	if(changeMode)
-		SetMode(velocity);
+		SetMode(velocity, true);
 
 	if(mode == mode_t::velocity)
 		swisstalon->Set(maxVelocity * v);
@@ -92,7 +96,7 @@ double Swiss::GetDiff(){
 }
 
 void Swiss::SetVoltage(double v){
-	SetMode(vbus);
+	SetMode(vbus, true);
 	swisstalon->Set(v);
 }
 void Swiss::MaxHeight(){
@@ -122,7 +126,7 @@ void Swiss::LowerCheval(){
 }
 
 void Swiss::SetState(state_t s){
-	SetMode(pos);
+	SetMode(pos, true);
 	position = s;
 	swisstalon->Set(states[position]);
 }

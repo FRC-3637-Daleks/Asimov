@@ -6,7 +6,7 @@ using namespace subsystems;
 class Asimov: public IterativeRobot
 {
 public:
-	Asimov(): swissCheez(7331, 0, 0, 0), derp(2)
+	Asimov(): swissCheez(7, 0, 0, 0), derp(2)
 	{}
 	Swiss swissCheez;
 	Joystick derp;
@@ -65,13 +65,13 @@ private:
 
 	void StateThing(){
 		if(derp.GetRawButton(5)){
-			swissCheez.SetMode(Swiss::mode_t::pos);
+			swissCheez.SetMode(Swiss::mode_t::pos, true);
 		}
 		if(derp.GetRawButton(7)){
-			swissCheez.SetMode(Swiss::mode_t::velocity);
+			swissCheez.SetMode(Swiss::mode_t::velocity, true);
 		}
 		if(derp.GetRawButton(8)){
-			swissCheez.SetMode(Swiss::mode_t::vbus);
+			swissCheez.SetMode(Swiss::mode_t::vbus, true);
 		}
 	}
 
@@ -96,7 +96,7 @@ private:
 			}
 
 		} else {
-			swissCheez.SetVelocity(derp.GetRawAxis(1), false);
+			swissCheez.SetVelocity(derp.GetRawAxis(5), false);
 		}
 	}
 };
