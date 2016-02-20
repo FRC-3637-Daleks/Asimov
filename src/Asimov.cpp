@@ -1,6 +1,7 @@
 #include "WPILib.h"
 
 #include "Subsystems/Drive.h"
+#include "Subsystems/CameraMount.h"
 
 #include <memory>
 
@@ -10,6 +11,7 @@ private:
 	Joystick gamepad_, left_stick_, right_stick_;
 	bool tank_drive_;
 	subsystems::Drive drive_;
+	subsystems::CameraMount mount_;
 
 public:
 	Asimov(): gamepad_(2), left_stick_(0), right_stick_(1), tank_drive_(false)
@@ -21,6 +23,7 @@ private:
 	void RobotInit() override
 	{
 		drive_.Initialize();
+		mount_.doConfigure();
 	}
 
 	// Disabled
