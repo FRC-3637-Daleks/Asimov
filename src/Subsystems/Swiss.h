@@ -35,6 +35,8 @@ private:
 		double p;
 		double i;
 		double d;
+		double f;
+		double izone;
 	} pPid, vPid;
 private:
 	static double tickToDegree;

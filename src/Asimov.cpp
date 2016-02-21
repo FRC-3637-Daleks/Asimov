@@ -39,6 +39,7 @@ private:
 	void TeleopPeriodic() override
 	{
 		Scheduler::GetInstance()->Run();
+		TestSwiss();
 	}
 
 	// Autonomous
