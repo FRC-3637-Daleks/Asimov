@@ -11,19 +11,24 @@ using state_t = subsystems::Swiss::state_t;
 double Swiss::tickToDegree = 90; //measure and change later
 double Swiss::maxVelocity = .5; //measure and change later
 
-double Swiss::states[] = {90, 50, 20, 0, 10};
+double Swiss::states[] = {
+		[retract] = .029,
+		[horizontal] = .63,
+		[cheval_down] = .7,
+		[port_down] = .768
+};
 
 
-Swiss::Swiss(int deviceNumber, double P, double I, double D) : Subsystem("Swiss"){
-	swisstalon = new CANTalon(deviceNumber);
+Swiss::Swiss() : Subsystem("Swiss"){
+	swisstalon = new CANTalon(7);
 	swisstalon->SetFeedbackDevice(CANTalon::FeedbackDevice::AnalogPot);
-	swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
 	swisstalon->ConfigPotentiometerTurns(1);
-	swisstalon->SetPID(P, I, D);
 	swisstalon->ConfigNeutralMode(CANSpeedController::kNeutralMode_Brake);
-	swisstalon->ConfigForwardLimit(max);
-	swisstalon->ConfigReverseLimit(min);
-
+	swisstalon->ConfigForwardLimit(states[port_down]);
+	swisstalon->ConfigReverseLimit(states[retract]);
+	swisstalon->SetSensorDirection(false);
+	swisstalon->SetClosedLoopOutputDirection(true);
+	SetMode(pos);
 };
 
 void Swiss::SetPIDValues(double p1, double p2, double p3, double v1, double v2, double v3){
@@ -36,29 +41,29 @@ void Swiss::SetPIDValues(double p1, double p2, double p3, double v1, double v2, 
 
 }
 Swiss::mode_t Swiss::GetMode(){
-	return mode;
+	return static_cast<mode_t>(swisstalon->GetControlMode());
 }
 void Swiss::SetMode(mode_t m){
-	if(mode == m){
+	if(GetMode() == m){
 		return;
 	}
 	else if(m == pos){
 		swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
-		mode = m;
 		swisstalon->SelectProfileSlot(0);
-		swisstalon->SetPID(pPid.p, pPid.i, pPid.d);
+		//swisstalon->SetPID(pPid.p, pPid.i, pPid.d);
+		swisstalon->Set(swisstalon->Get());
 		return;
 	}
 	else if(m == velocity){
 		swisstalon->SetControlMode(CANTalon::ControlMode::kSpeed);
-		mode = m;
 		swisstalon->SelectProfileSlot(1);
-		swisstalon->SetPID(vPid.p, vPid.i, vPid.d);
+		SetVelocity(0.0, false);
+		//swisstalon->SetPID(vPid.p, vPid.i, vPid.d);
 		return;
 	}
 	else{
 		swisstalon->SetControlMode(CANTalon::ControlMode::kPercentVbus);
-		mode = m;
+		SetVelocity(0.0, false);
 		return;
 	}
 }
@@ -70,39 +75,14 @@ void Swiss::SetVelocity(double v, bool changeMode){
 	if(changeMode)
 		SetMode(velocity);
 
-	if(mode == mode_t::velocity)
+	if(GetMode() == mode_t::velocity)
 		swisstalon->Set(maxVelocity * v);
-	else if(mode == mode_t::vbus)
+	else if(GetMode() == mode_t::vbus)
 		swisstalon->Set(v);
 }
 void Swiss::SetVoltage(double v){
 	SetMode(vbus);
 	swisstalon->Set(v);
-}
-void Swiss::MaxHeight(){
-	SetState(max);
-	//position = state[0];
-}
-
-void Swiss::MinHeight(){
-	SetState(min);
-	//position = state[3];
-
-}
-
-void Swiss::LowerPort(){
-	SetState(doordown);
-}
-void Swiss::LiftDoor(){
-	SetState(door);
-	//position = state[1];
-
-}
-
-void Swiss::LowerCheval(){
-	SetState(cheval);
-	//position= state[2];
-
 }
 
 void Swiss::SetState(state_t s){
