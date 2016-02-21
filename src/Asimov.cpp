@@ -90,7 +90,7 @@ private:
 
 	void TestDriveInit()
 	{
-		drive_.Configure();
+		Configure();
 		drive_.SetMode(subsystems::Drive::Mode_t::Velocity);
 	}
 

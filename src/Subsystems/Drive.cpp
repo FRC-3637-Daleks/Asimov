@@ -54,13 +54,16 @@ bool Drive::configureMaster(CANTalon& master)
 
 	master.SetVoltageRampRate(50.0);
 
-	auto& settings = GetSettings()["closed_loop_settings"];
-	if(!settings("P").is_empty()) master.SetP(settings("P").get_value());
-	if(!settings("I").is_empty()) master.SetI(settings("I").get_value());
-	if(!settings("D").is_empty()) master.SetD(settings("D").get_value());
-	if(!settings("F").is_empty()) master.SetF(settings("F").get_value());
-	if(!settings("I_Zone").is_empty()) master.SetIzone(settings("I_Zone").get_value());
-	if(!settings("ramp_rate").is_empty()) master.SetCloseLoopRampRate(settings("ramp_rate").get_value());
+	if(GetSettings()["closed_loop_settings"]("use").GetValueOrDefault())
+	{
+		auto& settings = GetSettings()["closed_loop_settings"];
+		if(!settings("P").is_empty()) master.SetP(settings("P").get_value());
+		if(!settings("I").is_empty()) master.SetI(settings("I").get_value());
+		if(!settings("D").is_empty()) master.SetD(settings("D").get_value());
+		if(!settings("F").is_empty()) master.SetF(settings("F").get_value());
+		if(!settings("I_Zone").is_empty()) master.SetIzone(settings("I_Zone").get_value());
+		if(!settings("ramp_rate").is_empty()) master.SetCloseLoopRampRate(settings("ramp_rate").get_value());
+	}
 
 	return true;
 }
@@ -105,6 +108,7 @@ void Drive::doRegister()
 	settings("allowable_error").SetDefault(get_allowable_error());
 
 	auto& closed_loop_settings = settings["closed_loop_settings"];
+	closed_loop_settings("use").SetDefault(false);
 	closed_loop_settings("P").SetDefault(.1);
 	closed_loop_settings("I").SetDefault(0);
 	closed_loop_settings("D").SetDefault(0);
