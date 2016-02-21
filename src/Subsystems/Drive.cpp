@@ -110,8 +110,8 @@ void Drive::doRegister()
 	auto& closed_loop_settings = settings["closed_loop_settings"];
 	closed_loop_settings("use").SetDefault(false);
 	closed_loop_settings("P").SetDefault(.1);
-	closed_loop_settings("I").SetDefault(0);
-	closed_loop_settings("D").SetDefault(0);
+	closed_loop_settings("I").SetDefault(0.0);
+	closed_loop_settings("D").SetDefault(0.0);
 	closed_loop_settings("F").SetDefault(1.0);
 	closed_loop_settings("I_Zone").SetDefault(2.5);
 	closed_loop_settings("ramp_rate").SetDefault(10);
