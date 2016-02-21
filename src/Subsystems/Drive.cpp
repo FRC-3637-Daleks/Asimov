@@ -27,7 +27,7 @@ std::string Drive::ModeToString(Mode_t mode)
 	}
 }
 
-Drive::Drive(): Subsystem("Drive"), System("Drive"), talons_(nullptr), mode_(Mode_t::VBus),
+Drive::Drive(): dman::WPISystem("Drive"), talons_(nullptr), mode_(Mode_t::VBus),
 		ticks_per_rev_(761), wheel_diameter_(0.3048), max_velocity_(120.0), wheel_revs_per_base_rev_(5000),
 		allowable_error_(0.05) // 5 cm of wheel rotation
 {
@@ -35,10 +35,12 @@ Drive::Drive(): Subsystem("Drive"), System("Drive"), talons_(nullptr), mode_(Mod
 
 void Drive::initTalons()
 {
-	auto& ports = GetPortSpace("CAN");
 	if(!is_initialized())
+	{
+		auto& ports = GetPortSpace("CAN");
 		talons_ = std::make_unique<Talons>(ports("left"), ports("left_slave"),
 										   ports("right"), ports("right_slave"));
+	}
 }
 
 bool Drive::configureMaster(CANTalon& master)
@@ -52,6 +54,103 @@ bool Drive::configureMaster(CANTalon& master)
 
 	master.SetVoltageRampRate(50.0);
 
+	auto& settings = GetSettings()["closed_loop_settings"];
+	if(!settings("P").is_empty()) master.SetP(settings("P").get_value());
+	if(!settings("I").is_empty()) master.SetI(settings("I").get_value());
+	if(!settings("D").is_empty()) master.SetD(settings("D").get_value());
+	if(!settings("F").is_empty()) master.SetF(settings("F").get_value());
+	if(!settings("I_Zone").is_empty()) master.SetIzone(settings("I_Zone").get_value());
+	if(!settings("ramp_rate").is_empty()) master.SetCloseLoopRampRate(settings("ramp_rate").get_value());
+
+	return true;
+}
+
+bool Drive::configureBoth()
+{
+	if(is_initialized())
+	{
+		std::cout << "Configuring Drive" << std::endl;
+		auto& settings = GetSettings();
+		auto& ports = GetPortSpace("CAN");
+
+		bool left_ret = configureMaster(talons_->left_);
+		talons_->left_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
+		talons_->left_slave_.Set(ports("left"));
+		talons_->left_.SetInverted(settings["left"]("invert_output").GetValueOrDefault());
+		talons_->left_.SetSensorDirection(settings["left"]("invert_sensor").GetValueOrDefault());
+
+		bool right_ret = configureMaster(talons_->right_);
+		talons_->right_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
+		talons_->right_slave_.Set(ports("right"));
+		talons_->right_.SetInverted(settings["right"]("invert_output").GetValueOrDefault());
+		talons_->right_.SetSensorDirection(settings["right"]("invert_sensor").GetValueOrDefault());
+
+		return left_ret && right_ret;
+	}
+
+	return false;
+}
+
+void Drive::doRegister()
+{
+	auto& can_ports = GetPortSpace("CAN");
+	for(auto port : {"left", "left_slave", "right", "right_slave"})
+		can_ports(port);
+
+	auto& settings = GetSettings();
+	settings("ticks_per_revolution").SetDefault(get_ticks_per_rev());
+	settings("wheel_diameter").SetDefault(get_wheel_diameter());
+	settings("max_velocity").SetDefault(get_velocity_scale());
+	settings("wheel_revolutions_per_chassis_pivot_revolution").SetDefault(get_wheel_revs_per_base_rev());
+	settings("allowable_error").SetDefault(get_allowable_error());
+
+	auto& closed_loop_settings = settings["closed_loop_settings"];
+	closed_loop_settings("P").SetDefault(.1);
+	closed_loop_settings("I").SetDefault(0);
+	closed_loop_settings("D").SetDefault(0);
+	closed_loop_settings("F").SetDefault(1.0);
+	closed_loop_settings("I_Zone").SetDefault(2.5);
+	closed_loop_settings("ramp_rate").SetDefault(10);
+
+	settings["left"]("invert_output").SetDefault(false);
+	settings["left"]("invert_sensor").SetDefault(false);
+	settings["right"]("invert_output").SetDefault(true);
+	settings["right"]("invert_sensor").SetDefault(true);
+}
+
+bool Drive::doConfigure()
+{
+	if(!is_initialized())
+		initTalons();
+
+	auto& settings = GetSettings();
+	SetTicksPerRev(settings("ticks_per_revolution").GetValueOrDefault());
+	SetWheelDiameter(settings("wheel_diameter").GetValueOrDefault());
+	SetVelocityScale(settings("max_velocity").GetValueOrDefault());
+	SetWheelRevsPerBaseRev(settings("wheel_revolutions_per_chassis_pivot_revolution").GetValueOrDefault());
+	SetAllowableError(settings("allowable_error").GetValueOrDefault());
+
+	return configureBoth();
+}
+
+void Drive::SetMode(Mode_t m)
+{
+	if(!is_initialized())
+		return;
+
+	if(m == mode_)
+		return;
+	else
+	{
+		mode_ = m;
+		std::cout << "Setting mode to " << ModeToString(mode_) << std::endl;
+		setModeMaster(talons_->left_);
+		setModeMaster(talons_->right_);
+	}
+}
+
+void Drive::setModeMaster(CANTalon &master)
+{
 	if(get_mode() == Mode_t::Position)
 	{
 		master.SetControlMode(CANTalon::ControlMode::kPosition);
@@ -65,51 +164,6 @@ bool Drive::configureMaster(CANTalon& master)
 	else if(get_mode() == Mode_t::VBus)
 	{
 		master.SetControlMode(CANTalon::ControlMode::kPercentVbus);
-	}
-
-	return true;
-}
-
-bool Drive::configureBoth()
-{
-	if(is_initialized())
-	{
-		std::cout << "Configuring Drive" << std::endl;
-		bool left_ret = configureMaster(talons_->left_);
-		talons_->left_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
-		talons_->left_slave_.Set(3);
-		talons_->left_.SetInverted(false);
-		talons_->left_.SetSensorDirection(false);
-
-		bool right_ret = configureMaster(talons_->right_);
-		talons_->right_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
-		talons_->right_slave_.Set(1);
-		talons_->right_.SetInverted(true);
-		talons_->right_.SetSensorDirection(true);
-
-		return left_ret && right_ret;
-	}
-
-	return false;
-}
-
-
-bool Drive::doConfigure()
-{
-	if(!is_initialized())
-		initTalons();
-	return configureBoth();
-}
-
-void Drive::SetMode(Mode_t m)
-{
-	if(m == mode_)
-		return;
-	else
-	{
-		mode_ = m;
-		std::cout << "Setting mode to " << ModeToString(mode_) << std::endl;
-		configureBoth();
 	}
 }
 
@@ -136,6 +190,11 @@ void Drive::SetVelocityScale(MetersPerSecond_t max_velocity)
 void Drive::SetWheelRevsPerBaseRev(double rate)
 {
 	wheel_revs_per_base_rev_= rate;
+}
+
+void Drive::SetAllowableError(double allow)
+{
+	allowable_error_ = allow;
 }
 
 Drive::Meters_t Drive::GetDistance() const

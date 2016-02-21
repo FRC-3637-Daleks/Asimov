@@ -1,6 +1,8 @@
 #include "Log/SystemData.h"
 #include "Log/TextLog.h"
 #include "Log/MessageData.h"
+#include "WPILib/WPISystem.h"
+#include "Config/PortSpace.h"
 
 #include "WPILib.h"
 
@@ -8,7 +10,9 @@
 
 #include <memory>
 
-class Asimov: public IterativeRobot
+using namespace dman;
+
+class Asimov: public IterativeRobot, public RootSystem
 {
 private:
 	Joystick gamepad_, left_stick_, right_stick_;
@@ -16,20 +20,30 @@ private:
 	subsystems::Drive drive_;
 
 public:
-	Asimov(): gamepad_(2), left_stick_(0), right_stick_(1), tank_drive_(false)
+	Asimov(): RootSystem("/home/lvuser/dalek/"), gamepad_(2), left_stick_(0), right_stick_(1), tank_drive_(false)
 	{
+		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
+						"Constructor Started";
+
+		AddSubSystem("Drive", drive_);
+		get_context().RegisterPortSpace("CAN", std::make_shared<PortSpace>(0, 63));
+
+		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
+								"Constructor Complete";
 	}
 
 private:
 	// Init
 	void RobotInit() override
 	{
-		using namespace dman;
+		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
+				"RobotInit Started";
 
-		drive_.Initialize();
+		Register();
+		get_context().SaveSchema();
 
-		TextLog::Log(MessageData(MessageData::INFO, 0), SystemData("Asimov", "RobotInit", "Robot")) <<
-				"RobotInit complete";
+		TextLog::Log(MessageData(MessageData::INFO, 1), SystemData("Asimov", "RobotInit", "Robot")) <<
+				"RobotInit Complete";
 	}
 
 	// Disabled

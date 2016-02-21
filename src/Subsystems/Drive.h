@@ -11,6 +11,9 @@
 // WPI Includes
 #include "WPILib.h"
 
+// Dalek Manager Includes
+#include "WPILib/WPISystem.h"
+
 // STD Includes
 #include <memory>
 #include <string>
@@ -20,7 +23,7 @@
 namespace subsystems
 {
 
-class Drive//: public Subsystem
+class Drive: public dman::WPISystem
 {
 public:
 	enum class Mode_t: uint8_t {
@@ -48,8 +51,8 @@ public:
 
 public:  /// Configuration functions
 	bool is_initialized() const {return talons_ != nullptr;}
-	bool Initialize();
-	bool Configure();
+	void doRegister() override;
+	bool doConfigure() override;
 
 	void SetMode(Mode_t m);
 	Mode_t get_mode() const {return mode_;}
@@ -71,6 +74,7 @@ public:  /// Configuration functions
 	void SetWheelRevsPerBaseRev(double rate);
 	double get_wheel_revs_per_base_rev() const {return wheel_revs_per_base_rev_;}
 
+	void SetAllowableError(double allow);
 	double get_allowable_error() {return allowable_error_;}
 
 public:  /// Position tracking functions
@@ -143,11 +147,16 @@ private:
 	};
 
 private:
+	// Creates the talons if they haven't been already
+	void initTalons();
+
 	// Configures the motor at master for the current mode
 	bool configureMaster(CANTalon &master);
 
 	// Runs configureMaster on both sides
 	bool configureBoth();
+
+	void setModeMaster(CANTalon &master);
 
 private:
 	Ptr_t<Talons> talons_ ;
