@@ -85,7 +85,7 @@ private:
 		triggers.back()->WhenPressed(commands.back());
 
 		triggers.push_back(new JoystickButton(&xbox_, Y));
-		commands.push_back(shooter_.MakeSpinUp(0.9));
+		commands.push_back(shooter_.MakeSpinUp(0.95));
 		triggers.back()->WhenPressed(commands.back());
 
 		triggers.push_back(new JoystickButton(&xbox_, X));
@@ -282,7 +282,12 @@ private:
 			}
 
 		} else if(fabs(xbox_.GetRawAxis(L_YAXIS)) > 0.3) {
+			swissCheez.SetMode(Swiss::mode_t::vbus);
 			swissCheez.SetVelocity(xbox_.GetRawAxis(L_YAXIS), false);
+		}
+		else if (swissCheez.GetMode() != Swiss::mode_t::pos)
+		{
+			swissCheez.SetVelocity(0.0, false);
 		}
 	}
 };
