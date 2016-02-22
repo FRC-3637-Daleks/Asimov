@@ -21,12 +21,11 @@ private:  // subsystems
 	Joystick left_stick_, right_stick_, xbox_;
 	Drive drive_;
 	Intake intake_;
+	CameraMount mount_;
 	Shooter shooter_;
 
 private:  // test modes and other things which will become outsourced to other classes
 	bool tank_drive_;
-	subsystems::Drive drive_;
-	subsystems::CameraMount mount_;
 	enum Modes {AUTO = 0, MANUAL, PUSH};
 	Modes mode;
 	enum Button {A = 1, B, X, Y, L_TRIGGER, R_TRIGGER, BACK, START, L_STICK, R_STICK};
@@ -57,10 +56,13 @@ private:
 		intake_.SetMode(Intake::Mode_t::VBUS);
 
 		intake_.SetShootVelocity(0.6);
+		intake_.SetIntakeSpeed(0.6);
 		shooter_.SetAllowedError(1000);
 
 		mode = AUTO;
 		lock = false;
+
+		BindControls();
 	}
 
 	void BindControls()
@@ -174,6 +176,7 @@ private:
 		else
 			drive_.ArcadeDrive(right_stick_.GetY() * fabs(right_stick_.GetY()),
 							left_stick_.GetX() * fabs(left_stick_.GetX()));
+
 
 		UpdateDriveDash();
 	}
