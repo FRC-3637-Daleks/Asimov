@@ -22,29 +22,32 @@ namespace subsystems
 class Swiss: public Subsystem
 {
 public:
-	enum state_t {max=0, door, cheval, min, doordown, end};
-	enum mode_t {pos = 0, velocity, vbus};
+	enum state_t {retract, horizontal, cheval_down, port_down, n_states};
+	enum mode_t {pos = CANTalon::ControlMode::kPosition,
+				velocity = CANTalon::ControlMode::kSpeed,
+				vbus = CANTalon::ControlMode::kPercentVbus};
 private:
 
-	static double states[state_t::end];
+	static double states[state_t::n_states];
 
 
 	struct PIDValues{
 		double p;
 		double i;
 		double d;
+		double f;
+		double izone;
 	} pPid, vPid;
 private:
 	static double tickToDegree;
 	static double maxVelocity;
 
 	state_t position;
-	mode_t mode;
 	CANTalon *swisstalon;
 
 public:
 
-	Swiss(int deviceNumber, double P, double I, double D);
+	Swiss();
 	void SetPIDValues(double p1, double p2, double v1, double v2, double b1, double b2);
 
 	/** If change mode is true it will change the mode of the system to velocity.
@@ -56,6 +59,7 @@ public:
 	void SetMode(mode_t m, bool force);
 	mode_t GetMode();
 	void SetState(state_t s);
+<<<<<<< HEAD
 	void MaxHeight();
 	double GetPos();
 	double GetDiff();
@@ -65,6 +69,8 @@ public:
 	void LowerCheval();
 	bool IsCloseNuff();
 	void Hold();
+=======
+>>>>>>> origin/dev-elazer
 	state_t GetState();
 };
 
