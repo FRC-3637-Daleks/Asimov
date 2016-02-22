@@ -1,4 +1,5 @@
 #include "WPILib.h"
+
 #include "Subsystems/Intake.h"
 #include "Subsystems/Shooter.h"
 #include "Commands/IntakeBall.h"
@@ -8,10 +9,12 @@
 #include "Commands/Shoot.h"
 #include "Subsystems/Drive.h"
 #include "Subsystems/CameraMount.h"
+#include "Subsystems/Swiss.h"
 
 #include <math.h>
 #include <vector>
 #include <memory>
+
 
 using namespace subsystems;
 
@@ -23,6 +26,7 @@ private:  // subsystems
 	Intake intake_;
 	CameraMount mount_;
 	Shooter shooter_;
+	Swiss swissCheez;
 
 private:  // test modes and other things which will become outsourced to other classes
 	bool tank_drive_;
@@ -103,6 +107,7 @@ private:
 	void DisabledPeriodic() override
 	{
 		Scheduler::GetInstance()->Run();
+		StateThing();
 	}
 
 
@@ -117,6 +122,7 @@ private:
 		Scheduler::GetInstance()->Run();
 		TestDrivePeriodic();
 		UpdateDash();
+		TestSwiss();
 	}
 
 	// Autonomous
@@ -140,6 +146,7 @@ private:
 	{
 		TestBoulderPeriodic();
 		TestDrivePeriodic();
+		TestSwiss();
 	}
 
 	// Test
@@ -255,6 +262,34 @@ private:
 	void UpdateDash()
 	{
 		SmartDashboard::PutNumber("Shooter Error", shooter_.GetErr());
+	}
+
+	void StateThing(){
+		if(fabs(xbox_.GetRawAxis(L_YAXIS)) > 0.05)
+			swissCheez.SetMode(Swiss::mode_t::vbus);
+	}
+
+	void TestSwiss()
+	{
+		StateThing();
+		int pov = xbox_.GetPOV();
+		if (pov >= 0) {
+			if(pov < 30){
+				swissCheez.SetState(Swiss::state_t::cheval_down);
+			}
+			else if(pov < 120){
+				swissCheez.SetState(Swiss::state_t::port_down);
+			}
+			else if(pov < 210){
+				swissCheez.SetState(Swiss::state_t::retract);
+			}
+			else if(pov < 300){
+				swissCheez.SetState(Swiss::state_t::horizontal);
+			}
+
+		} else if(swissCheez.GetMode() != Swiss::mode_t::pos) {
+			swissCheez.SetVelocity(xbox_.GetRawAxis(L_YAXIS), false);
+		}
 	}
 };
 
