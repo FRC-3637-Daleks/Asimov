@@ -107,7 +107,6 @@ private:
 	void DisabledPeriodic() override
 	{
 		Scheduler::GetInstance()->Run();
-		StateThing();
 	}
 
 
@@ -264,30 +263,25 @@ private:
 		SmartDashboard::PutNumber("Shooter Error", shooter_.GetErr());
 	}
 
-	void StateThing(){
-		if(fabs(xbox_.GetRawAxis(L_YAXIS)) > 0.05)
-			swissCheez.SetMode(Swiss::mode_t::vbus);
-	}
 
 	void TestSwiss()
 	{
-		StateThing();
 		int pov = xbox_.GetPOV();
 		if (pov >= 0) {
 			if(pov < 30){
-				swissCheez.SetState(Swiss::state_t::cheval_down);
-			}
-			else if(pov < 120){
-				swissCheez.SetState(Swiss::state_t::port_down);
-			}
-			else if(pov < 210){
-				swissCheez.SetState(Swiss::state_t::retract);
-			}
-			else if(pov < 300){
 				swissCheez.SetState(Swiss::state_t::horizontal);
 			}
+			else if(pov < 120){
+				swissCheez.SetState(Swiss::state_t::cheval_down);
+			}
+			else if(pov < 210){
+				swissCheez.SetState(Swiss::state_t::port_down);
+			}
+			else if(pov < 300){
+				swissCheez.SetState(Swiss::state_t::retract);
+			}
 
-		} else if(swissCheez.GetMode() != Swiss::mode_t::pos) {
+		} else if(fabs(xbox_.GetRawAxis(L_YAXIS)) > 0.3) {
 			swissCheez.SetVelocity(xbox_.GetRawAxis(L_YAXIS), false);
 		}
 	}
