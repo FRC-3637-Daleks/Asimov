@@ -11,7 +11,7 @@ using state_t = subsystems::Swiss::state_t;
 double Swiss::tickToDegree = 90; //measure and change later
 double Swiss::maxVelocity = .5; //measure and change later
 
-double Swiss::states[] = {90, 50, 20, 0, 10};
+double Swiss::states[] = {90, 50, .032, 0, 10};
 
 
 Swiss::Swiss(int deviceNumber, double P, double I, double D) : Subsystem("Swiss"){
