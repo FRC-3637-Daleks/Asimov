@@ -5,13 +5,13 @@
  *      Author: elija_000
  */
 
+#ifndef SRC_SUBSYSTEMS_SWISS_H_
+#define SRC_SUBSYSTEMS_SWISS_H_
 
 
 #include "WPILib.h"
 
 
-#ifndef SRC_SUBSYSTEMS_SWISS_H_
-#define SRC_SUBSYSTEMS_SWISS_H_
 
 #include <memory>
 
@@ -42,6 +42,7 @@ private:
 	static double tickToDegree;
 	static double maxVelocity;
 
+	state_t current;
 	state_t position;
 	CANTalon *swisstalon;
 
@@ -56,21 +57,16 @@ public:
 	 */
 	void SetVelocity(double v, bool changeMode = true);
 	void SetVoltage(double v);
-	void SetMode(mode_t m, bool force);
+	void SetMode(mode_t m);
 	mode_t GetMode();
 	void SetState(state_t s);
-<<<<<<< HEAD
-	void MaxHeight();
+	void RefreshState();
+
 	double GetPos();
 	double GetDiff();
-	void MinHeight();
-	void LowerPort();
-	void LiftDoor();
-	void LowerCheval();
 	bool IsCloseNuff();
 	void Hold();
-=======
->>>>>>> origin/dev-elazer
+
 	state_t GetState();
 };
 

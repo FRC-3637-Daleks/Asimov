@@ -10,17 +10,15 @@ using state_t = subsystems::Swiss::state_t;
 
 double Swiss::tickToDegree = 90; //measure and change later
 double Swiss::maxVelocity = 18;
+state_t current;
 
-<<<<<<< HEAD
-double Swiss::states[] = {90, 50, .032, 0, 10};
-=======
+
 double Swiss::states[] = {
 		[retract] = -.032,
 		[horizontal] = -.63,
 		[cheval_down] = -.7,
 		[port_down] = -.768
 };
->>>>>>> origin/dev-elazer
 
 
 Swiss::Swiss() : Subsystem("Swiss"){
@@ -40,18 +38,11 @@ Swiss::Swiss() : Subsystem("Swiss"){
 Swiss::mode_t Swiss::GetMode(){
 	return static_cast<mode_t>(swisstalon->GetControlMode());
 }
-<<<<<<< HEAD
-void Swiss::SetMode(mode_t m, bool force){
 
-	if(!force){
-		if(mode == m){
-					return;
-		}
-=======
 void Swiss::SetMode(mode_t m){
 	if(GetMode() == m){
 		return;
->>>>>>> origin/dev-elazer
+
 	}
 	if(m == pos){
 		swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
@@ -78,7 +69,7 @@ state_t Swiss::GetState(){
 
 void Swiss::SetVelocity(double v, bool changeMode){
 	if(changeMode)
-		SetMode(velocity, true);
+		SetMode(velocity);
 
 	if(GetMode() == mode_t::velocity)
 		swisstalon->Set(maxVelocity * v);
@@ -100,14 +91,19 @@ double Swiss::GetDiff(){
 
 
 }
-
+void Swiss::RefreshState(){
+	if (IsCloseNuff()){
+		current = position;
+		return;
+	}
+}
 void Swiss::SetVoltage(double v){
-	SetMode(vbus, true);
+	SetMode(vbus);
 	swisstalon->Set(v);
 }
 
 void Swiss::SetState(state_t s){
-	SetMode(pos, true);
+	SetMode(pos);
 	position = s;
 	swisstalon->Set(states[position]);
 }

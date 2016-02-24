@@ -30,7 +30,7 @@ void SetSwiss::Initialize() {
 
 
 void SetSwiss::Execute()  {
-
+	swiss_->RefreshState();
 }
 
 
@@ -40,7 +40,7 @@ bool SetSwiss::IsFinished() {
 
 
 void SetSwiss::End() {
-
+	swiss_->RefreshState();
 }
 
 
