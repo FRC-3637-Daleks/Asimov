@@ -34,6 +34,7 @@ private:  // test modes and other things which will become outsourced to other c
 	bool lock;
 
 private:  // commands and triggers
+	Command * auton_command_;
 	std::vector<Command*> commands;
 	std::vector<JoystickButton*> triggers;
 
@@ -63,6 +64,8 @@ private:
 		lock = false;
 
 		BindControls();
+
+		auton_command_ = drive_.MakeDriveStraight(0.5, Drive::Meters_t(6));  // Drive at 50% speed for 6 seconds
 	}
 
 	void BindControls()
@@ -122,7 +125,7 @@ private:
 	// Autonomous
 	void AutonomousInit() override
 	{
-
+		auton_command_->Start();
 	}
 
 	void AutonomousPeriodic() override
