@@ -9,7 +9,7 @@
 #define SRC_COMMANDS_DRIVESTRAIGHT_H_
 
 #include "WPILib.h"
-#include "Drive.h"
+#include "Subsystems/Drive.h"
 
 namespace commands
 {
