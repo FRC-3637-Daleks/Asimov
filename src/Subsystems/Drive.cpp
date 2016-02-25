@@ -27,7 +27,7 @@ std::string Drive::ModeToString(Mode_t mode)
 	}
 }
 
-Drive::Drive(): talons_(nullptr), mode_(Mode_t::VBus),
+Drive::Drive(): Subsystem("Drive"), talons_(nullptr), mode_(Mode_t::VBus),
 		ticks_per_rev_(761), wheel_diameter_(0.3048), max_velocity_(120.0), wheel_revs_per_base_rev_(5000),
 		allowable_error_(0.05) // 5 cm of wheel rotation
 {
@@ -231,6 +231,12 @@ void Drive::TankDrive(double left, double right)
 		talons_->right_.Set(right, 3);
 		CANJaguar::UpdateSyncGroup(3);
 	}
+}
+
+void Drive::Stop()
+{
+	talons_->left_.StopMotor();
+	talons_->right_.StopMotor();
 }
 
 void Drive::ArcadeDrive(double y, double rotation)

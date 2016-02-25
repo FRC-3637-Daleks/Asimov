@@ -20,7 +20,7 @@
 namespace subsystems
 {
 
-class Drive//: public Subsystem
+class Drive: public Subsystem
 {
 public:
 	enum class Mode_t: uint8_t {
@@ -128,6 +128,10 @@ public:	/// Drive functions
 	 * Essentially calls TankDrive(y+rotation, y-rotation)
 	 */
 	void ArcadeDrive(double y, double rotation);
+
+	/** Stops
+	 */
+	void Stop();
 
 private:
 	struct Talons
