@@ -62,14 +62,14 @@ void XBoxWrapper::initXBox()
 	// axes
 	for(int a = 0; a < 6; a++)
 	{
-		GetLocalValue<double>(std::string("/axes/") + AxisToString(static_cast<XBoxAxis_t>(a))).Initialize(std::make_shared<FunkyGet<double> >([this, a]()
+		GetLocalValue<double>(std::string("axes/") + AxisToString(static_cast<XBoxAxis_t>(a))).Initialize(std::make_shared<FunkyGet<double> >([this, a]()
 			{
 				return xbox_->GetRawAxis(a);
 			}));
 	}
 
 	// pov
-	GetLocalValue<int>(std::string("/pov")).Initialize(std::make_shared<FunkyGet<int> >([this]()
+	GetLocalValue<int>(std::string("pov")).Initialize(std::make_shared<FunkyGet<int> >([this]()
 		{
 			return xbox_->GetPOV();
 		}));
@@ -77,7 +77,7 @@ void XBoxWrapper::initXBox()
 	// buttons
 	for(int b = 1; b <= 10; b++)
 	{
-		GetLocalValue<bool>("/buttons/" + ButtonToString(static_cast<XBoxButton_t>(b))).Initialize(
+		GetLocalValue<bool>("buttons/" + ButtonToString(static_cast<XBoxButton_t>(b))).Initialize(
 				std::make_shared<FunkyGet<bool> >([this, b]()
 					{
 						return xbox_->GetRawButton(b);

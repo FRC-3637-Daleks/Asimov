@@ -87,6 +87,11 @@ public:
 	// Copilot Axis Values
 	AxisValue_t GetSwissAxis() {return GetLocalValue<double>("swiss");}
 
+public:
+	Joystick& get_left() {return driver_left_.get_joy();}
+	Joystick& get_right() {return driver_right_.get_joy();}
+	Joystick& get_xbox() {return copilot_.get_joy();}
+
 public:  // Command Generation
 	commands::ForwardBoost *MakeForwardBoost(double power);
 	commands::TurnBoost *MakeTurnBoost(double power);

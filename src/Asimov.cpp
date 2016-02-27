@@ -15,9 +15,13 @@
 #include "Commands/SpinUp.h"
 #include "Commands/SpinDown.h"
 #include "Commands/Shoot.h"
+#include "Commands/ForwardBoost.h"
+#include "Commands/TurnBoost.h"
 #include "Subsystems/Drive.h"
 #include "Subsystems/CameraMount.h"
 #include "Subsystems/Swiss.h"
+#include "Subsystems/OI.h"
+#include "WPILib/GenericTrigger.h"
 
 #include <math.h>
 #include <vector>
@@ -29,7 +33,7 @@ using namespace subsystems;
 class Asimov: public IterativeRobot, public RootSystem
 {
 private:  // subsystems
-	Joystick left_stick_, right_stick_, xbox_;
+	OI oi_;
 	Drive drive_;
 	Intake intake_;
 	CameraMount mount_;
@@ -40,28 +44,28 @@ private:  // test modes and other things which will become outsourced to other c
 	bool tank_drive_;
 	enum Modes {AUTO = 0, MANUAL, PUSH};
 	Modes mode;
-	enum Button {A = 1, B, X, Y, L_TRIGGER, R_TRIGGER, BACK, START, L_STICK, R_STICK};
-	enum Axes {L_XAXIS = 0, L_YAXIS, L_TRIG, R_TRIG, R_XAXIS, R_YAXIS};
 	double speed;
 	bool lock;
 
 private:  // commands and triggers
 	Command * auton_command_;
 	std::vector<Command*> commands;
-	std::vector<JoystickButton*> triggers;
+	std::vector<Trigger*> triggers;
 
 public:
-	Asimov(): RootSystem("/home/lvuser/dalek/"), left_stick_(0), right_stick_(1), xbox_(2),
+	Asimov(): RootSystem("/home/lvuser/dalek/"),
 		tank_drive_(false), mode(AUTO), speed(0.0), lock(false)
 	{
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 						"Constructor Started";
 
 		AddSubSystem("Drive", drive_);
+		AddSubSystem("OI", oi_);
 		get_context().RegisterPortSpace("CAN", std::make_shared<PortSpace>(0, 63));
 
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 								"Constructor Complete";
+		std::cout << "I scream" << std::endl;
 	}
 
 private:
@@ -85,6 +89,8 @@ private:
 		mode = AUTO;
 		lock = false;
 
+		drive_.SetDefaultCommand(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), oi_.GetArcadeTurnAxis(), 1.0, 1.0));
+
 		BindControls();
 
 		// auton_command_ = drive_.MakeDriveStraight(0.5, Drive::Meters_t(6));  // Drive at 50% speed for 6 seconds
@@ -100,31 +106,36 @@ private:
 	void BindControls()
 	{
 		commands.push_back(intake_.MakeIntakeBall());
-		triggers.push_back(new JoystickButton(&xbox_, A));
-		triggers.back()->WhenPressed(commands.back());
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/A")));
+		triggers.back()->WhenActive(commands.back());
 
-		triggers.push_back(new JoystickButton(&xbox_, START));
-		triggers.back()->CancelWhenPressed(commands.back());
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/START")));
+		triggers.back()->CancelWhenActive(commands.back());
 
 		auto push_ball_command = intake_.MakePushBall();
 
-		triggers.push_back(new JoystickButton(&xbox_, B));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/B")));
 		commands.push_back(push_ball_command);
-		triggers.back()->WhenPressed(commands.back());
+		triggers.back()->WhenActive(commands.back());
 
-		triggers.push_back(new JoystickButton(&xbox_, Y));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/Y")));
 		commands.push_back(shooter_.MakeSpinUp(0.95));
-		triggers.back()->WhenPressed(commands.back());
+		triggers.back()->WhenActive(commands.back());
 
-		triggers.push_back(new JoystickButton(&xbox_, X));
-		triggers.back()->CancelWhenPressed(commands.back());
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/X")));
+		triggers.back()->CancelWhenActive(commands.back());
 
 		commands.push_back(shooter_.MakeSpinDown());
-		triggers.back()->WhenPressed(commands.back());
+		triggers.back()->WhenActive(commands.back());
 
-		triggers.push_back(new JoystickButton(&xbox_, R_TRIGGER));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/R_TRIGGER")));
 		commands.push_back(new commands::Shoot(&intake_, &shooter_, 2.0));
-		triggers.back()->WhenPressed(commands.back());
+		triggers.back()->WhenActive(commands.back());
+
+		commands.push_back(oi_.MakeForwardBoost(1.0));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/1")));
+		triggers.back()->WhileActive(commands.back());
+
 	}
 
 	// Disabled
@@ -141,15 +152,15 @@ private:
 	// Teleop
 	void TeleopInit() override
 	{
+		Configure();
 		TestDriveInit();
 	}
 
 	void TeleopPeriodic() override
 	{
 		Scheduler::GetInstance()->Run();
-		TestDrivePeriodic();
 		UpdateDash();
-		TestSwiss();
+		//TestSwiss();
 	}
 
 	// Autonomous
@@ -189,8 +200,8 @@ private:
 
 	void TestDrivePeriodic()
 	{
-		if(left_stick_.GetButton(Joystick::ButtonType::kTriggerButton) ||
-				right_stick_.GetButton(Joystick::ButtonType::kTriggerButton))
+		if(oi_.get_left().GetButton(Joystick::ButtonType::kTriggerButton) ||
+				oi_.get_right().GetButton(Joystick::ButtonType::kTriggerButton))
 		{
 			drive_.SetMode(subsystems::Drive::Mode_t::VBus);
 		}
@@ -198,18 +209,18 @@ private:
 			drive_.SetMode(subsystems::Drive::Mode_t::Velocity);
 
 
-		if(left_stick_.GetRawButton(7))
+		if(oi_.get_left().GetRawButton(7))
 			tank_drive_ = true;
-		else if(right_stick_.GetRawButton(7))
+		else if(oi_.get_right().GetRawButton(7))
 			tank_drive_ = false;
 
 
 		if(tank_drive_)
-			drive_.TankDrive(left_stick_.GetY() * fabs(left_stick_.GetY()),
-							right_stick_.GetY() * fabs(right_stick_.GetY()));
+			drive_.TankDrive(oi_.get_left().GetY() * fabs(oi_.get_left().GetY()),
+							oi_.get_right().GetY() * fabs(oi_.get_right().GetY()));
 		else
-			drive_.ArcadeDrive(right_stick_.GetY() * fabs(right_stick_.GetY()),
-							left_stick_.GetX() * fabs(left_stick_.GetX()));
+			drive_.ArcadeDrive(oi_.get_right().GetY() * fabs(oi_.get_right().GetY()),
+							oi_.get_left().GetX() * fabs(oi_.get_left().GetX()));
 
 
 		UpdateDriveDash();
@@ -226,32 +237,32 @@ private:
 
 	void TestBoulderPeriodic()
 	{
-		if (xbox_.GetRawButton(A))
+		if (oi_.get_xbox().GetRawButton(XBoxWrapper::A))
 		{
 			mode = AUTO;
 		}
 
-		else if (xbox_.GetRawButton(B))
+		else if (oi_.get_xbox().GetRawButton(XBoxWrapper::B))
 		{
 			mode = MANUAL;
 		}
 
-		else if (xbox_.GetRawButton(X))
+		else if (oi_.get_xbox().GetRawButton(XBoxWrapper::X))
 		{
 			mode = PUSH;
 		}
 
-		if (xbox_.GetRawButton(L_TRIGGER))
+		if (oi_.get_xbox().GetRawButton(XBoxWrapper::L_TRIGGER))
 		{
 			lock = true;
 		}
 
-		else if(xbox_.GetRawButton(BACK))
+		else if(oi_.get_xbox().GetRawButton(XBoxWrapper::BACK))
 		{
 			lock = false;
 		}
 
-		if(xbox_.GetRawButton(START))
+		if(oi_.get_xbox().GetRawButton(XBoxWrapper::START))
 		{
 			shooter_.SetMode(Shooter::Mode_t::VBUS);
 		}
@@ -262,7 +273,7 @@ private:
 
 		if(!lock)
 		{
-			speed = xbox_.GetRawAxis(L_TRIG);
+			speed = oi_.get_xbox().GetRawAxis(XBoxWrapper::L_TRIG);
 		}
 
 		shooter_.SpinUp(speed);
@@ -273,10 +284,10 @@ private:
 			intake_.TakeBall(true);
 			break;
 		case MANUAL:
-			if (fabs(xbox_.GetRawAxis(R_YAXIS)) < 0.05)
+			if (fabs(oi_.get_xbox().GetRawAxis(XBoxWrapper::R_YAXIS)) < 0.05)
 				intake_.Stop();
 			else
-				intake_.SetSpeed(xbox_.GetRawAxis(R_YAXIS)); //needs to be right stick
+				intake_.SetSpeed(oi_.get_xbox().GetRawAxis(XBoxWrapper::R_YAXIS)); //needs to be right stick
 			break;
 		case PUSH:
 			intake_.OutakeBall();
@@ -294,7 +305,7 @@ private:
 
 	void TestSwiss()
 	{
-		int pov = xbox_.GetPOV();
+		int pov = oi_.get_xbox().GetPOV();
 		if (pov >= 0) {
 			if(pov < 30){
 				swissCheez.SetState(Swiss::state_t::horizontal);
@@ -309,9 +320,9 @@ private:
 				swissCheez.SetState(Swiss::state_t::retract);
 			}
 
-		} else if(fabs(xbox_.GetRawAxis(L_YAXIS)) > 0.3) {
+		} else if(fabs(oi_.get_xbox().GetRawAxis(XBoxWrapper::L_YAXIS)) > 0.3) {
 			swissCheez.SetMode(Swiss::mode_t::vbus);
-			swissCheez.SetVelocity(xbox_.GetRawAxis(L_YAXIS), false);
+			swissCheez.SetVelocity(-oi_.get_xbox().GetRawAxis(XBoxWrapper::L_YAXIS), false);
 		}
 		else if (swissCheez.GetMode() != Swiss::mode_t::pos)
 		{

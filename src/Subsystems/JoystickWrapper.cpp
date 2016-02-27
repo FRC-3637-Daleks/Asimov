@@ -41,17 +41,17 @@ void JoystickWrapper::initJoystick()
 	joy_ = std::make_unique<Joystick>(GetPortSpace("USB")("port"));
 
 	// axes
-	GetLocalValue<double>("/axes/x").Initialize(std::make_shared<FunkyGet<double> >([this]()
+	GetLocalValue<double>("axes/x").Initialize(std::make_shared<FunkyGet<double> >([this]()
 		{
 			return joy_->GetX();
 		}));
 
-	GetLocalValue<double>("/axes/y").Initialize(std::make_shared<FunkyGet<double> >([this]()
+	GetLocalValue<double>("axes/y").Initialize(std::make_shared<FunkyGet<double> >([this]()
 		{
 			return joy_->GetY();
 		}));
 
-	GetLocalValue<double>("/axes/dial").Initialize(std::make_shared<FunkyGet<double> >([this]()
+	GetLocalValue<double>("axes/dial").Initialize(std::make_shared<FunkyGet<double> >([this]()
 		{
 			return joy_->GetZ();
 		}));
@@ -59,7 +59,7 @@ void JoystickWrapper::initJoystick()
 	// buttons
 	for(int b = 1; b <= 10; b++)
 	{
-		GetLocalValue<bool>("/buttons/" + std::to_string(b)).Initialize(
+		GetLocalValue<bool>("buttons/" + std::to_string(b)).Initialize(
 				std::make_shared<FunkyGet<bool> >([this, b]()
 					{
 						return joy_->GetRawButton(b);

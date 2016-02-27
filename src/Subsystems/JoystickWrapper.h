@@ -34,6 +34,9 @@ public:
 	void doRegister() override;
 	bool doConfigure() override;
 
+public:
+	Joystick& get_joy() {return *joy_;}
+
 private:
 	void initJoystick();
 

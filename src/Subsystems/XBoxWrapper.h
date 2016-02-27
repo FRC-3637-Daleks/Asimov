@@ -42,6 +42,9 @@ public:
 	void doRegister() override;
 	bool doConfigure() override;
 
+public:
+	Joystick& get_joy() {return *xbox_;}
+
 private:
 	void initXBox();
 

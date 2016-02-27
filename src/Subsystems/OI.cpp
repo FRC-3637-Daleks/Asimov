@@ -29,16 +29,16 @@ OI::OI(): WPISystem("OI"), driver_left_("driver_left"), driver_right_("driver_ri
 	AddSubSystem("driver_left", driver_left_);
 	AddSubSystem("driver_right", driver_right_);
 	AddSubSystem(copilot_.get_name(), copilot_);
+}
 
+void OI::doRegister()
+{
 	tank_left_ = GetLocalValue<double>("driver_left/axes/y");
 	tank_right_ = GetLocalValue<double>("driver_right/axes/y");
 	arcade_forward_ = GetLocalValue<double>("driver_right/axes/y");
 	arcade_turn_ = GetLocalValue<double>("driver_left/axes/x");
 	swiss_ = GetLocalValue<double>("xbox/axes/L_Y_Axis");
-}
 
-void OI::doRegister()
-{
 	auto& settings = GetSettings();
 	settings("deadzone").SetDefault(get_deadzone());
 
@@ -83,6 +83,9 @@ double OI::transformAxis(double from, bool squared, double multiplier) const
 
 double OI::GetTankLeft() const
 {
+	if(!tank_right_.initialized() && !tank_left_.initialized())
+		return 0.0;
+
 	if(forward_)
 		return transformAxis(tank_left_.GetValue(), true, get_tank_multiplier());
 	return transformAxis(tank_right_.GetValue(), true, -get_tank_multiplier());
@@ -90,6 +93,9 @@ double OI::GetTankLeft() const
 
 double OI::GetTankRight() const
 {
+	if(!tank_right_.initialized() && !tank_left_.initialized())
+		return 0.0;
+
 	if(forward_)
 		return transformAxis(tank_right_.GetValue(), true, get_tank_multiplier());
 	return transformAxis(tank_left_.GetValue(), true, -get_tank_multiplier());
@@ -97,6 +103,9 @@ double OI::GetTankRight() const
 
 double OI::GetArcadeForward() const
 {
+	if(!arcade_forward_.initialized())
+		return 0.8007;
+
 	if(forward_)
 		return transformAxis(arcade_forward_.GetValue(), true, get_forward_multiplier());
 	return transformAxis(arcade_forward_.GetValue(), true, -get_forward_multiplier());
@@ -104,11 +113,15 @@ double OI::GetArcadeForward() const
 
 double OI::GetArcadeTurn() const
 {
+	if(!arcade_turn_.initialized())
+		return 0.8008;
 	return transformAxis(arcade_turn_.GetValue(), true, get_turn_multiplier());
 }
 
 double OI::GetSwiss() const
 {
+	if(!swiss_.initialized())
+		return 0.0;
 	return transformAxis(swiss_.GetValue(), false, 1.0);
 }
 
