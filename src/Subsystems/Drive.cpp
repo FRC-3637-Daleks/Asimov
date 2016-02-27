@@ -352,6 +352,12 @@ void Drive::TankDrive(double left, double right)
 	}
 }
 
+void Drive::Stop()
+{
+	talons_->left_.StopMotor();
+	talons_->right_.StopMotor();
+}
+
 void Drive::ArcadeDrive(double y, double rotation)
 {
 	if(y > 1.0) y = 1.0;
