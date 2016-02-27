@@ -3,6 +3,8 @@
 #include "Log/MessageData.h"
 #include "WPILib/WPISystem.h"
 #include "Config/PortSpace.h"
+#include "Utility/ValueStore.h"
+#include "Utility/Valuable.h"
 
 #include "WPILib.h"
 
@@ -69,7 +71,6 @@ private:
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Started";
 
-		drive_.Initialize();
 		mount_.doConfigure();
 		shooter_.Initialize();
 		intake_.Initialize();
@@ -86,7 +87,7 @@ private:
 
 		BindControls();
 
-		auton_command_ = drive_.MakeDriveStraight(0.5, Drive::Meters_t(6));  // Drive at 50% speed for 6 seconds
+		// auton_command_ = drive_.MakeDriveStraight(0.5, Drive::Meters_t(6));  // Drive at 50% speed for 6 seconds
 
 		Register();
 		get_context().SaveSchema();
@@ -154,6 +155,7 @@ private:
 	// Autonomous
 	void AutonomousInit() override
 	{
+		Configure();
 		auton_command_->Start();
 	}
 
@@ -182,7 +184,6 @@ private:
 
 	void TestDriveInit()
 	{
-		Configure();
 		drive_.SetMode(Drive::Mode_t::Velocity);
 	}
 

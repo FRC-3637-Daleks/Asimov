@@ -25,6 +25,8 @@ namespace commands
 {
 
 class DriveStraight;
+class TankDrive;
+class ArcadeDrive;
 
 }
 
@@ -146,9 +148,22 @@ public:	/// Drive functions
 
 public:  // Command Generation
 	/** Forwards the arguments to a DriveStraight constructor with this as the first arg
+	 * @see commands::DriveStraight::DriveStraight
 	 */
 	template<class ... Types>
 	commands::DriveStraight * MakeDriveStraight(Types ... args);
+
+	/** Forwards the arguments to a TankDrive constructor with this as the first arg
+	 * @see commands::TankDrive::TankDrive
+	 */
+	template<class ... Types>
+	commands::TankDrive * MakeTankDrive(Types ... args);
+
+	/** Forwards the arguments to an ArcadeDrive constructor with this as the first arg
+	 * @see commands::ArcadeDrive::ArcadeDrive
+	 */
+	template<class ... Types>
+	commands::ArcadeDrive * MakeArcadeDrive(Types ... args);
 
 private:
 	struct Talons
@@ -190,11 +205,25 @@ private:
 
 // Drive class dependent files
 #include "Commands/DriveStraight.h"
+#include "Commands/TankDrive.h"
+#include "Commands/ArcadeDrive.h"
 
 template<class ... Types>
 commands::DriveStraight * subsystems::Drive::MakeDriveStraight(Types ... args)
 {
 	return new commands::DriveStraight(this, std::forward<Types>(args)...);
+}
+
+template<class ... Types>
+commands::TankDrive * subsystems::Drive::MakeTankDrive(Types ... args)
+{
+	return new commands::TankDrive(this, std::forward<Types>(args)...);
+}
+
+template<class ... Types>
+commands::ArcadeDrive * subsystems::Drive::MakeArcadeDrive(Types ... args)
+{
+	return new commands::ArcadeDrive(this, std::forward<Types>(args)...);
 }
 
 
