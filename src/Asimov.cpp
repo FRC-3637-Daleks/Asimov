@@ -69,7 +69,7 @@ private:
 
 		BindControls();
 
-		auton_command_ = drive_.MakeDriveStraight(0.5, Drive::Meters_t(6));  // Drive at 50% speed for 6 seconds
+		auton_command_ = drive_.MakeDriveStraight(0.5, 5, false);  // Drive at 50% speed for 3 seconds
 	}
 
 	void BindControls()
@@ -88,7 +88,7 @@ private:
 		triggers.back()->WhenPressed(commands.back());
 
 		triggers.push_back(new JoystickButton(&xbox_, Y));
-		commands.push_back(shooter_.MakeSpinUp(0.95));
+		commands.push_back(shooter_.MakeSpinUp(0.985));
 		triggers.back()->WhenPressed(commands.back());
 
 		triggers.push_back(new JoystickButton(&xbox_, X));
@@ -180,11 +180,11 @@ private:
 
 
 		if(tank_drive_)
-			drive_.TankDrive(left_stick_.GetY() * fabs(left_stick_.GetY()),
-							right_stick_.GetY() * fabs(right_stick_.GetY()));
+			drive_.TankDrive(-left_stick_.GetY() * fabs(left_stick_.GetY()),
+							-right_stick_.GetY() * fabs(right_stick_.GetY()));
 		else
-			drive_.ArcadeDrive(right_stick_.GetY() * fabs(right_stick_.GetY()),
-							left_stick_.GetX() * fabs(left_stick_.GetX()));
+			drive_.ArcadeDrive(-right_stick_.GetY() * fabs(right_stick_.GetY()),
+							-left_stick_.GetX() * fabs(left_stick_.GetX()));
 
 
 		UpdateDriveDash();
@@ -286,7 +286,7 @@ private:
 
 		} else if(fabs(xbox_.GetRawAxis(L_YAXIS)) > 0.3) {
 			swissCheez.SetMode(Swiss::mode_t::vbus);
-			swissCheez.SetVelocity(xbox_.GetRawAxis(L_YAXIS), false);
+			swissCheez.SetVelocity(-xbox_.GetRawAxis(L_YAXIS), false);
 		}
 		else if (swissCheez.GetMode() != Swiss::mode_t::pos)
 		{

@@ -15,7 +15,7 @@ double Swiss::states[] = {
 		[retract] = -.032,
 		[horizontal] = -.63,
 		[cheval_down] = -.7,
-		[port_down] = -.768
+		[port_down] = -.780
 };
 
 
