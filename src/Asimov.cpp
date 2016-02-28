@@ -45,6 +45,7 @@ private:
 	void TeleopPeriodic() override
 	{
 		Scheduler::GetInstance()->Run();
+		TestSwiss();
 	}
 
 	// Autonomous
@@ -86,23 +87,20 @@ private:
 		StateThing();
 		if (swissCheez.GetMode()==Swiss::mode_t::pos) {
 			if(derp.GetRawButton(1)){
-				swissCheez.MinHeight();
+				swissCheez.SetState(Swiss::state_t::retract);
 			}
 			if(derp.GetRawButton(2)){
-				swissCheez.MaxHeight();
+				swissCheez.SetState(Swiss::state_t::horizontal);
 			}
 			if(derp.GetRawButton(3)){
-				swissCheez.LowerCheval();
+				swissCheez.SetState(Swiss::state_t::cheval_down);
 			}
 			if(derp.GetRawButton(4)){
-				swissCheez.LiftDoor();
-			}
-			if(derp.GetRawButton(6)){
-				swissCheez.LowerPort();
+				swissCheez.SetState(Swiss::state_t::port_down);
 			}
 
 		} else {
-			swissCheez.SetVelocity(derp.GetRawAxis(1), false);
+			swissCheez.SetVelocity(derp.GetRawAxis(5));
 		}
 	}
 };

@@ -35,7 +35,4 @@ public:
 };
 }
 
-
-
-
 #endif /* SRC_SUBSYSTEMS_ALIGN_H_ */

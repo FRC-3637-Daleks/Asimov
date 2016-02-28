@@ -64,6 +64,3 @@ double Align::ForwardError(){
 double Align::RotationError(){
 	return (RightError()-LeftError());
 }
-
-
-
