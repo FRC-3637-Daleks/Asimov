@@ -2,6 +2,7 @@
 #include "Log/TextLog.h"
 #include "Log/MessageData.h"
 #include "WPILib/WPISystem.h"
+#include "Config/RootSystem.h"
 #include "Config/PortSpace.h"
 #include "Utility/ValueStore.h"
 #include "Utility/Valuable.h"
@@ -51,7 +52,7 @@ private:  // test modes and other things which will become outsourced to other c
 	bool lock;
 
 private:  // commands and triggers
-	Command * auton_command_;
+	CommandGroup auton_command_;
 	std::vector<Command*> commands;
 	std::vector<Trigger*> triggers;
 
@@ -97,23 +98,96 @@ private:
 		mode = AUTO;
 		lock = false;
 
-		drive_.SetDefaultCommand(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), oi_.GetArcadeTurnAxis(), 1.0, 1.0));
-
-		BindControls();
-
-		// auton_command_ = drive_.MakeDriveStraight(0.5, Drive::Meters_t(6));  // Drive at 50% speed for 6 seconds
-
 		Register();
 		get_context().SaveSchema();
+
+		BindControls();
 
 		TextLog::Log(MessageData(MessageData::INFO, 1), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Complete";
 
-		auton_command_ = drive_.MakeDriveStraight(0.5, 5, false);  // Drive at 50% speed for 3 seconds
+	}
+
+	void doRegister() override
+	{
+		RootSystem::doRegister();
+
+		{
+			auto& auton = GetSettings()["autonomous"];
+
+			{
+				auto& approach = auton["A_approach"];
+				approach("speed").SetDefault(0.5);
+				approach("distance").SetDefault(1.8);
+				approach("timeout").SetDefault(3.0);
+			}
+
+			{
+				auto& alignment = auton["B_alignment"];
+				alignment("skip").SetDefault(false);
+				alignment("timeout").SetDefault(2.0);
+				alignment("speed_factor").SetDefault(0.5);
+			}
+
+			{
+				auto& cross = auton["C_cross"];
+				cross("speed").SetDefault(.5);
+				cross("distance").SetDefault(3.0);
+				cross("timeout").SetDefault(5.0);
+			}
+		}
+	}
+
+	bool doConfigure() override
+	{
+		RootSystem::doConfigure();
+
+		{
+			auto& auton = GetSettings()["autonomous"];
+
+			{
+				auto& approach = auton["A_approach"];
+				double speed = approach("speed").GetValueOrDefault<double>();
+				double distance = approach("distance").GetValueOrDefault<double>();
+				double timeout = approach("timeout").GetValueOrDefault<double>();
+
+				// Approach the outerworks
+				auton_command_.AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+			}
+
+			{
+				auto& alignment = auton["B_alignment"];
+				bool skip = alignment("skip").GetValueOrDefault<bool>();
+				double timeout = alignment("timeout").GetValueOrDefault<double>();
+				double speed_factor = alignment("speed_factor").GetValueOrDefault<double>();
+
+				// Align with outerworks
+				if(!skip)
+				{
+					auton_command_.AddSequential(drive_.MakeTankDrive(GetLocalValue<double>("Align/left_output"),
+														GetLocalValue<double>("Align/right_output"),
+														speed_factor), timeout);
+				}
+			}
+
+			{
+				auto& cross = auton["C_cross"];
+				double speed = cross("speed").GetValueOrDefault<double>();
+				double distance = cross("distance").GetValueOrDefault<double>();
+				double timeout = cross("timeout").GetValueOrDefault<double>();
+
+				// Drive over defense
+				auton_command_.AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+			}
+		}
+
+		return true;
 	}
 
 	void BindControls()
 	{
+		drive_.SetDefaultCommand(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), oi_.GetArcadeTurnAxis(), 1.0, 1.0));
+
 		commands.push_back(intake_.MakeIntakeBall());
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/A")));
 		triggers.back()->WhenActive(commands.back());
@@ -186,7 +260,7 @@ private:
 	void AutonomousInit() override
 	{
 		Configure();
-		auton_command_->Start();
+		auton_command_.Start();
 	}
 
 	void AutonomousPeriodic() override

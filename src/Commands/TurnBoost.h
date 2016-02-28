@@ -19,7 +19,10 @@ public:
 	using OI_t = subsystems::OI;
 
 public:
-	TurnBoost(OI_t *oi, double boost_power): oi_(oi), power_(boost_power), previous_power_(0.0) {}
+	TurnBoost(OI_t *oi, double boost_power): oi_(oi), power_(boost_power), previous_power_(0.0)
+	{
+		SetRunWhenDisabled(true);
+	}
 	virtual ~TurnBoost() = default;
 
 public:

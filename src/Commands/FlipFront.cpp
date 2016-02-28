@@ -13,6 +13,7 @@ namespace commands
 FlipFront::FlipFront(OI_t *oi, CameraMount_t *camera): oi_(oi), camera_(camera)
 {
 	Requires(camera_);
+	SetRunWhenDisabled(true);
 }
 
 void FlipFront::Initialize()
