@@ -41,7 +41,7 @@ public:
 	void Initialize() override;
 
 	/// Empty
-	void Execute() override {};
+	void Execute() override;
 
 	/// Returns true when the absolute value of the total distance driven exceeds the length
 	bool IsFinished() override;

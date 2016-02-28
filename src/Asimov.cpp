@@ -23,6 +23,7 @@
 #include "Subsystems/Swiss.h"
 #include "Subsystems/OI.h"
 #include "WPILib/GenericTrigger.h"
+#include "Subsystems/Align.h"
 
 #include <math.h>
 #include <vector>
@@ -40,6 +41,7 @@ private:  // subsystems
 	CameraMount mount_;
 	Shooter shooter_;
 	Swiss swissCheez;
+	Align align_;
 
 private:  // test modes and other things which will become outsourced to other classes
 	bool tank_drive_;
@@ -60,13 +62,18 @@ public:
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 						"Constructor Started";
 
+		// Subsystems
 		AddSubSystem("Drive", drive_);
 		AddSubSystem("OI", oi_);
+		AddSubSystem("Align", align_);
+
+		// Port Spaces
 		get_context().RegisterPortSpace("CAN", std::make_shared<PortSpace>(0, 63));
+		get_context().RegisterPortSpace("USB", std::make_shared<PortSpace>(0, 5));
+		get_context().RegisterPortSpace("AnalogIn", std::make_shared<PortSpace>(0, 4));
 
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 								"Constructor Complete";
-		std::cout << "I scream" << std::endl;
 	}
 
 private:
@@ -102,6 +109,7 @@ private:
 		TextLog::Log(MessageData(MessageData::INFO, 1), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Complete";
 
+		auton_command_ = drive_.MakeDriveStraight(0.5, 5, false);  // Drive at 50% speed for 3 seconds
 	}
 
 	void BindControls()

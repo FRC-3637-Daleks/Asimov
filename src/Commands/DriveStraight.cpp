@@ -43,7 +43,18 @@ void DriveStraight::Initialize()
 		return;
 	}
 
+	drive_->ResetPosition();
 	drive_->TankDrive(velocity_, velocity_);
+}
+
+void DriveStraight::Execute()
+{
+	if(drive_ == nullptr)
+	{
+		return;
+	}
+
+	SmartDashboard::PutNumber("Distance", drive_->GetDistance());
 }
 
 bool DriveStraight::IsFinished()

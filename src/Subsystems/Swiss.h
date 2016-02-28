@@ -5,13 +5,13 @@
  *      Author: elija_000
  */
 
+#ifndef SRC_SUBSYSTEMS_SWISS_H_
+#define SRC_SUBSYSTEMS_SWISS_H_
 
 
 #include "WPILib.h"
 
 
-#ifndef SRC_SUBSYSTEMS_SWISS_H_
-#define SRC_SUBSYSTEMS_SWISS_H_
 
 #include <memory>
 
@@ -42,6 +42,7 @@ private:
 	static double tickToDegree;
 	static double maxVelocity;
 
+	state_t current;
 	state_t position;
 	CANTalon *swisstalon;
 
@@ -59,6 +60,13 @@ public:
 	void SetMode(mode_t m);
 	mode_t GetMode();
 	void SetState(state_t s);
+	void RefreshState();
+
+	double GetPos();
+	double GetDiff();
+	bool IsCloseNuff();
+	void Hold();
+
 	state_t GetState();
 };
 
