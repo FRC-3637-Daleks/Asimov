@@ -229,6 +229,12 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/11")));
 		triggers.back()->CancelWhenActive(commands.back());
 
+		// auto align
+		commands.push_back(drive_.MakeTankDrive(GetLocalValue<double>("Align/left_output"),
+												GetLocalValue<double>("Align/right_output"), .5));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/8")));
+		triggers.back()->WhileActive(commands.back());
+
 	}
 
 	// Disabled
