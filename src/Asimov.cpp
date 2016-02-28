@@ -10,11 +10,12 @@
 #include "Subsystems/Drive.h"
 #include "Subsystems/CameraMount.h"
 #include "Subsystems/Swiss.h"
+#include "Subsystems/Align.h"
+
 
 #include <math.h>
 #include <vector>
 #include <memory>
-
 
 using namespace subsystems;
 
@@ -27,6 +28,7 @@ private:  // subsystems
 	CameraMount mount_;
 	Shooter shooter_;
 	Swiss swissCheez;
+	Align align_;
 
 private:  // test modes and other things which will become outsourced to other classes
 	bool tank_drive_;

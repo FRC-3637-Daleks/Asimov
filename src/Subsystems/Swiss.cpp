@@ -10,6 +10,8 @@ using state_t = subsystems::Swiss::state_t;
 
 double Swiss::tickToDegree = 90; //measure and change later
 double Swiss::maxVelocity = 18;
+state_t current;
+
 
 double Swiss::states[] = {
 		[retract] = -.032,
@@ -36,11 +38,13 @@ Swiss::Swiss() : Subsystem("Swiss"){
 Swiss::mode_t Swiss::GetMode(){
 	return static_cast<mode_t>(swisstalon->GetControlMode());
 }
+
 void Swiss::SetMode(mode_t m){
 	if(GetMode() == m){
 		return;
+
 	}
-	else if(m == pos){
+	if(m == pos){
 		swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
 		swisstalon->SelectProfileSlot(0);
 		swisstalon->Set(swisstalon->Get());
@@ -58,6 +62,7 @@ void Swiss::SetMode(mode_t m){
 		return;
 	}
 }
+
 state_t Swiss::GetState(){
 	return position;
 }
@@ -71,6 +76,27 @@ void Swiss::SetVelocity(double v, bool changeMode){
 	else if(GetMode() == mode_t::vbus)
 		swisstalon->Set(v);
 }
+
+double Swiss::GetPos(){
+	return swisstalon->GetPosition();
+}
+
+double Swiss::GetDiff(){
+	if(GetMode()== Swiss::mode_t::pos){
+		return GetState()-GetPos();
+	}
+	else{
+		return 0;
+	}
+
+
+}
+void Swiss::RefreshState(){
+	if (IsCloseNuff()){
+		current = position;
+		return;
+	}
+}
 void Swiss::SetVoltage(double v){
 	SetMode(vbus);
 	swisstalon->Set(v);
@@ -80,5 +106,17 @@ void Swiss::SetState(state_t s){
 	SetMode(pos);
 	position = s;
 	swisstalon->Set(states[position]);
+}
+
+bool Swiss::IsCloseNuff(){
+	if (GetDiff()> 5){
+		return false;
+	}
+	else{
+		return true;
+	}
+}
+void Swiss::Hold(){
+	swisstalon->Set(GetPos());
 }
 
