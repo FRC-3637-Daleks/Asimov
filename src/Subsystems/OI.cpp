@@ -87,8 +87,8 @@ double OI::GetTankLeft() const
 		return 0.0;
 
 	if(forward_)
-		return transformAxis(tank_left_.GetValue(), true, get_tank_multiplier());
-	return transformAxis(tank_right_.GetValue(), true, -get_tank_multiplier());
+		return transformAxis(tank_left_.GetValue(), true, -get_tank_multiplier());
+	return transformAxis(tank_right_.GetValue(), true, get_tank_multiplier());
 }
 
 double OI::GetTankRight() const
@@ -97,8 +97,8 @@ double OI::GetTankRight() const
 		return 0.0;
 
 	if(forward_)
-		return transformAxis(tank_right_.GetValue(), true, get_tank_multiplier());
-	return transformAxis(tank_left_.GetValue(), true, -get_tank_multiplier());
+		return transformAxis(tank_right_.GetValue(), true, -get_tank_multiplier());
+	return transformAxis(tank_left_.GetValue(), true, get_tank_multiplier());
 }
 
 double OI::GetArcadeForward() const
@@ -107,8 +107,8 @@ double OI::GetArcadeForward() const
 		return 0.8007;
 
 	if(forward_)
-		return transformAxis(arcade_forward_.GetValue(), true, get_forward_multiplier());
-	return transformAxis(arcade_forward_.GetValue(), true, -get_forward_multiplier());
+		return transformAxis(arcade_forward_.GetValue(), true, -get_forward_multiplier());
+	return transformAxis(arcade_forward_.GetValue(), true, get_forward_multiplier());
 }
 
 double OI::GetArcadeTurn() const
@@ -122,7 +122,7 @@ double OI::GetSwiss() const
 {
 	if(!swiss_.initialized())
 		return 0.0;
-	return transformAxis(swiss_.GetValue(), false, 1.0);
+	return transformAxis(swiss_.GetValue(), false, -1.0);
 }
 
 commands::ForwardBoost *OI::MakeForwardBoost(double power)

@@ -17,6 +17,7 @@
 #include "Commands/Shoot.h"
 #include "Commands/ForwardBoost.h"
 #include "Commands/TurnBoost.h"
+#include "Commands/FlipFront.h"
 #include "Subsystems/Drive.h"
 #include "Subsystems/CameraMount.h"
 #include "Subsystems/Swiss.h"
@@ -135,6 +136,16 @@ private:
 		commands.push_back(oi_.MakeForwardBoost(1.0));
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/1")));
 		triggers.back()->WhileActive(commands.back());
+
+		commands.push_back(oi_.MakeTurnBoost(1.0));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_left/buttons/1")));
+		triggers.back()->WhileActive(commands.back());
+
+		commands.push_back(new commands::FlipFront(&oi_, &mount_));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/10")));
+		triggers.back()->WhenActive(commands.back());
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/11")));
+		triggers.back()->CancelWhenActive(commands.back());
 
 	}
 

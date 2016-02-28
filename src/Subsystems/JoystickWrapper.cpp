@@ -57,7 +57,7 @@ void JoystickWrapper::initJoystick()
 		}));
 
 	// buttons
-	for(int b = 1; b <= 10; b++)
+	for(int b = 1; b <= 11; b++)
 	{
 		GetLocalValue<bool>("buttons/" + std::to_string(b)).Initialize(
 				std::make_shared<FunkyGet<bool> >([this, b]()
