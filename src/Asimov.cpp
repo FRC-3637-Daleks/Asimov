@@ -1,15 +1,16 @@
 #include "WPILib.h"
 #include "Subsystems/Swiss.h"
-
+#include "Subsystems/Align.h"
 using namespace subsystems;
 
 class Asimov: public IterativeRobot
 {
 public:
-	Asimov(): swissCheez(7331, 0, 0, 0), derp(2)
+	Asimov(): swissCheez(7, 0, 0, 0), derp(2), sensors()
 	{}
 	Swiss swissCheez;
 	Joystick derp;
+	Align sensors;
 
 private:
 	// Init
@@ -27,6 +28,11 @@ private:
 	{
 		Scheduler::GetInstance()->Run();
 		StateThing();
+		SmartDashboard::PutNumber("Forward Error", sensors.ForwardError());
+		SmartDashboard::PutNumber("Rotation Error", sensors.RotationError());
+		SmartDashboard::PutNumber("Left Error", sensors.LeftError());
+		SmartDashboard::PutNumber("Right Error", sensors.RightError());
+
 	}
 
 
