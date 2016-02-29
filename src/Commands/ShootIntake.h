@@ -27,7 +27,7 @@ using State_t = Shooter::State_t;
 
 // Constructor & destructor:
 public:
-	ShootIntake(Intake* intake, Shooter* shooter, double shoot_time = 0.25, double timeout = 1.0); // jlanza
+	ShootIntake(Intake* intake, Shooter* shooter, double shoot_time = 0.25, double timeout = 1.0);
 	virtual ~ShootIntake() = default;
 
 // Main functions:
