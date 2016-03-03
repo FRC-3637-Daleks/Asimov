@@ -64,13 +64,13 @@ public:
 	double GetTimeOut() const;
 
 	/**
-	 * Sets wait_time_ for the wait command to a new value.
-	 * @param wait_time the new timeout for the wait command.
+	 * Sets wait_time_ for SpinDown to a new cvalue
+	 * @param wait_time the new timeout for SpinDown
 	 */
 	void SetWaitTime(double wait_time);
 
 	/**
-	 * @return wait_time_ the timeout for the wait command.
+	 * @return wait_time_ the timeout for SpinDown
 	 */
 	double GetWaitTime() const;
 
@@ -85,7 +85,6 @@ private:
 	double wait_time_;
 
 	ShootIntake *shoot_intake_;
-	WaitCommand *wait_;
 	SpinDown *spin_down_;
 };
 
