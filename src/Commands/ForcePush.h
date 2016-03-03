@@ -18,7 +18,7 @@ namespace commands
 
 using Intake = subsystems::Intake;
 
-class ForcePush : Command
+class ForcePush : public Command
 {
 // Constructor & destructor:
 public:
