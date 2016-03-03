@@ -38,6 +38,8 @@ public:
 	double RotationError() const;
 	double GetLeftOutput() const;
 	double GetRightOutput() const;
+	double GetForwardOutput() const;
+	double GetTurnOutput() const;
 
 public:
 	bool is_initialized() const {return Sensor1 != nullptr && Sensor2 != nullptr;}

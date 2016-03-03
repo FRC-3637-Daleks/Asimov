@@ -20,7 +20,7 @@ void TurnBoost::Initialize()
 {
 	if(oi_ == nullptr)
 	{
-		Cancel();
+		 Cancel();
 		TextLog::Log(MessageData(MessageData::ERR), SystemData("OI", "TurnBoost", "Command")) <<
 				"Initialization failed";
 		return;

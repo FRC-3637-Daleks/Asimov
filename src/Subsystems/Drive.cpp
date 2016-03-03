@@ -38,8 +38,15 @@ void Drive::initTalons()
 	if(!is_initialized())
 	{
 		auto& ports = GetPortSpace("CAN");
-		talons_ = std::make_unique<Talons>(ports("left"), ports("left_slave"),
-										   ports("right"), ports("right_slave"));
+		int left = ports("left");
+		int left_slave = ports("left_slave");
+		int right = ports("right");
+		int right_slave = ports("right_slave");
+
+		talons_ = std::make_unique<Talons>(left, left_slave,
+										   right, right_slave);
+		Log(dman::MessageData::INFO, "", "Subsystem") << "Port Config: left: " << left << ", " <<
+				"left_slave: " << left_slave << ", right: " << right << ", right_slave: " << right_slave;
 	}
 }
 
@@ -97,8 +104,10 @@ bool Drive::configureBoth()
 void Drive::doRegister()
 {
 	auto& can_ports = GetPortSpace("CAN");
-	for(auto port : {"left", "left_slave", "right", "right_slave"})
-		can_ports(port);
+	can_ports("right").SetDefault(1);
+	can_ports("right_slave").SetDefault(2);
+	can_ports("left").SetDefault(3);
+	can_ports("left_slave").SetDefault(4);
 
 	auto& settings = GetSettings();
 	settings("ticks_per_revolution").SetDefault(get_ticks_per_rev());
@@ -354,8 +363,8 @@ void Drive::TankDrive(double left, double right)
 
 void Drive::Stop()
 {
-	talons_->left_.StopMotor();
-	talons_->right_.StopMotor();
+	talons_->left_.Set(0.0);
+	talons_->right_.Set(0.0);
 }
 
 void Drive::ArcadeDrive(double y, double rotation)

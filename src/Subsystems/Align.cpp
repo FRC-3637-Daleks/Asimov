@@ -66,11 +66,39 @@ double Align::RotationError() const {
 }
 
 double Align::GetLeftOutput() const {
-	return LeftError()/3.0;
+	double ret = -LeftError();
+	if(ret > 1.0)
+		return 1.0;
+	else if(ret < -1.0)
+		return -1.0;
+	return ret;
 }
 
 double Align::GetRightOutput() const {
-	return RightError()/3.0;
+	double ret = -RightError();
+	if(ret > 1.0)
+		return 1.0;
+	else if(ret < -1.0)
+		return -1.0;
+	return ret;
+}
+
+double Align::GetForwardOutput() const {
+	double ret = -ForwardError();
+	if(ret > 1.0)
+		return 1.0;
+	else if(ret < -1.0)
+		return -1.0;
+	return ret;
+}
+
+double Align::GetTurnOutput() const {
+	double ret = -RotationError();
+	if(ret > 1.0)
+		return 1.0;
+	else if(ret < -1.0)
+		return -1.0;
+	return ret;
 }
 
 void Align::doRegister()
@@ -109,6 +137,14 @@ void Align::doRegister()
 	GetLocalValue<double>("right_output").Initialize(std::make_shared<FunkyGet<double> >([this]()
 			{
 				return GetRightOutput();
+			}));
+	GetLocalValue<double>("forward_output").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return GetForwardOutput();
+			}));
+	GetLocalValue<double>("turn_output").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return GetTurnOutput();
 			}));
 }
 

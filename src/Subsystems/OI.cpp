@@ -69,6 +69,7 @@ bool OI::doConfigure()
 {
 	auto& settings = GetSettings();
 	SetDeadzone(settings("deadzone").GetValueOrDefault());
+	Log(dman::MessageData::INFO, "", "Subsystem") << "Deadzone: " << get_deadzone();
 	return true;
 }
 
@@ -104,7 +105,7 @@ double OI::GetTankRight() const
 double OI::GetArcadeForward() const
 {
 	if(!arcade_forward_.initialized())
-		return 0.8007;
+		return 0.0;
 
 	if(forward_)
 		return transformAxis(arcade_forward_.GetValue(), true, -get_forward_multiplier());
@@ -114,8 +115,8 @@ double OI::GetArcadeForward() const
 double OI::GetArcadeTurn() const
 {
 	if(!arcade_turn_.initialized())
-		return 0.8008;
-	return transformAxis(arcade_turn_.GetValue(), true, get_turn_multiplier());
+		return 0.0;
+	return transformAxis(arcade_turn_.GetValue(), true, -get_turn_multiplier());
 }
 
 double OI::GetSwiss() const

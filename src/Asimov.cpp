@@ -230,8 +230,8 @@ private:
 		triggers.back()->CancelWhenActive(commands.back());
 
 		// auto align
-		commands.push_back(drive_.MakeTankDrive(GetLocalValue<double>("Align/left_output"),
-												GetLocalValue<double>("Align/right_output"), .5));
+		commands.push_back(drive_.MakeArcadeDrive(GetLocalValue<double>("Align/forward_output"),
+												GetLocalValue<double>("Align/turn_output"), .2, .3));
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/8")));
 		triggers.back()->WhileActive(commands.back());
 
