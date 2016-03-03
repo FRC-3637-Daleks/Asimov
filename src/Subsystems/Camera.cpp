@@ -5,36 +5,61 @@
  *      Author: Edward
  */
 
-#include "CameraMount.h"
+#include "Camera.h"
+
+#include "Utility/FunkyGet.h"
 
 namespace subsystems
 {
 
-double CameraMount::positions[] = {
-		[BACK] = 0.0,
-		[GOAL] = 0.7,
-		[FORWARD] = 1.0
+double Camera::positions[] = {
+		/*[BACK] =*/ 0.0,
+		/*[GOAL] =*/ 0.7,
+		/*[WHEEL] =*/ 1.0
 };
 
-CameraMount::CameraMount(): Subsystem("CameraMount"), servo_(nullptr), state_(BACK)
+std::string Camera::views[] = {
+		{0, true},	// BACK
+		{0, false}, // GOAL
+		{0, false}, // WHEEL
+		{2, true},  // BALL
+		{1, false}  // FRONT
+};
+
+Camera::Camera(): WPISystem("CameraMount"), servo_(nullptr), state_(DYNAMIC)
 {
 }
 
-void CameraMount::SetState(CamState_t state)
+void Camera::SetState(CamState_t state)
 {
-	if(state >= 0 && state < N_STATES)
+	state_ = state;
+	if(state < 0)
+		return;
+
+	if(state_ <= WHEEL)
 	{
-		SetPosition(positions[state]);
-		state_ = state;
+		SetPosition(positions[state_]);
+	}
+
+	if(state_ < N_STATES)
+		PostView(views[state_]);
+}
+
+void Camera::PostView(const View &view)
+{
+	if(cam_table_)
+	{
+		cam_table_->PutNumber("stream_select", view.cam_id_);
+		cam_table_->PutBoolean("flip", view.flip_);
 	}
 }
 
-CameraMount::CamState_t CameraMount::GetState() const
+Camera::CamState_t Camera::GetState() const
 {
 	return state_;
 }
 
-void CameraMount::SetPosition(double position)
+void Camera::SetPosition(double position)
 {
 	if(is_initialized() && position > 0.0 && position < 1.0)
 	{
@@ -43,7 +68,7 @@ void CameraMount::SetPosition(double position)
 	}
 }
 
-double CameraMount::GetPosition() const
+double Camera::GetPosition() const
 {
 	if(is_initialized())
 	{
@@ -53,23 +78,57 @@ double CameraMount::GetPosition() const
 	return 0.0;
 }
 
-void CameraMount::OffsetPosition(double offset)
+void Camera::OffsetPosition(double offset)
 {
 	SetPosition(GetPosition() + offset);
 }
 
-bool CameraMount::doConfigure()
+void Camera::doRegister()
+{
+	auto& ports = GetPortSpace("PWM");
+	ports("servo");
+
+	auto& settings = GetSettings();
+
+	{
+		auto& pos_settings = settings["positions"];
+		pos_settings("BACK").SetDefault(positions[BACK]);
+		pos_settings("GOAL").SetDefault(positions[GOAL]);
+		pos_settings("WHEEL").SetDefault(positions[WHEEL]);
+	}
+
+	GetLocalValue<double>("position").Initialize(std::make_shared<FunkyGet<double> >([this](){
+		return GetPosition();
+	}));
+}
+
+bool Camera::doConfigure()
 {
 	if(!is_initialized())
 		initServo();
 
+	auto& settings = GetSettings();
+
+	{
+		auto& pos_settings = settings["positions"];
+		positions[BACK] = pos_settings("BACK").GetValueOrDefault<double>();
+		positions[GOAL] = pos_settings("GOAL").GetValueOrDefault<double>();
+		positions[WHEEL] = pos_settings("WHEEL").GetValueOrDefault<double>();
+	}
+
+	SetState(WHEEL);
+
 	return true;
 }
 
-void CameraMount::initServo()
+void Camera::initServo()
 {
 	if(!is_initialized())
-		servo_ = std::make_unique<Servo>(0);
+	{
+		auto& ports = GetPortSpace("PWM");
+		servo_ = std::make_unique<Servo>(ports("servo"));
+		cam_table_ = NetworkTable::GetTable("camera");
+	}
 }
 
 }

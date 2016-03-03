@@ -20,7 +20,7 @@
 #include "Commands/TurnBoost.h"
 #include "Commands/FlipFront.h"
 #include "Subsystems/Drive.h"
-#include "Subsystems/CameraMount.h"
+#include "Subsystems/Camera.h"
 #include "Subsystems/Swiss.h"
 #include "Subsystems/OI.h"
 #include "WPILib/GenericTrigger.h"
@@ -39,7 +39,7 @@ private:  // subsystems
 	OI oi_;
 	Drive drive_;
 	Intake intake_;
-	CameraMount mount_;
+	Camera camera_;
 	Shooter shooter_;
 	Swiss swissCheez;
 	Align align_;
@@ -67,11 +67,14 @@ public:
 		AddSubSystem("Drive", drive_);
 		AddSubSystem("OI", oi_);
 		AddSubSystem("Align", align_);
+		AddSubSystem("Camera", camera_);
+		AddSubSystem("Swiss", swissCheez);
 
 		// Port Spaces
 		get_context().RegisterPortSpace("CAN", std::make_shared<PortSpace>(0, 63));
 		get_context().RegisterPortSpace("USB", std::make_shared<PortSpace>(0, 5));
 		get_context().RegisterPortSpace("AnalogIn", std::make_shared<PortSpace>(0, 4));
+		get_context().RegisterPortSpace("PWM", std::make_shared<PortSpace>(0, 9));
 
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 								"Constructor Complete";
@@ -84,7 +87,6 @@ private:
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Started";
 
-		mount_.doConfigure();
 		shooter_.Initialize();
 		intake_.Initialize();
 
@@ -327,11 +329,6 @@ private:
 
 	void UpdateDriveDash()
 	{
-		SmartDashboard::PutNumber("Left Setpoint", drive_.GetLeftSetPointRPM());
-		SmartDashboard::PutNumber("Left Speed", drive_.GetLeftRPM());
-
-		SmartDashboard::PutNumber("Right Setpoint", drive_.GetRightSetPointRPM());
-		SmartDashboard::PutNumber("Right Speed", drive_.GetRightRPM());
 	}
 
 	void TestBoulderPeriodic()

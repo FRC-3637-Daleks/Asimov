@@ -5,11 +5,16 @@
  *      Author: Edward
  */
 
-#ifndef SRC_SUBSYSTEMS_CAMERAMOUNT_H_
-#define SRC_SUBSYSTEMS_CAMERAMOUNT_H_
+#ifndef SRC_SUBSYSTEMS_CAMERA_H_
+#define SRC_SUBSYSTEMS_CAMERA_H_
 
 // WPI Includes
 #include "WPILib.h"
+#include "tables/ITable.h"
+#include "networktables/NetworkTable.h"
+
+// DMAN Inclueds
+#include "WPILib/WPISystem.h"
 
 // STD Includes
 #include <memory>
@@ -17,15 +22,30 @@
 namespace subsystems
 {
 
-class CameraMount: public Subsystem
+using namespace dman;
+
+class Camera: public WPISystem
 {
 public:
-	enum CamState_t: int16_t {DYNAMIC = -1, BACK = 0, GOAL, FORWARD, N_STATES};
-	static double positions[N_STATES];
+	using Table_t = std::shared_ptr<ITable>;
 
 public:
-	CameraMount();
-	virtual ~CameraMount() = default;
+	enum CamState_t: int16_t {DYNAMIC = -1, BACK = 0, GOAL, WHEEL, BALL, FRONT, N_STATES};
+	static double positions[WHEEL+1];
+
+public:
+	struct View
+	{
+		int cam_id_;
+		bool flip_;
+		View(int cam_id, bool flip): cam_id_(cam_id), flip_(flip) {}
+	};
+
+	static View views[N_STATES];
+
+public:
+	Camera();
+	virtual ~Camera() = default;
 
 public:
 	/// Sets the position of the servo to \c positions[state]
@@ -43,9 +63,13 @@ public:
 	/// Changes the position by offset
 	void OffsetPosition(double offset);
 
+	/// Posts to the smart dashboard which camera and angle to use
+	void PostView(const View &v);
+
 public:
 	bool is_initialized() const {return servo_ != nullptr;}
 	bool doConfigure();
+	void doRegister();
 
 private:
 	void initServo();
@@ -53,8 +77,9 @@ private:
 private:
 	std::unique_ptr<Servo> servo_;
 	CamState_t state_;
+	Table_t cam_table_;
 };
 
 }
 
-#endif /* SRC_SUBSYSTEMS_CAMERAMOUNT_H_ */
+#endif /* SRC_SUBSYSTEMS_CAMERA_H_ */
