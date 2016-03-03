@@ -19,7 +19,7 @@ class SetSwiss : public Command
 
 public:
 	SetSwiss(Swiss* swiss, state_t sta);
-	virtual ~SetSwiss();
+	virtual ~SetSwiss() = default;
 
 public:
 
@@ -27,7 +27,6 @@ public:
 
 
 	void Execute() override ;
-
 
 
 	bool IsFinished() override;

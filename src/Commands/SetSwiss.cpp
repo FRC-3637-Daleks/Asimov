@@ -13,14 +13,7 @@ namespace commands{
 SetSwiss::SetSwiss(Swiss *swiss, state_t sta) {
 	swiss_ = swiss;
 	stat = sta;
-}
-
-
-
-
-
-SetSwiss::~SetSwiss() {
-	// TODO Auto-generated destructor stub
+	Requires(swiss_);
 }
 
 
@@ -45,7 +38,7 @@ void SetSwiss::End() {
 
 
 void SetSwiss::Interrupted() {
-
+	End();
 }
 
 

@@ -15,6 +15,7 @@ using namespace dman;
 
 double Swiss::tickToDegree = 90; //measure and change later
 double Swiss::maxVelocity = 18;
+double Swiss::allowable_error = 5;
 
 
 
@@ -56,6 +57,7 @@ void Swiss::doRegister()
 	settings("pot_turns").SetDefault(1.0);
 	settings("sensor_flipped").SetDefault(true);
 	settings("output_flipped").SetDefault(true);
+	settings("ramp_rate").SetDefault(10.0);
 
 	{
 		auto& closed_loop = settings["closed_loop"];
@@ -65,6 +67,7 @@ void Swiss::doRegister()
 		closed_loop("D").SetDefault(0.0);
 		closed_loop("F").SetDefault(0.0);
 		closed_loop("I-Zone").SetDefault(50);
+		closed_loop("allowable_error").SetDefault(get_allowable_error());
 	}
 }
 
@@ -85,6 +88,7 @@ bool Swiss::doConfigure()
 	swisstalon->ConfigReverseLimit(states[port_down]);
 	swisstalon->ConfigForwardLimit(states[retract]);
 	swisstalon->ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SoftPositionLimits);
+	swisstalon->SetVoltageRampRate(settings("ramp_rate").GetValueOrDefault<double>());
 
 	swisstalon->SetSensorDirection(settings("sensor_flipped").GetValueOrDefault<bool>());
 	swisstalon->SetClosedLoopOutputDirection(false);
@@ -100,6 +104,8 @@ bool Swiss::doConfigure()
 		swisstalon->SelectProfileSlot(0);
 		swisstalon->SetPID(pPid.p, pPid.i, pPid.d, pPid.f);
 		swisstalon->SetIzone(pPid.izone);
+		SetAllowableError(settings("allowable_error").GetValueOrDefault<double>());
+		swisstalon->SetCloseLoopRampRate(settings("ramp_rate").GetValueOrDefault<double>());
 	}
 
 	GetLocalValue<double>("current_position").Initialize(std::make_shared<FunkyGet<double> >([this]() {
@@ -219,15 +225,15 @@ void Swiss::SetState(state_t s){
 }
 
 bool Swiss::IsCloseNuff() const {
-	if (GetDiff()> 5){
-		return false;
-	}
-	else{
-		return true;
-	}
+	return fabs(GetDiff()) <= get_allowable_error();
 }
 void Swiss::Hold(){
 	swisstalon->Set(GetPos());
+}
+
+void Swiss::SetAllowableError(double err) {
+	allowable_error = err;
+	swisstalon->SetAllowableClosedLoopErr(allowable_error);
 }
 
 }

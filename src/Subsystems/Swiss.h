@@ -48,6 +48,7 @@ private:
 private:
 	static double tickToDegree;
 	static double maxVelocity;
+	static double allowable_error;
 
 	state_t current;
 	state_t position;
@@ -72,6 +73,8 @@ public:
 	double GetPos() const;
 	double GetDiff() const;
 	bool IsCloseNuff() const;
+	double get_allowable_error() const {return allowable_error;}
+	void SetAllowableError(double err);
 	void Hold();
 
 	state_t GetState() const;
