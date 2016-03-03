@@ -8,24 +8,31 @@
 #ifndef SRC_SUBSYSTEMS_SWISS_H_
 #define SRC_SUBSYSTEMS_SWISS_H_
 
-
 #include "WPILib.h"
 
+#include "WPILib/WPISystem.h"
 
 
 #include <memory>
+#include <string>
 
 
 namespace subsystems
 {
 
-class Swiss: public Subsystem
+using namespace dman;
+
+class Swiss: public WPISystem
 {
 public:
-	enum state_t {retract, horizontal, cheval_down, port_down, n_states};
+	enum state_t {retract = 0, horizontal, cheval_down, port_down, n_states};
 	enum mode_t {pos = CANTalon::ControlMode::kPosition,
 				velocity = CANTalon::ControlMode::kSpeed,
 				vbus = CANTalon::ControlMode::kPercentVbus};
+
+public:
+	static std::string StateToString(state_t state);
+
 private:
 
 	static double states[state_t::n_states];
@@ -36,7 +43,7 @@ private:
 		double i;
 		double d;
 		double f;
-		double izone;
+		unsigned int izone;
 	} pPid, vPid;
 private:
 	static double tickToDegree;
@@ -58,16 +65,22 @@ public:
 	void SetVelocity(double v, bool changeMode = true);
 	void SetVoltage(double v);
 	void SetMode(mode_t m);
-	mode_t GetMode();
+	mode_t GetMode() const;
 	void SetState(state_t s);
 	void RefreshState();
 
-	double GetPos();
-	double GetDiff();
-	bool IsCloseNuff();
+	double GetPos() const;
+	double GetDiff() const;
+	bool IsCloseNuff() const;
 	void Hold();
 
-	state_t GetState();
+	state_t GetState() const;
+
+public:
+	void doRegister() override;
+	bool doConfigure() override;
+	void initTalon();
+	bool is_initialized() const {return swisstalon != nullptr;}
 };
 
 

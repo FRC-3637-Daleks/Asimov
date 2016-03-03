@@ -363,8 +363,7 @@ void Drive::TankDrive(double left, double right)
 
 void Drive::Stop()
 {
-	talons_->left_.Set(0.0);
-	talons_->right_.Set(0.0);
+	TankDrive(0.0, 0.0);
 }
 
 void Drive::ArcadeDrive(double y, double rotation)
