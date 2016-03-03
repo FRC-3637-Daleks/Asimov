@@ -18,12 +18,10 @@ Shoot::Shoot(Intake* intake, Shooter* shooter, double wait_time, double shoot_ti
 	wait_time_ = wait_time;
 
 	shoot_intake_ = new ShootIntake(intake_, shooter_, shoot_time_, timeout_);
-	wait_ = new WaitCommand(wait_time_);
 	spin_down_ = new SpinDown(shooter_);
 
 	AddSequential(shoot_intake_);
-	AddSequential(wait_);
-	AddSequential(spin_down_);
+	AddSequential(spin_down_, wait_time_);
 
 	Requires(intake);
 	SetInterruptible(false);
