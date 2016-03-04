@@ -12,7 +12,7 @@
 #include "networktables/NetworkTable.h"
 
 #include "Subsystems/OI.h"
-#include "Subsystems/CameraMount.h"
+#include "Subsystems/Camera.h"
 
 #include <memory>
 
@@ -26,7 +26,7 @@ class FlipFront: public Command
 {
 public:
 	using OI_t = subsystems::OI;
-	using CameraMount_t = subsystems::CameraMount;
+	using CameraMount_t = subsystems::Camera;
 	using ITable_t = std::shared_ptr<ITable>;
 
 public:
@@ -55,7 +55,6 @@ public:
 private:
 	OI_t *oi_;
 	CameraMount_t *camera_;
-	ITable_t table_;
 };
 
 

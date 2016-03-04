@@ -28,16 +28,36 @@ OI::OI(): WPISystem("OI"), driver_left_("driver_left"), driver_right_("driver_ri
 {
 	AddSubSystem("driver_left", driver_left_);
 	AddSubSystem("driver_right", driver_right_);
-	AddSubSystem(copilot_.get_name(), copilot_);
+	AddSubSystem("xbox", copilot_);
 }
 
 void OI::doRegister()
 {
+	// axes
 	tank_left_ = GetLocalValue<double>("driver_left/axes/y");
 	tank_right_ = GetLocalValue<double>("driver_right/axes/y");
 	arcade_forward_ = GetLocalValue<double>("driver_right/axes/y");
 	arcade_turn_ = GetLocalValue<double>("driver_left/axes/x");
 	swiss_ = GetLocalValue<double>("xbox/axes/L_Y_Axis");
+
+	// triggers
+	forward_boost_ = GetLocalValue<bool>("driver_right/buttons/1");
+	turn_boost_ = GetLocalValue<bool>("driver_left/buttons/1");
+	tank_mode_ = GetLocalValue<bool>("driver_right/buttons/6");
+	arcade_mode_ = GetLocalValue<bool>("driver_right/buttons/7");
+	forward_sensor_align_ = GetLocalValue<bool>("driver_right/buttons/8");
+	turn_sensor_align_ = GetLocalValue<bool>("driver_left/buttons/8");
+	front_mode_ = GetLocalValue<bool>("driver_right/buttons/11");
+	reverse_mode_ = GetLocalValue<bool>("driver_right/buttons/10");
+	intake_ = GetLocalValue<bool>("xbox/buttons/A");
+	push_ = GetLocalValue<bool>("xbox/buttons/B");
+	shoot_ = GetLocalValue<bool>("xbox/buttons/R_TRIGGER");
+	spindown_ = GetLocalValue<bool>("xbox/buttons/X");
+	spinup_ = GetLocalValue<bool>("xbox/buttons/Y");
+	force_toggle_ = GetLocalValue<bool>("xbox/buttons/BACK");
+
+	// POV
+	swiss_state_ = GetLocalValue<int>("xbox/pov");
 
 	auto& settings = GetSettings();
 	settings("deadzone").SetDefault(get_deadzone());
@@ -62,6 +82,59 @@ void OI::doRegister()
 		{
 			return GetSwiss();
 		}));
+	GetNullAxis().Initialize(std::make_shared<FunkyGet<double> >([]() {
+		return 0.0;
+	}));
+	GetLocalValue<bool>("false").Initialize(std::make_shared<FunkyGet<bool> >([]() {
+		return false;
+	}));
+
+	// triggers
+	GetForwardBoostButton().Initialize(std::make_shared<FunkyGet<bool>>([this]() {
+		return GetForwardBoost();
+	}));
+	GetTurnBoostButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetTurnBoost();
+	}));
+	GetTankModeButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetTankMode();
+	}));
+	GetArcadeModeButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetArcadeMode();
+	}));
+	GetForwardSensorAlignButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetForwardSensorAlign();
+	}));
+	GetTurnSensorAlignButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetTurnSensorAlign();
+	}));
+	GetFrontModeButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetFrontMode();
+	}));
+	GetReverseModeButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetReverseMode();
+	}));
+	GetIntakeButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetIntake();
+	}));
+	GetPushButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetPush();
+	}));
+	GetShootButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetShoot();
+	}));
+	GetSpinUpButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetSpinUp();
+	}));
+	GetSpinDownButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetSpinDown();
+	}));
+	GetForceToggleButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetForceToggle();
+	}));
+	GetControlSwissButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetSwissControl();
+	}));
 
 }
 
@@ -124,6 +197,41 @@ double OI::GetSwiss() const
 	if(!swiss_.initialized())
 		return 0.0;
 	return transformAxis(swiss_.GetValue(), false, -1.0);
+}
+
+Swiss::state_t OI::GetSwissPosition() const
+{
+	double pov = swiss_state_.GetValueOr(-1);
+	if(pov < 0)
+		return Swiss::n_states;
+	else if(pov < 91)
+		return Swiss::horizontal;
+	else if(pov < 150)
+		return Swiss::cheval_down;
+	else if(pov < 181)
+		return Swiss::port_down;
+	else if(pov < 271)
+		return Swiss::retract;
+
+	return Swiss::n_states;
+}
+
+OI::ButtonValue_t OI::GetSwissStateButton(Swiss::state_t state)
+{
+	if(state == Swiss::n_states)
+	{
+		return GetLocalValue<bool>("false");
+	}
+
+	auto ret = GetLocalValue<bool>(std::string("swiss_") + Swiss::StateToString(state));
+	if(!ret.initialized())
+	{
+		ret.Initialize(std::make_shared<FunkyGet<bool> >([this, state]() {
+			return IsSwissState(state);
+		}));
+	}
+
+	return ret;
 }
 
 commands::ForwardBoost *OI::MakeForwardBoost(double power)

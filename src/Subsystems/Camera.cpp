@@ -18,7 +18,7 @@ double Camera::positions[] = {
 		/*[WHEEL] =*/ 1.0
 };
 
-std::string Camera::views[] = {
+Camera::View Camera::views[] = {
 		{0, true},	// BACK
 		{0, false}, // GOAL
 		{0, false}, // WHEEL

@@ -11,11 +11,21 @@
 #include "WPILib.h"
 
 #include "WPILib/WPISystem.h"
+#include "Utility/ValueStore.h"
 
 
 #include <memory>
 #include <string>
 
+
+namespace commands
+{
+
+class SetSwiss;
+class ControlSwissVelocity;
+class HoldSwiss;
+
+}
 
 namespace subsystems
 {
@@ -84,6 +94,11 @@ public:
 	bool doConfigure() override;
 	void initTalon();
 	bool is_initialized() const {return swisstalon != nullptr;}
+
+public:
+	commands::SetSwiss *MakeSetSwiss(state_t state);
+	commands::ControlSwissVelocity *MakeControlSwissVelocity(ValueStore::Value<double> input);
+	commands::HoldSwiss *MakeHoldSwiss();
 };
 
 

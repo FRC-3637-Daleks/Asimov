@@ -18,6 +18,8 @@ SetSwiss::SetSwiss(Swiss *swiss, state_t sta) {
 
 
 void SetSwiss::Initialize() {
+	swiss_->Log(dman::MessageData::STATUS, "SetSwiss", "Command") <<
+			"Setting swiss to " + Swiss::StateToString(stat);
 	swiss_->SetState(stat);
 }
 
@@ -34,10 +36,12 @@ bool SetSwiss::IsFinished() {
 
 void SetSwiss::End() {
 	swiss_->RefreshState();
+	swiss_->Log(dman::MessageData::STATUS, "SetSwiss", "Command") << "Ending";
 }
 
 
 void SetSwiss::Interrupted() {
+	swiss_->Log(dman::MessageData::STATUS, "SetSwiss", "Command") << "Interrupted";
 	End();
 }
 

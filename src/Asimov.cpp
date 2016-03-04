@@ -19,6 +19,9 @@
 #include "Commands/ForwardBoost.h"
 #include "Commands/TurnBoost.h"
 #include "Commands/FlipFront.h"
+#include "Commands/HoldSwiss.h"
+#include "Commands/SetSwiss.h"
+#include "Commands/ControlSwissVelocity.h"
 #include "Subsystems/Drive.h"
 #include "Subsystems/Camera.h"
 #include "Subsystems/Swiss.h"
@@ -189,9 +192,10 @@ private:
 	void BindControls()
 	{
 		drive_.SetDefaultCommand(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), oi_.GetArcadeTurnAxis(), 1.0, 1.0));
+		swissCheez.SetDefaultCommand(swissCheez.MakeHoldSwiss());
 
 		commands.push_back(intake_.MakeIntakeBall());
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/A")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/intake")));
 		triggers.back()->WhenActive(commands.back());
 
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/START")));
@@ -199,44 +203,60 @@ private:
 
 		auto push_ball_command = intake_.MakePushBall();
 
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/B")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/push")));
 		commands.push_back(push_ball_command);
 		triggers.back()->WhenActive(commands.back());
 
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/Y")));
-		commands.push_back(shooter_.MakeSpinUp(0.95));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/spin_up")));
+		commands.push_back(shooter_.MakeSpinUp(0.985));
 		triggers.back()->WhenActive(commands.back());
 
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/X")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/spin_down")));
 		triggers.back()->CancelWhenActive(commands.back());
 
 		commands.push_back(shooter_.MakeSpinDown());
 		triggers.back()->WhenActive(commands.back());
 
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/R_TRIGGER")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/shoot")));
 		commands.push_back(new commands::Shoot(&intake_, &shooter_, 2.0));
 		triggers.back()->WhenActive(commands.back());
 
 		commands.push_back(oi_.MakeForwardBoost(1.0));
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/1")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/forward_boost")));
 		triggers.back()->WhileActive(commands.back());
 
 		commands.push_back(oi_.MakeTurnBoost(1.0));
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_left/buttons/1")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/turn_boost")));
 		triggers.back()->WhileActive(commands.back());
 
-		commands.push_back(new commands::FlipFront(&oi_, &mount_));
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/10")));
+		commands.push_back(new commands::FlipFront(&oi_, &camera_));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/reverse_mode")));
 		triggers.back()->WhenActive(commands.back());
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/11")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/front_mode")));
 		triggers.back()->CancelWhenActive(commands.back());
 
 		// auto align
 		commands.push_back(drive_.MakeArcadeDrive(GetLocalValue<double>("Align/forward_output"),
-												GetLocalValue<double>("Align/turn_output"), .2, .3));
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_right/buttons/8")));
+												oi_.GetNullAxis(), .2, 1.0));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/forward_sensor_align")));
 		triggers.back()->WhileActive(commands.back());
 
+		commands.push_back(drive_.MakeArcadeDrive(oi_.GetNullAxis(), GetLocalValue<double>("Align/turn_output"),
+													1.0, .3));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/turn_sensor_align")));
+		triggers.back()->WhileActive(commands.back());
+
+		// swiss
+		for(int state = Swiss::retract; state < Swiss::n_states; state++)
+		{
+			commands.push_back(swissCheez.MakeSetSwiss(static_cast<Swiss::state_t>(state)));
+			triggers.push_back(new GenericTrigger(oi_.GetSwissStateButton(static_cast<Swiss::state_t>(state))));
+			triggers.back()->WhenActive(commands.back());
+		}
+
+		commands.push_back(swissCheez.MakeControlSwissVelocity(oi_.GetSwissAxis()));
+		triggers.push_back(new GenericTrigger(oi_.GetControlSwissButton()));
+		triggers.back()->WhileActive(commands.back());
 	}
 
 	// Disabled

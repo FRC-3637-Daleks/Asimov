@@ -1,6 +1,9 @@
 #include "WPILib.h"
 
 #include "Swiss.h"
+#include "Commands/SetSwiss.h"
+#include "Commands/HoldSwiss.h"
+#include "Commands/ControlSwissVelocity.h"
 
 #include "Utility/ValueStore.h"
 #include "Utility/FunkyGet.h"
@@ -234,6 +237,21 @@ void Swiss::Hold(){
 void Swiss::SetAllowableError(double err) {
 	allowable_error = err;
 	swisstalon->SetAllowableClosedLoopErr(allowable_error);
+}
+
+commands::SetSwiss *Swiss::MakeSetSwiss(state_t state)
+{
+	return new commands::SetSwiss(this, state);
+}
+
+commands::ControlSwissVelocity *Swiss::MakeControlSwissVelocity(ValueStore::Value<double> input)
+{
+	return new commands::ControlSwissVelocity(this, std::move(input));
+}
+
+commands::HoldSwiss *Swiss::MakeHoldSwiss()
+{
+	return new commands::HoldSwiss(this);
 }
 
 }
