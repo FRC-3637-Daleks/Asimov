@@ -19,7 +19,7 @@ public:
 	using OI_t = subsystems::OI;
 
 public:
-	ForwardBoost(OI_t *oi, double boost_power): oi_(oi), power_(boost_power), previous_power_(0.0)
+	ForwardBoost(OI_t *oi, double boost_power): oi_(oi), power_(boost_power)
 	{
 		SetRunWhenDisabled(true);
 	}
@@ -44,7 +44,7 @@ public:
 
 private:
 	OI_t *oi_;
-	double power_, previous_power_;
+	double power_;
 };
 
 

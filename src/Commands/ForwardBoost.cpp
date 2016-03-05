@@ -26,7 +26,6 @@ void ForwardBoost::Initialize()
 		return;
 	}
 
-	previous_power_ = oi_->get_forward_multiplier();
 	oi_->SetForwardMultiplier(power_);
 	TextLog::Log(MessageData(MessageData::INFO), SystemData("OI", "ForwardBoost", "Command")) <<
 			"Initialized, setting power to: " << power_;
@@ -37,9 +36,9 @@ void ForwardBoost::End()
 	if(oi_ == nullptr)
 		return;
 
-	oi_->SetForwardMultiplier(previous_power_);
+	oi_->SetForwardMultiplier(1.0);
 	TextLog::Log(MessageData(MessageData::INFO), SystemData("OI", "ForwardBoost", "Command")) <<
-			"Ending, reverting power to: " << previous_power_;
+			"Ending, reverting power to: " << 1.0;
 }
 
 void ForwardBoost::Interrupted()

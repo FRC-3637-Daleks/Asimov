@@ -14,6 +14,7 @@ namespace commands
 
 HoldSwiss::HoldSwiss(Swiss_t swiss): swiss_(swiss)
 {
+	Requires(swiss_);
 }
 
 void HoldSwiss::Initialize()

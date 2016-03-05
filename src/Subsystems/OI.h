@@ -11,6 +11,7 @@
 #include "JoystickWrapper.h"
 #include "XBoxWrapper.h"
 #include "Subsystems/Swiss.h"
+#include "Subsystems/Camera.h"
 
 #include "Utility/ValueStore.h"
 #include "WPILib/WPISystem.h"
@@ -24,6 +25,7 @@ namespace commands
 
 class ForwardBoost;
 class TurnBoost;
+class ShootMode;
 
 }
 
@@ -54,13 +56,13 @@ public:  // Settings
 	bool get_forward() const {return forward_;}
 	void SetForward(bool forward) {forward_ = forward;}
 
-	double get_tank_multiplier() const {return tank_multiplier_;}
+	double get_tank_multiplier() const {return tank_multiplier_ * base_tank_multiplier_;}
 	void SetTankMultiplier(double tank_multiplier) {tank_multiplier_ = tank_multiplier;}
 
-	double get_forward_multiplier() const {return forward_multiplier_;}
+	double get_forward_multiplier() const {return forward_multiplier_ * base_forward_multiplier_;}
 	void SetForwardMultiplier(double forward_multiplier) {forward_multiplier_ = forward_multiplier;}
 
-	double get_turn_multiplier() const {return turn_multiplier_;}
+	double get_turn_multiplier() const {return turn_multiplier_ * base_tank_multiplier_;}
 	void SetTurnMultiplier(double turn_multiplier) {turn_multiplier_ = turn_multiplier;}
 
 public:
@@ -133,6 +135,7 @@ public:
 public:  // Command Generation
 	commands::ForwardBoost *MakeForwardBoost(double power);
 	commands::TurnBoost *MakeTurnBoost(double power);
+	commands::ShootMode *MakeShootMode(subsystems::Camera *camera, double forward_multiplier, double turn_multiplier);
 
 private:
 	double transformAxis(double from, bool squared = false, double multiplier = 1.0) const;
@@ -145,6 +148,7 @@ private:
 	double deadzone_;
 	bool forward_;
 	bool force_;
+	double base_tank_multiplier_, base_forward_multiplier_, base_turn_multiplier_;
 	double tank_multiplier_, forward_multiplier_, turn_multiplier_;
 
 private:  // Buttons

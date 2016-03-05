@@ -13,6 +13,7 @@ namespace commands
 ControlSwissVelocity::ControlSwissVelocity(Swiss_t swiss, Input_t input):
 		swiss_(swiss), input_(std::move(input))
 {
+	Requires(swiss_);
 }
 
 void ControlSwissVelocity::Initialize()
@@ -33,7 +34,7 @@ void ControlSwissVelocity::Initialize()
 
 void ControlSwissVelocity::Execute()
 {
-	swiss_->SetVelocity(input_.GetValueOr(0.0));
+	swiss_->SetVelocity(input_.GetValue(), false);
 }
 
 bool ControlSwissVelocity::IsFinished()

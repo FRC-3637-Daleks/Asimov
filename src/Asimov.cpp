@@ -22,6 +22,7 @@
 #include "Commands/HoldSwiss.h"
 #include "Commands/SetSwiss.h"
 #include "Commands/ControlSwissVelocity.h"
+#include "Commands/ShootMode.h"
 #include "Subsystems/Drive.h"
 #include "Subsystems/Camera.h"
 #include "Subsystems/Swiss.h"
@@ -208,7 +209,12 @@ private:
 		triggers.back()->WhenActive(commands.back());
 
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/spin_up")));
-		commands.push_back(shooter_.MakeSpinUp(0.985));
+
+		CommandGroup *spinup_group = new CommandGroup;
+		spinup_group->AddParallel(shooter_.MakeSpinUp(0.985));
+		spinup_group->AddParallel(oi_.MakeShootMode(&camera_, .2, .2));
+
+		commands.push_back(spinup_group);
 		triggers.back()->WhenActive(commands.back());
 
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/spin_down")));

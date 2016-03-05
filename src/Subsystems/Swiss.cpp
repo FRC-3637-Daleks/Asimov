@@ -72,11 +72,43 @@ void Swiss::doRegister()
 		closed_loop("I-Zone").SetDefault(50);
 		closed_loop("allowable_error").SetDefault(get_allowable_error());
 	}
+
+	GetLocalValue<double>("current_position").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return GetPos();
+				}));
+		GetLocalValue<double>("target_position").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+						return swisstalon->GetSetpoint();
+					}));
+		GetLocalValue<state_t>("n_current_state").Initialize(std::make_shared<FunkyGet<state_t> >([this]() {
+					return current;
+				}));
+		GetLocalValue<state_t>("n_target_state").Initialize(std::make_shared<FunkyGet<state_t> >([this]() {
+						return position;
+					}));
+		GetLocalValue<std::string>("current_state").Initialize(std::make_shared<FunkyGet<std::string> >([this]() {
+					return StateToString(current);
+				}));
+		GetLocalValue<std::string>("target_state").Initialize(std::make_shared<FunkyGet<std::string> >([this]() {
+					return StateToString(position);
+				}));
+		GetLocalValue<double>("talon/output_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return swisstalon->GetOutputVoltage();
+				}));
+		GetLocalValue<double>("talon/output_current").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return swisstalon->GetOutputCurrent();
+				}));
+		GetLocalValue<double>("talon/temperature").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return swisstalon->GetTemperature();
+				}));
+		GetLocalValue<double>("talon/input_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return swisstalon->GetBusVoltage();
+				}));
 }
 
 bool Swiss::doConfigure()
 {
 	initTalon();
+	Log(MessageData::INFO, "", "") << "Talon initialized";
 	auto& settings = GetSettings();
 
 	{
@@ -107,42 +139,11 @@ bool Swiss::doConfigure()
 		swisstalon->SelectProfileSlot(0);
 		swisstalon->SetPID(pPid.p, pPid.i, pPid.d, pPid.f);
 		swisstalon->SetIzone(pPid.izone);
-		SetAllowableError(settings("allowable_error").GetValueOrDefault<double>());
+		SetAllowableError(closed_loop("allowable_error").GetValueOrDefault<double>());
 		swisstalon->SetCloseLoopRampRate(settings("ramp_rate").GetValueOrDefault<double>());
 	}
 
-	GetLocalValue<double>("current_position").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-				return GetPos();
-			}));
-	GetLocalValue<double>("target_position").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-					return swisstalon->GetSetpoint();
-				}));
-	GetLocalValue<state_t>("n_current_state").Initialize(std::make_shared<FunkyGet<state_t> >([this]() {
-				return current;
-			}));
-	GetLocalValue<state_t>("n_target_state").Initialize(std::make_shared<FunkyGet<state_t> >([this]() {
-					return position;
-				}));
-	GetLocalValue<std::string>("current_state").Initialize(std::make_shared<FunkyGet<std::string> >([this]() {
-				return StateToString(current);
-			}));
-	GetLocalValue<std::string>("target_state").Initialize(std::make_shared<FunkyGet<std::string> >([this]() {
-				return StateToString(position);
-			}));
-	GetLocalValue<double>("talon/output_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-				return swisstalon->GetOutputVoltage();
-			}));
-	GetLocalValue<double>("talon/output_current").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-				return swisstalon->GetOutputCurrent();
-			}));
-	GetLocalValue<double>("talon/temperature").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-				return swisstalon->GetTemperature();
-			}));
-	GetLocalValue<double>("talon/input_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-				return swisstalon->GetBusVoltage();
-			}));
-
-	SetMode(pos);
+		SetMode(pos);
 	return true;
 }
 

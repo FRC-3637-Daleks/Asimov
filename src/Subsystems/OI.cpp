@@ -13,6 +13,7 @@
 
 #include "Commands/ForwardBoost.h"
 #include "Commands/TurnBoost.h"
+#include "Commands/ShootMode.h"
 
 #include <memory>
 #include <math.h>
@@ -24,7 +25,8 @@ using namespace dman;
 
 OI::OI(): WPISystem("OI"), driver_left_("driver_left"), driver_right_("driver_right"),
 		deadzone_(.05), forward_(true),
-		tank_multiplier_(.5), forward_multiplier_(.5), turn_multiplier_(.5)
+		tank_multiplier_(1.0), forward_multiplier_(1.0), turn_multiplier_(1.0),
+		base_tank_multiplier_(.5), base_forward_multiplier_(.5), base_turn_multiplier_(.5)
 {
 	AddSubSystem("driver_left", driver_left_);
 	AddSubSystem("driver_right", driver_right_);
@@ -61,6 +63,13 @@ void OI::doRegister()
 
 	auto& settings = GetSettings();
 	settings("deadzone").SetDefault(get_deadzone());
+
+	{
+		auto& speed_settings = settings["speed_settings"];
+		speed_settings("base_tank_speed").SetDefault(base_tank_multiplier_);
+		speed_settings("base_forward_speed").SetDefault(base_forward_multiplier_);
+		speed_settings("base_turn_speed").SetDefault(base_turn_multiplier_);
+	}
 
 	GetTankLeftAxis().Initialize(std::make_shared<FunkyGet<double> >([this]()
 		{
@@ -135,13 +144,21 @@ void OI::doRegister()
 	GetControlSwissButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
 		return GetSwissControl();
 	}));
-
 }
 
 bool OI::doConfigure()
 {
 	auto& settings = GetSettings();
-	SetDeadzone(settings("deadzone").GetValueOrDefault());
+	SetDeadzone(settings("deadzone").GetValueOrDefault<double>());
+
+	{
+		auto& speed_settings = settings["speed_settings"];
+		base_forward_multiplier_ = speed_settings("base_forward_speed").GetValueOrDefault<double>();
+		base_turn_multiplier_ = speed_settings("base_turn_speed").GetValueOrDefault<double>();
+		tank_multiplier_ = speed_settings("base_tank_speed").GetValueOrDefault<double>();
+	}
+
+
 	Log(dman::MessageData::INFO, "", "Subsystem") << "Deadzone: " << get_deadzone();
 	return true;
 }
@@ -242,6 +259,11 @@ commands::ForwardBoost *OI::MakeForwardBoost(double power)
 commands::TurnBoost *OI::MakeTurnBoost(double power)
 {
 	return new commands::TurnBoost(this, power);
+}
+
+commands::ShootMode *OI::MakeShootMode(subsystems::Camera *camera, double forward_multiplier, double turn_multiplier)
+{
+	return new commands::ShootMode(this, camera, forward_multiplier, turn_multiplier);
 }
 
 }

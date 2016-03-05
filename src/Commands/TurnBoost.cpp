@@ -26,7 +26,6 @@ void TurnBoost::Initialize()
 		return;
 	}
 
-	previous_power_ = oi_->get_turn_multiplier();
 	oi_->SetTurnMultiplier(power_);
 	TextLog::Log(MessageData(MessageData::INFO), SystemData("OI", "TurnBoost", "Command")) <<
 			"Initialized, setting power to: " << power_;
@@ -37,9 +36,9 @@ void TurnBoost::End()
 	if(oi_ == nullptr)
 		return;
 
-	oi_->SetTurnMultiplier(previous_power_);
+	oi_->SetTurnMultiplier(1.0);
 	TextLog::Log(MessageData(MessageData::INFO), SystemData("OI", "TurnBoost", "Command")) <<
-			"Ending, reverting power to: " << previous_power_;
+			"Ending, reverting power to: " << 1.0;
 }
 
 void TurnBoost::Interrupted()
