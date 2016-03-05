@@ -227,11 +227,11 @@ private:
 		commands.push_back(new commands::Shoot(&intake_, &shooter_, 2.0));
 		triggers.back()->WhenActive(commands.back());
 
-		commands.push_back(oi_.MakeForwardBoost(1.0));
+		commands.push_back(oi_.MakeForwardBoost(2.0));
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/forward_boost")));
 		triggers.back()->WhileActive(commands.back());
 
-		commands.push_back(oi_.MakeTurnBoost(1.0));
+		commands.push_back(oi_.MakeTurnBoost(2.0));
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/turn_boost")));
 		triggers.back()->WhileActive(commands.back());
 
