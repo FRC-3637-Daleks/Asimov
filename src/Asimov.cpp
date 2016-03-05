@@ -137,7 +137,13 @@ private:
 			}
 
 			{
-				auto& cross = auton["C_cross"];
+				auto& swiss = auton["C_swiss"];
+				swiss("skip").SetDefault(false);
+				swiss("timeout").SetDefault(3.0);
+			}
+
+			{
+				auto& cross = auton["D_cross"];
 				cross("speed").SetDefault(.5);
 				cross("distance").SetDefault(3.0);
 				cross("timeout").SetDefault(5.0);
@@ -178,7 +184,19 @@ private:
 			}
 
 			{
-				auto& cross = auton["C_cross"];
+				auto& swiss = auton["C_swiss"];
+				bool skip = swiss("skip").GetValueOrDefault<bool>();
+				double timeout = swiss("timeout").GetValueOrDefault<double>();
+
+				// Put swiss down
+				if(!skip)
+				{
+					auton_command_.AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::port_down), timeout);
+				}
+			}
+
+			{
+				auto& cross = auton["D_cross"];
 				double speed = cross("speed").GetValueOrDefault<double>();
 				double distance = cross("distance").GetValueOrDefault<double>();
 				double timeout = cross("timeout").GetValueOrDefault<double>();
