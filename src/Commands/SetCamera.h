@@ -36,7 +36,7 @@ public:
 	bool IsFinished() override {return false;}
 
 	/// Nada
-	void End() override {};
+	void End() override;
 
 	/// Calls End
 	void Interrupted() override {End();}

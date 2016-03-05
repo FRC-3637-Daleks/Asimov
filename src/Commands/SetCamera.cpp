@@ -16,6 +16,7 @@ using namespace dman;
 SetCamera::SetCamera(CameraPtr_t camera, Camera_t::CamState_t view):
 		camera_(camera), view_(view)
 {
+	Requires(camera_);
 }
 
 void SetCamera::Initialize()
@@ -28,6 +29,14 @@ void SetCamera::Initialize()
 	else
 	{
 		camera_->Log(MessageData::ERR, "SetCamera", "Command") << "Camera wasn't initialized";
+	}
+}
+
+void SetCamera::End()
+{
+	if(camera_ != nullptr)
+	{
+		camera_->Log(MessageData::STATUS, "SetCamera", "Command") << "Ending";
 	}
 }
 

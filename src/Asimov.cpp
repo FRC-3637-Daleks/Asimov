@@ -195,7 +195,7 @@ private:
 	{
 		drive_.SetDefaultCommand(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), oi_.GetArcadeTurnAxis(), 1.0, 1.0));
 		swissCheez.SetDefaultCommand(swissCheez.MakeHoldSwiss());
-		camera_.SetDefaultCommand(camera_.MakeSetCamera(Camera::CamState_t::WHEEL));
+		camera_.SetDefaultCommand(camera_.MakeSetCamera(Camera::CamState_t::FRONT));
 
 		CommandGroup *intake_group = new CommandGroup;
 		intake_group->AddParallel(camera_.MakeSetCamera(Camera::CamState_t::BALL));
