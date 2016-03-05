@@ -8,6 +8,7 @@
 #include "Camera.h"
 
 #include "Utility/FunkyGet.h"
+#include "Commands/SetCamera.h"
 
 namespace subsystems
 {
@@ -129,6 +130,11 @@ void Camera::initServo()
 		servo_ = std::make_unique<Servo>(ports("servo"));
 		cam_table_ = NetworkTable::GetTable("camera");
 	}
+}
+
+commands::SetCamera *Camera::MakeSetCamera(CamState_t view)
+{
+	return new commands::SetCamera(this, view);
 }
 
 }

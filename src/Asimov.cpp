@@ -21,6 +21,7 @@
 #include "Commands/FlipFront.h"
 #include "Commands/HoldSwiss.h"
 #include "Commands/SetSwiss.h"
+#include "Commands/SetCamera.h"
 #include "Commands/ControlSwissVelocity.h"
 #include "Commands/ShootMode.h"
 #include "Subsystems/Drive.h"
@@ -194,8 +195,12 @@ private:
 	{
 		drive_.SetDefaultCommand(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), oi_.GetArcadeTurnAxis(), 1.0, 1.0));
 		swissCheez.SetDefaultCommand(swissCheez.MakeHoldSwiss());
+		camera_.SetDefaultCommand(camera_.MakeSetCamera(Camera::CamState_t::WHEEL));
 
-		commands.push_back(intake_.MakeIntakeBall());
+		CommandGroup *intake_group = new CommandGroup;
+		intake_group->AddParallel(camera_.MakeSetCamera(Camera::CamState_t::BALL));
+		intake_group->AddParallel(intake_.MakeIntakeBall());
+		commands.push_back(intake_group);
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/intake")));
 		triggers.back()->WhenActive(commands.back());
 

@@ -19,6 +19,14 @@
 // STD Includes
 #include <memory>
 
+
+namespace commands
+{
+
+class SetCamera;
+
+}
+
 namespace subsystems
 {
 
@@ -70,6 +78,9 @@ public:
 	bool is_initialized() const {return servo_ != nullptr;}
 	bool doConfigure();
 	void doRegister();
+
+public:
+	commands::SetCamera *MakeSetCamera(CamState_t view);
 
 private:
 	void initServo();

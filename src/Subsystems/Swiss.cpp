@@ -108,7 +108,7 @@ void Swiss::doRegister()
 bool Swiss::doConfigure()
 {
 	initTalon();
-	Log(MessageData::INFO, "", "") << "Talon initialized";
+	Log(MessageData(MessageData::INFO, 2), "", "") << "Talon initialized";
 	auto& settings = GetSettings();
 
 	{
@@ -118,7 +118,7 @@ bool Swiss::doConfigure()
 	}
 
 	swisstalon->SetFeedbackDevice(CANTalon::FeedbackDevice::AnalogPot);
-	swisstalon->ConfigPotentiometerTurns(settings("pot_turns").GetValueOrDefault<double>());
+	//swisstalon->ConfigPotentiometerTurns(settings("pot_turns").GetValueOrDefault<double>());
 	swisstalon->ConfigNeutralMode(CANSpeedController::kNeutralMode_Brake);
 	swisstalon->ConfigReverseLimit(states[port_down]);
 	swisstalon->ConfigForwardLimit(states[retract]);
@@ -129,7 +129,11 @@ bool Swiss::doConfigure()
 	swisstalon->SetClosedLoopOutputDirection(false);
 	swisstalon->SetInverted(settings("output_flipped").GetValueOrDefault<bool>());
 
+	// idk
+	swisstalon->ConfigPeakOutputVoltage(12.0, -12.0);
+
 	if(settings["closed_loop"]("use").GetValueOrDefault<bool>()) {
+		Log(MessageData(MessageData::INFO, 2), "", "") << "Using file PID";
 		auto& closed_loop = settings["closed_loop"];
 		pPid.p = closed_loop("P").GetValueOrDefault<double>();
 		pPid.i = closed_loop("I").GetValueOrDefault<double>();
@@ -141,6 +145,10 @@ bool Swiss::doConfigure()
 		swisstalon->SetIzone(pPid.izone);
 		SetAllowableError(closed_loop("allowable_error").GetValueOrDefault<double>());
 		swisstalon->SetCloseLoopRampRate(settings("ramp_rate").GetValueOrDefault<double>());
+	}
+	else
+	{
+		Log(MessageData(MessageData::INFO, 2), "", "") << "Using talon PID";
 	}
 
 		SetMode(pos);
@@ -232,6 +240,7 @@ bool Swiss::IsCloseNuff() const {
 	return fabs(GetDiff()) <= get_allowable_error();
 }
 void Swiss::Hold(){
+	SetMode(pos);
 	swisstalon->Set(GetPos());
 }
 
