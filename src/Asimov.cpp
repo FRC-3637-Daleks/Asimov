@@ -119,6 +119,9 @@ private:
 	{
 		RootSystem::doRegister();
 
+		auto& settings = GetSettings();
+		settings["Shoot"]("shoot_speed").SetDefault(0.93);
+
 		{
 			auto& auton = GetSettings()["autonomous"];
 
@@ -213,7 +216,7 @@ private:
 	{
 		drive_.SetDefaultCommand(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), oi_.GetArcadeTurnAxis(), 1.0, 1.0));
 		swissCheez.SetDefaultCommand(swissCheez.MakeHoldSwiss());
-		camera_.SetDefaultCommand(camera_.MakeSetCamera(Camera::CamState_t::FRONT));
+		camera_.SetDefaultCommand(camera_.MakeSetCamera(Camera::CamState_t::WHEEL));
 
 		CommandGroup *intake_group = new CommandGroup;
 		intake_group->AddParallel(camera_.MakeSetCamera(Camera::CamState_t::BALL));
@@ -234,8 +237,8 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/spin_up")));
 
 		CommandGroup *spinup_group = new CommandGroup;
-		spinup_group->AddParallel(shooter_.MakeSpinUp(0.985));
-		spinup_group->AddParallel(oi_.MakeShootMode(&camera_, .2, .2));
+		spinup_group->AddParallel(shooter_.MakeSpinUp(GetSettings()["Shoot"]("shoot_speed").GetValueOrDefault<double>()));
+		spinup_group->AddParallel(oi_.MakeShootMode(&camera_, .3, .3));
 
 		commands.push_back(spinup_group);
 		triggers.back()->WhenActive(commands.back());

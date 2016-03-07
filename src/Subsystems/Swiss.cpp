@@ -240,8 +240,8 @@ bool Swiss::IsCloseNuff() const {
 	return fabs(GetDiff()) <= get_allowable_error();
 }
 void Swiss::Hold(){
-	SetMode(pos);
-	swisstalon->Set(GetPos());
+	SetMode(vbus);
+	SetVoltage(0.0);
 }
 
 void Swiss::SetAllowableError(double err) {

@@ -64,7 +64,6 @@ void Camera::SetPosition(double position)
 {
 	if(is_initialized() && position > 0.0 && position < 1.0)
 	{
-		state_ = DYNAMIC;
 		servo_->Set(position);
 	}
 }

@@ -54,7 +54,7 @@ bool ShootMode::IsFinished()
 
 void ShootMode::End()
 {
-	if(oi_ == nullptr && oi_->is_ready())
+	if(oi_ != nullptr && oi_->is_ready())
 	{
 		oi_->SetForwardMultiplier(1.0);
 		oi_->SetTurnMultiplier(1.0);
@@ -63,6 +63,7 @@ void ShootMode::End()
 
 	if(camera_ == nullptr && camera_->is_ready())
 	{
+		camera_->SetState(subsystems::Camera::WHEEL);
 		// Camera should revert to default state
 	}
 }
