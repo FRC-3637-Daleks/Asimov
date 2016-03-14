@@ -1,45 +1,173 @@
-#include "Subsystems/Swiss.h"
 #include "WPILib.h"
+
+#include "Swiss.h"
+#include "Commands/SetSwiss.h"
+#include "Commands/HoldSwiss.h"
+#include "Commands/ControlSwissVelocity.h"
+
+#include "Utility/ValueStore.h"
+#include "Utility/FunkyGet.h"
+
 #include <cmath>
+#include <string>
 
+namespace subsystems
+{
 
-
-using Swiss = subsystems::Swiss;
-
-using state_t = subsystems::Swiss::state_t;
+using namespace dman;
 
 double Swiss::tickToDegree = 90; //measure and change later
 double Swiss::maxVelocity = 18;
-state_t current;
+double Swiss::allowable_error = 5;
+
 
 
 double Swiss::states[] = {
-		[retract] = -.032,
-		[horizontal] = -.63,
-		[cheval_down] = -.7,
-		[port_down] = -.780
+		/*[retract] =*/ -.032,
+		/*[horizontal] =*/ -.63,
+		/*[cheval_down] =*/ -.7,
+		/*[port_down] =*/ -.780
 };
 
+std::string Swiss::StateToString(state_t state)
+{
+	static const char * const state_strings[] = {"retract", "horizontal", "cheval_down", "port_down"};
+	if(state == n_states)
+		return "";
+	return state_strings[(int)state];
+}
 
-Swiss::Swiss() : Subsystem("Swiss"){
-	swisstalon = new CANTalon(7);
+
+Swiss::Swiss() : WPISystem("Swiss"){
+	current = retract;
+	position = retract;
+	swisstalon = nullptr;
+}
+
+void Swiss::doRegister()
+{
+	auto& ports = GetPortSpace("CAN");
+	auto& settings = GetSettings();
+
+	ports("talon");
+
+	{
+		auto& positions = settings["positions"];
+		for(int i = 0; i < n_states; i++)
+			positions(StateToString(static_cast<state_t>(i))).SetDefault(states[i]);
+	}
+
+	settings("pot_turns").SetDefault(1.0);
+	settings("sensor_flipped").SetDefault(true);
+	settings("output_flipped").SetDefault(true);
+	settings("ramp_rate").SetDefault(10.0);
+
+	{
+		auto& closed_loop = settings["closed_loop"];
+		closed_loop("use").SetDefault(false);
+		closed_loop("P").SetDefault(10.0);
+		closed_loop("I").SetDefault(0.001);
+		closed_loop("D").SetDefault(0.0);
+		closed_loop("F").SetDefault(0.0);
+		closed_loop("I-Zone").SetDefault(50);
+		closed_loop("allowable_error").SetDefault(get_allowable_error());
+	}
+
+	GetLocalValue<double>("current_position").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return GetPos();
+				}));
+		GetLocalValue<double>("target_position").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+						return swisstalon->GetSetpoint();
+					}));
+		GetLocalValue<state_t>("n_current_state").Initialize(std::make_shared<FunkyGet<state_t> >([this]() {
+					return current;
+				}));
+		GetLocalValue<state_t>("n_target_state").Initialize(std::make_shared<FunkyGet<state_t> >([this]() {
+						return position;
+					}));
+		GetLocalValue<std::string>("current_state").Initialize(std::make_shared<FunkyGet<std::string> >([this]() {
+					return StateToString(current);
+				}));
+		GetLocalValue<std::string>("target_state").Initialize(std::make_shared<FunkyGet<std::string> >([this]() {
+					return StateToString(position);
+				}));
+		GetLocalValue<double>("talon/output_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return swisstalon->GetOutputVoltage();
+				}));
+		GetLocalValue<double>("talon/output_current").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return swisstalon->GetOutputCurrent();
+				}));
+		GetLocalValue<double>("talon/temperature").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return swisstalon->GetTemperature();
+				}));
+		GetLocalValue<double>("talon/input_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+					return swisstalon->GetBusVoltage();
+				}));
+}
+
+bool Swiss::doConfigure()
+{
+	initTalon();
+	Log(MessageData(MessageData::INFO, 2), "", "") << "Talon initialized";
+	auto& settings = GetSettings();
+
+	{
+		auto& positions = settings["positions"];
+		for(int i = 0; i < n_states; i++)
+			states[i] = positions(StateToString(static_cast<state_t>(i))).GetValueOrDefault<double>();
+	}
+
 	swisstalon->SetFeedbackDevice(CANTalon::FeedbackDevice::AnalogPot);
-	swisstalon->ConfigPotentiometerTurns(1);
+	//swisstalon->ConfigPotentiometerTurns(settings("pot_turns").GetValueOrDefault<double>());
 	swisstalon->ConfigNeutralMode(CANSpeedController::kNeutralMode_Brake);
 	swisstalon->ConfigReverseLimit(states[port_down]);
 	swisstalon->ConfigForwardLimit(states[retract]);
 	swisstalon->ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SoftPositionLimits);
-	swisstalon->SetSensorDirection(true);
-	swisstalon->SetClosedLoopOutputDirection(false);
-	swisstalon->SetInverted(false);
-	SetMode(pos);
-};
+	swisstalon->SetVoltageRampRate(settings("ramp_rate").GetValueOrDefault<double>());
 
-Swiss::mode_t Swiss::GetMode(){
+	swisstalon->SetSensorDirection(settings("sensor_flipped").GetValueOrDefault<bool>());
+	swisstalon->SetClosedLoopOutputDirection(false);
+	swisstalon->SetInverted(settings("output_flipped").GetValueOrDefault<bool>());
+
+	// idk
+	swisstalon->ConfigPeakOutputVoltage(12.0, -12.0);
+
+	if(settings["closed_loop"]("use").GetValueOrDefault<bool>()) {
+		Log(MessageData(MessageData::INFO, 2), "", "") << "Using file PID";
+		auto& closed_loop = settings["closed_loop"];
+		pPid.p = closed_loop("P").GetValueOrDefault<double>();
+		pPid.i = closed_loop("I").GetValueOrDefault<double>();
+		pPid.d = closed_loop("D").GetValueOrDefault<double>();
+		pPid.f = closed_loop("F").GetValueOrDefault<double>();
+		pPid.izone = closed_loop("I-Zone").GetValueOrDefault<int>();
+		swisstalon->SelectProfileSlot(0);
+		swisstalon->SetPID(pPid.p, pPid.i, pPid.d, pPid.f);
+		swisstalon->SetIzone(pPid.izone);
+		SetAllowableError(closed_loop("allowable_error").GetValueOrDefault<double>());
+		swisstalon->SetCloseLoopRampRate(settings("ramp_rate").GetValueOrDefault<double>());
+	}
+	else
+	{
+		Log(MessageData(MessageData::INFO, 2), "", "") << "Using talon PID";
+	}
+
+		SetMode(pos);
+	return true;
+}
+
+void Swiss::initTalon()
+{
+	if(is_initialized())
+		return;
+
+	swisstalon = new CANTalon(GetPortSpace("CAN")("talon").GetValueOrDefault());
+}
+
+Swiss::mode_t Swiss::GetMode() const {
 	return static_cast<mode_t>(swisstalon->GetControlMode());
 }
 
-void Swiss::SetMode(mode_t m){
+void Swiss::SetMode(mode_t m) {
 	if(GetMode() == m){
 		return;
 
@@ -63,7 +191,7 @@ void Swiss::SetMode(mode_t m){
 	}
 }
 
-state_t Swiss::GetState(){
+Swiss::state_t Swiss::GetState() const {
 	return position;
 }
 
@@ -77,11 +205,11 @@ void Swiss::SetVelocity(double v, bool changeMode){
 		swisstalon->Set(v);
 }
 
-double Swiss::GetPos(){
+double Swiss::GetPos() const {
 	return swisstalon->GetPosition();
 }
 
-double Swiss::GetDiff(){
+double Swiss::GetDiff() const {
 	if(GetMode()== Swiss::mode_t::pos){
 		return GetState()-GetPos();
 	}
@@ -108,15 +236,32 @@ void Swiss::SetState(state_t s){
 	swisstalon->Set(states[position]);
 }
 
-bool Swiss::IsCloseNuff(){
-	if (GetDiff()> 5){
-		return false;
-	}
-	else{
-		return true;
-	}
+bool Swiss::IsCloseNuff() const {
+	return fabs(GetDiff()) <= get_allowable_error();
 }
 void Swiss::Hold(){
-	swisstalon->Set(GetPos());
+	SetMode(vbus);
+	SetVoltage(0.0);
 }
 
+void Swiss::SetAllowableError(double err) {
+	allowable_error = err;
+	swisstalon->SetAllowableClosedLoopErr(allowable_error);
+}
+
+commands::SetSwiss *Swiss::MakeSetSwiss(state_t state)
+{
+	return new commands::SetSwiss(this, state);
+}
+
+commands::ControlSwissVelocity *Swiss::MakeControlSwissVelocity(ValueStore::Value<double> input)
+{
+	return new commands::ControlSwissVelocity(this, std::move(input));
+}
+
+commands::HoldSwiss *Swiss::MakeHoldSwiss()
+{
+	return new commands::HoldSwiss(this);
+}
+
+}

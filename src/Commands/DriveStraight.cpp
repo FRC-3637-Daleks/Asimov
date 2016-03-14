@@ -7,6 +7,10 @@
 
 #include "DriveStraight.h"
 
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+#include "Log/SystemData.h"
+
 // STD Includes
 #include <cmath>
 
@@ -40,11 +44,15 @@ void DriveStraight::Initialize()
 	if(drive_ == nullptr)
 	{
 		Cancel();
+		dman::TextLog::Log(dman::MessageData::ERR, dman::SystemData("Drive", "DriveStraight", "Command")) <<
+				"Initialize Failed";
 		return;
 	}
 
 	drive_->ResetPosition();
 	drive_->TankDrive(velocity_, velocity_);
+	drive_->Log(dman::MessageData::STATUS, "DriveStraight", "Command") << "DriveStraight initialized, driving at: " <<
+			velocity_;
 }
 
 void DriveStraight::Execute()
@@ -53,8 +61,6 @@ void DriveStraight::Execute()
 	{
 		return;
 	}
-
-	SmartDashboard::PutNumber("Distance", drive_->GetDistance());
 }
 
 bool DriveStraight::IsFinished()
@@ -74,10 +80,12 @@ void DriveStraight::End()
 		return;
 
 	drive_->Stop();
+	drive_->Log(dman::MessageData::STATUS, "DriveStraight", "Command") << "Ended, stopping drive";
 }
 
 void DriveStraight::Interrupted()
 {
+	drive_->Log(dman::MessageData::INFO, "DriveStraight", "Command") << "Interrupted";
 	End();
 }
 

@@ -1,0 +1,3 @@
+[submodule "dalek-manager-lib"]
+	path = dalek-manager-lib
+	url = https://github.com/FRC-3637-Daleks/dalek-manager-lib.git

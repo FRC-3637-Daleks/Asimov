@@ -11,6 +11,9 @@
 // WPI Includes
 #include "WPILib.h"
 
+// Dalek Manager Includes
+#include "WPILib/WPISystem.h"
+
 // STD Includes
 #include <memory>
 #include <string>
@@ -22,13 +25,14 @@ namespace commands
 {
 
 class DriveStraight;
+class TankDrive;
+class ArcadeDrive;
 
 }
 
 namespace subsystems
 {
-
-class Drive: public Subsystem
+class Drive: public dman::WPISystem
 {
 public:
 	enum class Mode_t: uint8_t {
@@ -56,8 +60,8 @@ public:
 
 public:  /// Configuration functions
 	bool is_initialized() const {return talons_ != nullptr;}
-	bool Initialize();
-	bool Configure();
+	void doRegister() override;
+	bool doConfigure() override;
 
 	void SetMode(Mode_t m);
 	Mode_t get_mode() const {return mode_;}
@@ -79,6 +83,7 @@ public:  /// Configuration functions
 	void SetWheelRevsPerBaseRev(double rate);
 	double get_wheel_revs_per_base_rev() const {return wheel_revs_per_base_rev_;}
 
+	void SetAllowableError(double allow);
 	double get_allowable_error() {return allowable_error_;}
 
 public:  /// Position tracking functions
@@ -143,9 +148,22 @@ public:	/// Drive functions
 
 public:  // Command Generation
 	/** Forwards the arguments to a DriveStraight constructor with this as the first arg
+	 * @see commands::DriveStraight::DriveStraight
 	 */
 	template<class ... Types>
 	commands::DriveStraight * MakeDriveStraight(Types ... args);
+
+	/** Forwards the arguments to a TankDrive constructor with this as the first arg
+	 * @see commands::TankDrive::TankDrive
+	 */
+	template<class ... Types>
+	commands::TankDrive * MakeTankDrive(Types ... args);
+
+	/** Forwards the arguments to an ArcadeDrive constructor with this as the first arg
+	 * @see commands::ArcadeDrive::ArcadeDrive
+	 */
+	template<class ... Types>
+	commands::ArcadeDrive * MakeArcadeDrive(Types ... args);
 
 private:
 	struct Talons
@@ -161,11 +179,16 @@ private:
 	};
 
 private:
+	// Creates the talons if they haven't been already
+	void initTalons();
+
 	// Configures the motor at master for the current mode
 	bool configureMaster(CANTalon &master);
 
 	// Runs configureMaster on both sides
 	bool configureBoth();
+
+	void setModeMaster(CANTalon &master);
 
 private:
 	Ptr_t<Talons> talons_ ;
@@ -182,11 +205,25 @@ private:
 
 // Drive class dependent files
 #include "Commands/DriveStraight.h"
+#include "Commands/TankDrive.h"
+#include "Commands/ArcadeDrive.h"
 
 template<class ... Types>
 commands::DriveStraight * subsystems::Drive::MakeDriveStraight(Types ... args)
 {
 	return new commands::DriveStraight(this, std::forward<Types>(args)...);
+}
+
+template<class ... Types>
+commands::TankDrive * subsystems::Drive::MakeTankDrive(Types ... args)
+{
+	return new commands::TankDrive(this, std::forward<Types>(args)...);
+}
+
+template<class ... Types>
+commands::ArcadeDrive * subsystems::Drive::MakeArcadeDrive(Types ... args)
+{
+	return new commands::ArcadeDrive(this, std::forward<Types>(args)...);
 }
 
 

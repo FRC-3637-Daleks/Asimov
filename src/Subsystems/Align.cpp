@@ -8,11 +8,11 @@
 #include "WPILib.h"
 #include <cmath>
 
-
+#include "Utility/FunkyGet.h"
 
 using Align = subsystems::Align;
 
-Align::Align():Subsystem("Align"){
+Align::Align(): WPISystem("Align"){
 	Sensor1 = new AnalogInput(3);
 	Sensor2 = new AnalogInput(0);
 	Distance1 = 0;
@@ -21,7 +21,7 @@ Align::Align():Subsystem("Align"){
 	TargetRight = 10;
 
 }
-double Align::GetDistance1(){
+double Align::GetDistance1() const{
 	double Volt = static_cast<double>(Sensor1->GetVoltage());
 	if (Volt<=1.77){
 		return 1/((Volt - .65)/(13.21208267) + .05) - .42;
@@ -34,7 +34,7 @@ double Align::GetDistance1(){
 	}
 
 }
-double Align::GetDistance2(){
+double Align::GetDistance2() const {
 	double Volt = static_cast<double>(Sensor2->GetVoltage());
 	if (Volt<=1.77){
 		return 1/((Volt - .65)/(13.21208267) + .05) - .42;
@@ -52,23 +52,121 @@ void Align::SetRightTarget(double tgt){
 void Align::SetLeftTarget(double tgt){
 	TargetLeft = tgt;
 }
-double Align::LeftError(){
+double Align::LeftError() const{
 	return TargetLeft - GetDistance2();
 }
-double Align::RightError(){
+double Align::RightError() const {
 	return TargetRight - GetDistance1();
 }
-double Align::ForwardError(){
+double Align::ForwardError() const {
 	return (LeftError()+RightError())/2;
 }
-double Align::RotationError(){
+double Align::RotationError() const {
 	return (RightError()-LeftError());
 }
 
-double Align::GetLeftOutput(){
-	return LeftError()/3.0;
+double Align::GetLeftOutput() const {
+	double ret = -LeftError();
+	if(ret > 1.0)
+		return 1.0;
+	else if(ret < -1.0)
+		return -1.0;
+	return ret;
 }
 
-double Align::GetRightOutput(){
-	return RightError()/3.0;
+double Align::GetRightOutput() const {
+	double ret = -RightError();
+	if(ret > 1.0)
+		return 1.0;
+	else if(ret < -1.0)
+		return -1.0;
+	return ret;
+}
+
+double Align::GetForwardOutput() const {
+	double ret = -ForwardError();
+	if(ret > 1.0)
+		return 1.0;
+	else if(ret < -1.0)
+		return -1.0;
+	return ret;
+}
+
+double Align::GetTurnOutput() const {
+	double ret = -RotationError();
+	if(ret > 1.0)
+		return 1.0;
+	else if(ret < -1.0)
+		return -1.0;
+	return ret;
+}
+
+void Align::doRegister()
+{
+	{
+		auto& ports = GetPortSpace("AnalogIn");
+		ports("right").SetDefault(3);
+		ports("left").SetDefault(0);
+	}
+
+	{
+		auto& settings = GetSettings();
+		settings("target").SetDefault(TargetLeft);
+	}
+
+	GetLocalValue<double>("left_error").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return LeftError();
+			}));
+	GetLocalValue<double>("right_error").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return RightError();
+			}));
+	GetLocalValue<double>("forward_error").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return ForwardError();
+			}));
+	GetLocalValue<double>("rotation_error").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return RotationError();
+			}));
+	GetLocalValue<double>("left_output").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return GetLeftOutput();
+			}));
+	GetLocalValue<double>("right_output").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return GetRightOutput();
+			}));
+	GetLocalValue<double>("forward_output").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return GetForwardOutput();
+			}));
+	GetLocalValue<double>("turn_output").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return GetTurnOutput();
+			}));
+}
+
+bool Align::doConfigure()
+{
+	initSensors();
+
+	auto& target = GetSettings()("target");
+	SetLeftTarget(target.GetValueOrDefault<double>());
+	SetRightTarget(target.GetValueOrDefault<double>());
+
+	return true;
+}
+
+
+void Align::initSensors()
+{
+	if(is_initialized())
+		return;
+
+	auto& ports = GetPortSpace("AnalogIn");
+
+	Sensor1 = new AnalogInput(ports("right"));
+	Sensor2 = new AnalogInput(ports("left"));
 }
