@@ -27,7 +27,7 @@ std::string Drive::ModeToString(Mode_t mode)
 	}
 }
 
-Drive::Drive(): talons_(nullptr), mode_(Mode_t::VBus),
+Drive::Drive(): Subsystem("Drive"), talons_(nullptr), mode_(Mode_t::VBus),
 		ticks_per_rev_(761), wheel_diameter_(0.3048), max_velocity_(120.0), wheel_revs_per_base_rev_(5000),
 		allowable_error_(0.05) // 5 cm of wheel rotation
 {
@@ -233,6 +233,12 @@ void Drive::TankDrive(double left, double right)
 	}
 }
 
+void Drive::Stop()
+{
+	talons_->left_.StopMotor();
+	talons_->right_.StopMotor();
+}
+
 void Drive::ArcadeDrive(double y, double rotation)
 {
 	if(y > 1.0) y = 1.0;
@@ -279,13 +285,13 @@ bool Drive::configureBoth()
 		bool left_ret = configureMaster(talons_->left_);
 		talons_->left_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
 		talons_->left_slave_.Set(3);
-		talons_->left_.SetInverted(false);
-		talons_->left_.SetSensorDirection(false);
+		talons_->left_.SetInverted(true);
+		talons_->left_.SetSensorDirection(true);
 
 		bool right_ret = configureMaster(talons_->right_);
 		talons_->right_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
 		talons_->right_slave_.Set(1);
-		talons_->right_.SetInverted(true);
+		talons_->right_.SetInverted(false);
 		talons_->right_.SetSensorDirection(true);
 
 		return left_ret && right_ret;

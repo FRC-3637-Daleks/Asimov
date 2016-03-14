@@ -14,13 +14,21 @@
 // STD Includes
 #include <memory>
 #include <string>
+#include <utility>
 
 #define PI 3.1415926535897
+
+namespace commands
+{
+
+class DriveStraight;
+
+}
 
 namespace subsystems
 {
 
-class Drive//: public Subsystem
+class Drive: public Subsystem
 {
 public:
 	enum class Mode_t: uint8_t {
@@ -129,6 +137,16 @@ public:	/// Drive functions
 	 */
 	void ArcadeDrive(double y, double rotation);
 
+	/** Stops
+	 */
+	void Stop();
+
+public:  // Command Generation
+	/** Forwards the arguments to a DriveStraight constructor with this as the first arg
+	 */
+	template<class ... Types>
+	commands::DriveStraight * MakeDriveStraight(Types ... args);
+
 private:
 	struct Talons
 	{
@@ -162,6 +180,14 @@ private:
 
 }
 
+// Drive class dependent files
+#include "Commands/DriveStraight.h"
+
+template<class ... Types>
+commands::DriveStraight * subsystems::Drive::MakeDriveStraight(Types ... args)
+{
+	return new commands::DriveStraight(this, std::forward<Types>(args)...);
+}
 
 
 #endif /* SRC_SUBSYSTEMS_DRIVE_H_ */

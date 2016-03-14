@@ -1,3 +1,5 @@
 /Debug/
-sysProps.xml
+/Windows Simulate/
+/linux_simulate/
 .settings/
+sysProps.xml
