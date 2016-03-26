@@ -8,8 +8,7 @@
 #ifndef SRC_SUBSYSTEMS_SHOOTER_H_
 #define SRC_SUBSYSTEMS_SHOOTER_H_
 #include "WPILib.h"
-
-//TODO ::: MAKE SHOOT
+#include "WPILib/WPISystem.h"
 
 /**
  * Has forward declarations of command classes.
@@ -27,13 +26,14 @@ namespace commands
 namespace subsystems
 {
 
-class Shooter : public Subsystem
+class Shooter : public dman::WPISystem
 {
 // Constructor & destructor:
 public:
 	Shooter();
 	virtual ~Shooter();
 
+// Enumerations:
 public:
 	/**
 	 * Enumeration for possible Shooter states.
@@ -45,7 +45,24 @@ public:
 	 */
 	enum class Mode_t {VELOCITY = 0, VBUS};
 
-// Functions:
+// Dalek manager config functions:
+public:
+	/**
+	 * Register Dalek Manager settings to default values for Shooter
+	 * variables. Instant changes to settings can be made from a GUI
+	 * without code recomplication.
+	 */
+	void doRegister() override;
+
+	/**
+	 * Initializes roller if not done so already, and configures the
+	 * variables that have registered settings to that setting's
+	 * current or default value.
+	 * @return true
+	 */
+	bool doConfigure() override;
+
+// Main functions:
 public:
 	/**
 	 * Initializes settings of the top roller by calling CANTalon
