@@ -8,6 +8,7 @@
 #ifndef SRC_SUBSYSTEMS_INTAKE_H_
 #define SRC_SUBSYSTEMS_INTAKE_H_
 #include "WPILib.h"
+#include "WPILib/WPISystem.h"
 
 /**
  * Has forward declarations of Intake Command classes.
@@ -25,7 +26,7 @@ namespace commands
 namespace subsystems
 {
 
-class Intake : public Subsystem
+class Intake : public dman::WPISystem
 {
 // Constructor & destructor:
 public:
@@ -43,6 +44,23 @@ public:
 	 * Enumeration for possible roller control modes
 	 */
 	enum class Mode_t {VELOCITY = 0, VBUS};
+
+// Dalek Manager config functions:
+public:
+	/**
+	 * Register Dalek Manager settings to default values for Intake
+	 * variables. Instant changes to settings can be made from a
+	 * GUI without recompilation of code.
+	 */
+	void doRegister() override;
+
+	/**
+	 * Initializes roller if not done so already, and configures the
+	 * variables that have registered settings to the setting's current
+	 * value or its default one.
+	 * @return true
+	 */
+	bool doConfigure() override;
 
 // Main functions:
 public:
