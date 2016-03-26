@@ -416,8 +416,8 @@ private:
 		}
 		else
 		{
-			shoot_->SetMode(Shooter::Mode_t::VELOCITY);
-			intake_->SetMode(Intake::Mode_t::VELOCITY);
+			shooter_.SetMode(Shooter::Mode_t::VELOCITY);
+			intake_.SetMode(Intake::Mode_t::VELOCITY);
 		}
 
 		if(!lock)
