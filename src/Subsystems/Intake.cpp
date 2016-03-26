@@ -98,7 +98,6 @@ bool Intake::doConfigure()
 	}
 
 	// Configure roller settings
-	auto& ports = GetPortSpace("CAN");
 	roller_->SetInverted(settings["intake_roller"]("invert_output").GetValueOrDefault());
 	roller_->SetSensorDirection(settings["intake_roller"]("invert_sensor").GetValueOrDefault());
 
