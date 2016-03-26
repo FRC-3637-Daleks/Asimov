@@ -1,4 +1,7 @@
 #include "Commands/ShootIntake.h"
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+#include "Log/SystemData.h"
 
 /**
  * Commands namespace with implementation
@@ -6,6 +9,8 @@
  */
 namespace commands
 {
+
+using namespace dman;
 
 // Constructor:
 ShootIntake::ShootIntake(Intake *intake, Shooter *shooter, double shoot_time, double timeout) : Command("ShootIntake")
@@ -27,9 +32,12 @@ ShootIntake::ShootIntake(Intake *intake, Shooter *shooter, double shoot_time, do
 // Main functions:
 void ShootIntake::Initialize()
 {
-	std::cout << "Intake and Shooter : ShootIntake : Started with shoot time = " << shoot_time_ << " and timeout = " << timeout_ << std::endl;
 	if (shooter_->GetState() == Shooter::State_t::SPUNUP && intake_->GetState() == Intake::State_t::HOLDING)
 	{
+		TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake and Shooter", "ShootIntake", "Command")) <<
+				"Initializing ShootIntake with initial shoot time: " << shoot_time_ << " and initial time out: "
+				<< timeout_;
+
 		timer_->Reset();
 		shooter_->SetState(Shooter::State_t::SHOOTING);
 		intake_->SetState(Intake::State_t::SHOOTING);
@@ -37,7 +45,9 @@ void ShootIntake::Initialize()
 	}
 	else
 	{
-		std::cout << "ERROR: Invalid starting state (should be \"SPUNUP\" and \"HOLDING\")" << std::endl;
+		TextLog::Log(MessageData(MessageData::ERR), SystemData("Intake and Shooter", "ShootIntake", "Command")) <<
+				"Failed to initialize ShootIntake : Invalid starting state (should be \"SPUNUP\"" <<
+				" and \"HOLDING\")";
 		Cancel();
 	}
 }
@@ -53,7 +63,8 @@ void ShootIntake::Execute()
 
 void ShootIntake::End()
 {
-	std::cout << "Intake and Shooter : ShootIntake : Ended" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake and Shooter", "ShootIntake", "Command")) <<
+				"Ending ShootIntake";
 
 	if(shooter_->GetState() == Shooter::State_t::SHOOTING)
 		shooter_->SetState(Shooter::State_t::SPUNUP);
@@ -68,7 +79,8 @@ bool ShootIntake::IsFinished()
 
 void ShootIntake::Interrupted()
 {
-	std::cout << "Intake and Shooter : ShootIntake : Interrupted" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake and Shooter", "ShootIntake", "Command")) <<
+				"Interrupting ShootIntake";
 	if(intake_->GetState() == Intake::State_t::SHOOTING)  // Prevents shooter from ending in wrong state after cancel
 		End();
 }

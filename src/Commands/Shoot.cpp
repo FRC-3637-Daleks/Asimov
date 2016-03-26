@@ -1,4 +1,7 @@
 #include <Commands/Shoot.h>
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+#include "Log/SystemData.h"
 
 /**
  * Commands namespace with implementation
@@ -6,6 +9,8 @@
  */
 namespace commands
 {
+
+using namespace dman;
 
 // Constructor:
 Shoot::Shoot(Intake* intake, Shooter* shooter, double wait_time, double shoot_time, double timeout) : CommandGroup("Shoot")
@@ -30,8 +35,9 @@ Shoot::Shoot(Intake* intake, Shooter* shooter, double wait_time, double shoot_ti
 // Main functions:
 void Shoot::Initialize()
 {
-	std::cout << "Intake and Shooter : Shoot : Started with wait time = " << wait_time_ << ", shoot time = ";
-	std::cout << shoot_time_ << ", and timeout = " << timeout_ << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake and Shooter", "Shoot", "CommandGroup")) <<
+				"Initializing Shoot with initial wait time: " << wait_time_ << ", initial shoot time: " <<
+				shoot_time_ << ", and initial timeout: " << timeout_;
 	if (shooter_->GetState() != State_t::SPUNUP)
 		Cancel();
 }

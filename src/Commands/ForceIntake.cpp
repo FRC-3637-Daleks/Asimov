@@ -1,4 +1,7 @@
 #include "ForceIntake.h"
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+#include "Log/SystemData.h"
 
 /**
  * Commands namespace with implementation
@@ -6,6 +9,8 @@
  */
 namespace commands
 {
+
+using namespace dman;
 
 // Constructor:
 ForceIntake::ForceIntake(Intake *intake) : Command("ForceIntake")
@@ -18,7 +23,8 @@ ForceIntake::ForceIntake(Intake *intake) : Command("ForceIntake")
 // Main functions:
 void ForceIntake::Initialize()
 {
-	std::cout << "Intake : ForceIntake : Started" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "ForceIntake", "Command")) <<
+				"Initializing ForceIntake";
 	intake_->TakeBall(false);
 }
 
@@ -29,7 +35,8 @@ bool ForceIntake::IsFinished()
 
 void ForceIntake::Interrupted()
 {
-	std::cout << "Intake : ForceIntake : Interrupted" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "ForceIntake", "Command")) <<
+				"Interrupting ForceIntake";
 	intake_->Stop();
 }
 

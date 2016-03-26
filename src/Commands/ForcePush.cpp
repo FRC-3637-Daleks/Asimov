@@ -1,4 +1,7 @@
 #include "ForcePush.h"
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+#include "Log/SystemData.h"
 
 /**
  * Commands namespace with implementation
@@ -6,6 +9,8 @@
  */
 namespace commands
 {
+
+using namespace dman;
 
 // Constructor:
 ForcePush::ForcePush(Intake *intake) : Command("ForcePush")
@@ -18,7 +23,8 @@ ForcePush::ForcePush(Intake *intake) : Command("ForcePush")
 // Main functions:
 void ForcePush::Initialize()
 {
-	std::cout << "Intake : ForcePush : Started" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "ForcePush", "Command")) <<
+				"Initializing ForcePush";
 	intake_->OutakeBall();
 }
 
@@ -29,7 +35,8 @@ bool ForcePush::IsFinished()
 
 void ForcePush::Interrupted()
 {
-	std::cout << "Intake : ForcePush : Interrupted" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "ForcePush", "Command")) <<
+				"Interrupting ForcePush";
 	intake_->Stop();
 }
 

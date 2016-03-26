@@ -57,7 +57,7 @@ void Shooter::doRegister()
 
 bool Shooter::doConfigure()
 {
-	std::cout << "Configuring Shooter" << std::endl;
+	Log(dman::MessageData::INFO, "", "Subsystem") << "Configuring Shooter";
 
 	// Initialize roller to CAN port
 	auto& can_ports = GetPortSpace("CAN");

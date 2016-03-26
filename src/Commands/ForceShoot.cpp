@@ -1,4 +1,7 @@
 #include "ForceShoot.h"
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+#include "Log/SystemData.h"
 
 /**
  * Commands namespace with implementation
@@ -6,6 +9,8 @@
  */
 namespace commands
 {
+
+using namespace dman;
 
 // Constructor:
 ForceShoot::ForceShoot(Intake *intake) : Command("ForceShoot")
@@ -18,7 +23,8 @@ ForceShoot::ForceShoot(Intake *intake) : Command("ForceShoot")
 // Main functions:
 void ForceShoot::Initialize()
 {
-	std::cout << "Intake : ForceShoot : Started" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "ForceShoot", "Command")) <<
+				"Initializing ForceShoot";
 	intake_->ShootBall();
 }
 
@@ -29,7 +35,8 @@ bool ForceShoot::IsFinished()
 
 void ForceShoot::Interrupted()
 {
-	std::cout << "Intake : ForceShoot : Interrupted" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "ForceShoot", "Command")) <<
+				"Interrupting ForceShoot";
 	intake_->Stop();
 }
 

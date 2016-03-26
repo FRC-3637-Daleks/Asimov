@@ -71,7 +71,7 @@ void Intake::doRegister()
 
 bool Intake::doConfigure()
 {
-	std::cout << "Configuring Intake" << std::endl; // TODO: Change cout to Log
+	Log(dman::MessageData::STATUS, "", "Subsystem") << "Configuring Intake";
 
 	// Initialize roller to CAN port
 	auto& can_ports = GetPortSpace("CAN");

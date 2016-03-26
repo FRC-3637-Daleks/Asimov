@@ -1,4 +1,7 @@
 #include "SpinUp.h"
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+#include "Log/SystemData.h"
 
 /**
  * Commands namespace with implementation
@@ -6,6 +9,8 @@
  */
 namespace commands
 {
+
+using namespace dman;
 
 // Constructor:
 SpinUp::SpinUp(Shooter *shooter, double speed, double wait_time) : Command("Spin Up")
@@ -21,10 +26,11 @@ SpinUp::SpinUp(Shooter *shooter, double speed, double wait_time) : Command("Spin
 // Main functions:
 void SpinUp::Initialize()
 {
-	std::cout << "Shooter : SpinUp : Started with speed = " << speed_ << " and wait time = " << wait_time_ << std::endl;
 	State_t currState = shooter_->GetState(); // For readability
 	if (currState == State_t::OFF || currState == State_t::SPINNINGUP || currState == State_t::SPUNUP)
 	{
+		TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
+				"Initializing SpinUp with initial speed: " << speed_ << " and initial wait time: " << wait_time_;
 		timer_->Reset();
 		timer_->Start();
 		shooter_->SpinUp(speed_);
@@ -33,7 +39,9 @@ void SpinUp::Initialize()
 	}
 	else
 	{
-		std::cout << "ERROR: Invalid starting state (should be \"OFF\" or \"SPINNINGUP\")" << std::endl;
+		TextLog::Log(MessageData(MessageData::ERR), SystemData("Shooter", "SpinUp", "Command")) <<
+				"Failed to initialize SpinUp : Invalid starting state (should be \"OFF\", \"SPINNINGUP\" " <<
+				"or \"SPUNUP\")";
 		Cancel();
 	}
 }
@@ -45,13 +53,15 @@ bool SpinUp::IsFinished()
 
 void SpinUp::End()
 {
-	std::cout << "Shooter : SpinUp : Ended" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
+			"Ending SpinUp";
 	shooter_->SetState(State_t::SPUNUP);
 }
 
 void SpinUp::Interrupted()
 {
-	std::cout << "Shooter : SpinUp : Interrupted" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
+			"Interrupting SpinUp";
 	//shooter_->EmergencyStop();
 	//shooter_->SetState(State_t::OFF);
 }
