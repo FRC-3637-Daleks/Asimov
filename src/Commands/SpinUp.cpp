@@ -40,7 +40,7 @@ void SpinUp::Initialize()
 
 bool SpinUp::IsFinished()
 {
-	return (!shooter_->IsAllowable()) && (timer_->Get() > wait_time_);
+	return (!shooter_->IsAllowable()) || (timer_->Get() > wait_time_);
 }
 
 void SpinUp::End()

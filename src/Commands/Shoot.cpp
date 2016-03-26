@@ -1,70 +1,71 @@
-#include "Shoot.h"
+#include <Commands/Shoot.h>
 
 /**
  * Commands namespace with implementation
- * of Shoot command.
+ * of Shoot command group.
  */
 namespace commands
 {
 
-//Constructor:
-Shoot::Shoot(Intake* intake, Shooter* shooter, double shoot_time)
+// Constructor:
+Shoot::Shoot(Intake* intake, Shooter* shooter, double wait_time, double shoot_time, double timeout) : CommandGroup("Shoot")
 {
 	intake_ = intake;
 	shooter_ = shooter;
+
 	shoot_time_ = shoot_time;
-	timer_ = new Timer;
+	timeout_ = timeout;
+	wait_time_ = wait_time;
+
+	shoot_intake_ = new ShootIntake(intake_, shooter_, shoot_time_, timeout_);
+	spin_down_ = new SpinDown(shooter_);
+
+	AddSequential(shoot_intake_);
+	AddSequential(spin_down_, wait_time_);
+
 	Requires(intake);
 	SetInterruptible(false);
 }
 
+// Main functions:
 void Shoot::Initialize()
 {
-	std::cout << "Intake and Shooter : Shoot : Started with shoot time = " << shoot_time_ << std::endl;
-	if (shooter_->GetState() == Shooter::State_t::SPUNUP && intake_->GetState() == Intake::State_t::HOLDING)
-	{
-		timer_->Reset();
-		timer_->Start();
-		shooter_->SetState(Shooter::State_t::SHOOTING);
-		intake_->SetState(Intake::State_t::SHOOTING);
-		intake_->ShootBall();
-	}
-	else
-	{
-		std::cout << "ERROR: Invalid starting state (should be \"SPUNUP\")" << std::endl;
+	std::cout << "Intake and Shooter : Shoot : Started with wait time = " << wait_time_ << ", shoot time = ";
+	std::cout << shoot_time_ << ", and timeout = " << timeout_ << std::endl;
+	if (shooter_->GetState() != State_t::SPUNUP)
 		Cancel();
-	}
-}
-
-void Shoot::End()
-{
-	std::cout << "Intake and Shooter : Shoot : Ended" << std::endl;
-	if(shooter_->GetState() == Shooter::State_t::SHOOTING)
-		shooter_->SetState(Shooter::State_t::SPUNUP);
-	intake_->SetState(Intake::State_t::OFF);
-	intake_->Stop();
-}
-
-bool Shoot::IsFinished()
-{
-	return (timer_->Get() >= shoot_time_);
-}
-
-void Shoot::Interrupted()
-{
-	std::cout << "Intake and Shooter : Shoot : Interrupted" << std::endl;
-	if(intake_->GetState() == Intake::State_t::SHOOTING)  // Prevents shooter from ending in wrong state after cancel
-		End();
 }
 
 void Shoot::SetShootTime(double shoot_time)
 {
 	shoot_time_ = shoot_time;
+	shoot_intake_->SetShootTime(shoot_time_);
 }
 
 double Shoot::GetShootTime() const
 {
 	return shoot_time_;
+}
+
+void Shoot::SetTimeOut(double timeout)
+{
+	timeout_ = timeout;
+	shoot_intake_->SetOverallTimeout(timeout_);
+}
+
+double Shoot::GetTimeOut() const
+{
+	return timeout_;
+}
+
+void Shoot::SetWaitTime(double wait_time)
+{
+	wait_time_ = wait_time;
+}
+
+double Shoot::GetWaitTime() const
+{
+	return wait_time_;
 }
 
 } // end namespace commands

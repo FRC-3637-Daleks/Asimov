@@ -25,19 +25,16 @@ class PushBall: public CommandGroup
 using State_t = Intake::State_t;
 // Constructor & destructors:
 public:
-	PushBall(Intake* intake, double time = 0.5);
+	PushBall(Intake* intake);
 	virtual ~PushBall() = default;
 
 // Main functions:
 public:
 	/**
 	 * TODO : Documentation
+	 * So far does nothing
 	 */
 	void Initialize() override;
-	/**
-	 * @return timeout_ the current timeout value for the WaitCommand.
-	 */
-	double GetAddedTime() const;
 
 protected:
 
@@ -51,7 +48,7 @@ private:
 	{
 	// Constructor & destructor:
 	public:
-		Push(Intake *intake);
+		Push(Intake *intake, double time = 0.5);
 		virtual ~Push() = default;
 
 	// Main functions:
@@ -66,7 +63,8 @@ private:
 		/**
 		 * Returns true if the command should no longet execute, false if
 		 * otherwise. If the mechanical switch (detector_) on the Intake
-		 * system is not pressed on, then the command finished execution.
+		 * system is not pressed on and the position of the roller is at or
+		 * equal to a target position, or if the command times out.
 		 */
 		bool IsFinished() override;
 
@@ -85,12 +83,23 @@ private:
 		 */
 		void Interrupted() override {};
 
-		// TODO : Documentation
-		void SetCanceled();
+		/**
+		 * Sets the target position to target_position
+		 */
+		void SetTargetPosition(double target_position);
+
+		/**
+		 * @return target_position_ the target position of roller
+		 */
+		double GetTargetPosition() const;
+
+
+		double GetTimeout() const;
 
 	private:
 		Intake *intake_;
-		bool canceled;
+		double target_position_;
+		double timeout_;
 	};
 
 	/**
@@ -98,7 +107,7 @@ private:
 	 */
 	class Stopper: public Command
 	{
-	// Construcotr & destructor:
+	// Constructor & destructor:
 	public:
 		Stopper(Intake *intake);
 		virtual ~Stopper() = default;
@@ -139,8 +148,7 @@ private:
 	Intake *intake_;
 	Push *push_;
 	Stopper *stop_;
-	WaitCommand *wait_;
-	double timeout_;
+//	WaitCommand *wait_;
 };
 
 }// end namespace commands
