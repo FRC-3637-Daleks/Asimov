@@ -18,7 +18,7 @@ Shooter::Shooter() : Subsystem("Shooter")
 	mode_ = Mode_t::VBUS;
 	SetMode(Mode_t::VELOCITY);
 
-	max_velocity_ = 2400000;
+	max_velocity_ = 2200000;
 	allowed_error_ = 0.1;
 }
 
@@ -35,7 +35,7 @@ void Shooter::Initialize()
 	top_roller_->ConfigEncoderCodesPerRev(2);
 	top_roller_->SetInverted(true);
 	top_roller_->SetClosedLoopOutputDirection(false);
-	top_roller_->SetSensorDirection(true);
+	top_roller_->SetSensorDirection(false);
 	top_roller_->SelectProfileSlot(0);
 	top_roller_->SetVoltageRampRate(0.0);
 	//top_roller_->SetCloseLoopRampRate(0.0);

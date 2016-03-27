@@ -60,6 +60,7 @@ void Swiss::doRegister()
 	settings("pot_turns").SetDefault(1.0);
 	settings("sensor_flipped").SetDefault(true);
 	settings("output_flipped").SetDefault(true);
+	settings("closed_loop_output").SetDefault(false);
 	settings("ramp_rate").SetDefault(10.0);
 
 	{
@@ -73,11 +74,13 @@ void Swiss::doRegister()
 		closed_loop("allowable_error").SetDefault(get_allowable_error());
 	}
 
-	GetLocalValue<double>("current_position").Initialize(std::make_shared<FunkyGet<double> >([this]() {
+	GetLocalValue<double>("current_position").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
 					return GetPos();
 				}));
-		GetLocalValue<double>("target_position").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-						return swisstalon->GetSetpoint();
+		GetLocalValue<double>("target_position").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
+						if(swisstalon)
+							return swisstalon->GetSetpoint();
+						return 0.0;
 					}));
 		GetLocalValue<state_t>("n_current_state").Initialize(std::make_shared<FunkyGet<state_t> >([this]() {
 					return current;
@@ -91,17 +94,30 @@ void Swiss::doRegister()
 		GetLocalValue<std::string>("target_state").Initialize(std::make_shared<FunkyGet<std::string> >([this]() {
 					return StateToString(position);
 				}));
-		GetLocalValue<double>("talon/output_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-					return swisstalon->GetOutputVoltage();
+		GetLocalValue<double>("talon/output_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
+					if(swisstalon)
+						return swisstalon->GetOutputVoltage();
+					return 0.0;
 				}));
-		GetLocalValue<double>("talon/output_current").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-					return swisstalon->GetOutputCurrent();
+		GetLocalValue<double>("talon/output_speed").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
+					if(swisstalon)
+						return swisstalon->GetSpeed();
+					return 0.0;
+		}));
+		GetLocalValue<double>("talon/output_current").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
+					if(swisstalon)
+						return swisstalon->GetOutputCurrent();
+					return 0.0;
 				}));
-		GetLocalValue<double>("talon/temperature").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-					return swisstalon->GetTemperature();
+		GetLocalValue<double>("talon/temperature").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
+					if(swisstalon)
+						return swisstalon->GetTemperature();
+					return 0.0;
 				}));
-		GetLocalValue<double>("talon/input_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() {
-					return swisstalon->GetBusVoltage();
+		GetLocalValue<double>("talon/input_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
+					if(swisstalon)
+						return swisstalon->GetBusVoltage();
+					return 0.0;
 				}));
 }
 
@@ -120,13 +136,20 @@ bool Swiss::doConfigure()
 	swisstalon->SetFeedbackDevice(CANTalon::FeedbackDevice::AnalogPot);
 	//swisstalon->ConfigPotentiometerTurns(settings("pot_turns").GetValueOrDefault<double>());
 	swisstalon->ConfigNeutralMode(CANSpeedController::kNeutralMode_Brake);
-	swisstalon->ConfigReverseLimit(states[port_down]);
-	swisstalon->ConfigForwardLimit(states[retract]);
+	double reverse_limit = 1000000;
+	double forward_limit = -1000000;
+	for(auto state : states)
+	{
+		if(state < reverse_limit) reverse_limit = state;
+		if(state > forward_limit) forward_limit = state;
+	}
+	swisstalon->ConfigReverseLimit(reverse_limit);
+	swisstalon->ConfigForwardLimit(forward_limit);
 	swisstalon->ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SoftPositionLimits);
 	swisstalon->SetVoltageRampRate(settings("ramp_rate").GetValueOrDefault<double>());
 
 	swisstalon->SetSensorDirection(settings("sensor_flipped").GetValueOrDefault<bool>());
-	swisstalon->SetClosedLoopOutputDirection(false);
+	swisstalon->SetClosedLoopOutputDirection(settings("closed_loop_output").GetValueOrDefault<bool>());
 	swisstalon->SetInverted(settings("output_flipped").GetValueOrDefault<bool>());
 
 	// idk
@@ -206,7 +229,10 @@ void Swiss::SetVelocity(double v, bool changeMode){
 }
 
 double Swiss::GetPos() const {
-	return swisstalon->GetPosition();
+	if(swisstalon)
+		return swisstalon->GetPosition();
+	else
+		return 0.0;
 }
 
 double Swiss::GetDiff() const {

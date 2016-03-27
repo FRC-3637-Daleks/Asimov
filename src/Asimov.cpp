@@ -30,6 +30,7 @@
 #include "Subsystems/OI.h"
 #include "WPILib/GenericTrigger.h"
 #include "Subsystems/Align.h"
+#include "Subsystems/Dashboard.h"
 
 #include <math.h>
 #include <vector>
@@ -48,6 +49,7 @@ private:  // subsystems
 	Shooter shooter_;
 	Swiss swissCheez;
 	Align align_;
+	Dashboard dashboard_;
 
 private:  // test modes and other things which will become outsourced to other classes
 	bool tank_drive_;
@@ -62,8 +64,8 @@ private:  // commands and triggers
 	std::vector<Trigger*> triggers;
 
 public:
-	Asimov(): RootSystem("/home/lvuser/dalek/"),
-		tank_drive_(false), mode(AUTO), speed(0.0), lock(false)
+	Asimov(): RootSystem("/home/lvuser/dman/dalek/"),
+		tank_drive_(false), mode(MANUAL), speed(0.0), lock(false)
 	{
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 						"Constructor Started";
@@ -74,6 +76,7 @@ public:
 		AddSubSystem("Align", align_);
 		AddSubSystem("Camera", camera_);
 		AddSubSystem("Swiss", swissCheez);
+		AddSubSystem("Dashboard", dashboard_);
 
 		// Port Spaces
 		get_context().RegisterPortSpace("CAN", std::make_shared<PortSpace>(0, 63));
@@ -102,13 +105,14 @@ private:
 		intake_.SetIntakeSpeed(0.6);
 		shooter_.SetAllowedError(1000);
 
-		mode = AUTO;
+		mode = MANUAL;
 		lock = false;
 
 		Register();
 		get_context().SaveSchema();
 
 		BindControls();
+		BindDashboard();
 
 		TextLog::Log(MessageData(MessageData::INFO, 1), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Complete";
@@ -289,6 +293,16 @@ private:
 		commands.push_back(swissCheez.MakeControlSwissVelocity(oi_.GetSwissAxis()));
 		triggers.push_back(new GenericTrigger(oi_.GetControlSwissButton()));
 		triggers.back()->WhileActive(commands.back());
+	}
+
+	void BindDashboard()
+	{
+		std::string double_values[] =
+		{"Robot/Align/left_error", "Robot/Align/right_error", "Robot/Align/forward_error", "Robot/Align/rotation_error",
+		"Robot/Swiss/talon/output_current", "Robot/Swiss/talon/output_speed", "Robot/Swiss/talon/output_voltage"};
+		for(auto double_value : double_values)
+			dashboard_.AddDashValue<double>(double_value);
+
 	}
 
 	// Disabled
