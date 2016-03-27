@@ -1,11 +1,17 @@
 #include "IntakeBall.h"
 
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+#include "Log/SystemData.h"
+
 /**
  * Namespace commands with implementation
  * of IntakeBall command functions.
  */
 namespace commands
 {
+
+using namespace dman;
 
 // Constructor:
 IntakeBall::IntakeBall(Intake * intake) : Command("IntakeBall")
@@ -18,15 +24,17 @@ IntakeBall::IntakeBall(Intake * intake) : Command("IntakeBall")
 // Main functions:
 void IntakeBall::Initialize()
 {
-	std::cout << "Intake : IntakeBall : Started" << std::endl;
 	if (intake_->GetState() == State_t::OFF)
 	{
+		TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "IntakeBall", "Command")) <<
+					"Initializing IntakeBall";
 		intake_->SetState(State_t::TAKING);
 		intake_->TakeBall(true);
 	}
 	else
 	{
-		std::cout << "ERROR: Invalid starting state (Should be \"OFF\")" << std::endl;
+		TextLog::Log(MessageData(MessageData::ERR), SystemData("Intake", "IntakeBall", "Command")) <<
+					"Failed to initialize IntakeBall : Invalid starting state (should be \"OFF\")";
 		Cancel();
 	}
 }
@@ -38,14 +46,16 @@ bool IntakeBall::IsFinished()
 
 void IntakeBall::End()
 {
-	std::cout << "Intake : IntakeBall : Ended" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "IntakeBall", "Command")) <<
+				"Ending IntakeBall";
 	intake_->Stop();
 	intake_->SetState(State_t::HOLDING);
 }
 
 void IntakeBall::Interrupted()
 {
-	std::cout << "Intake : IntakeBall : Interrupted" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "IntakeBall", "Command")) <<
+				"Interrupting IntakeBall";
 	intake_->Stop();
 	if (intake_->CheckSwitch())
 		intake_->SetState(State_t::HOLDING);

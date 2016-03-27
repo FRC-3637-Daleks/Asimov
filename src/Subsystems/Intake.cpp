@@ -1,6 +1,7 @@
 #include "Intake.h"
 #include "Commands/IntakeBall.h"
 #include "Commands/PushBall.h"
+#include "Utility/FunkyGet.h"
 #include <math.h>
 
 /**
@@ -9,14 +10,14 @@
  */
 namespace subsystems
 {
-
+using namespace dman;
 using IntakeBall = commands::IntakeBall;
 using PushBall = commands::PushBall;
 
 // Constructor:
-Intake::Intake() : Subsystem("Intake")
+Intake::Intake() : dman::WPISystem("Intake")
 {
-	roller_ = new CANTalon(5);
+	roller_ = NULL; // keep null until configure time
 	detector_ = new DigitalInput(0);
 
 	// Default values:
@@ -37,6 +38,90 @@ Intake::~Intake()
 {
 	delete roller_;
 	delete detector_;
+}
+
+// Dalek Manager config functions:
+void Intake::doRegister()
+{
+	// CAN port settings:
+	auto& can_ports = GetPortSpace("CAN");
+	can_ports("intake_roller").SetDefault(5);
+
+	// Instance variable settings
+	auto& settings = GetSettings();
+	settings("intake_speed").SetDefault(intake_speed_);
+	settings("push_speed").SetDefault(push_speed_);
+	settings("max_velocity").SetDefault(max_velocity_);
+	settings("allowed_error").SetDefault(allowed_error_);
+	settings("shoot_velocity").SetDefault(shoot_velocity_);
+
+	// PID Settings | TODO: Set proper default values
+	auto& closed_loop_settings = settings["closed_loop_settings"];
+	closed_loop_settings("use").SetDefault(false);
+	closed_loop_settings("P").SetDefault(.1);
+	closed_loop_settings("I").SetDefault(0.0);
+	closed_loop_settings("D").SetDefault(0.0);
+	closed_loop_settings("F").SetDefault(1.0);
+	closed_loop_settings("I_Zone").SetDefault(2.5);
+	closed_loop_settings("ramp_rate").SetDefault(10);
+
+	// Inversion settings
+	settings["intake_roller"]("invert_output").SetDefault(false);
+	settings["intake_roller"]("invert_sensor").SetDefault(false);
+
+	// Value store functions
+	GetLocalValue<double>("front_roller_temp").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return roller_->GetTemperature();
+			}));
+	GetLocalValue<double>("front_roller_ouput_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+			{
+				return roller_->GetOutputVoltage();
+			}));
+	GetLocalValue<double>("front_roller_ouput_current").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+			{
+				return roller_->GetOutputCurrent();
+			}));
+	GetLocalValue<bool>("holding_bouler").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
+			{
+				return this->CheckSwitch();
+			}));
+}
+
+bool Intake::doConfigure()
+{
+	Log(dman::MessageData::STATUS, "", "Subsystem") << "Configuring Intake";
+
+	// Initialize roller to CAN port
+	auto& can_ports = GetPortSpace("CAN");
+	if (roller_ == NULL)
+		roller_ = new CANTalon(can_ports("intake_roller").GetValueOrDefault());
+
+	// Configure variable values
+	auto& settings = GetSettings();
+	SetIntakeSpeed(settings("intake_speed").GetValueOrDefault());
+	SetPushSpeed(settings("push_speed").GetValueOrDefault());
+	SetMaxVelocity(settings("max_velocity").GetValueOrDefault());
+	SetAllowedError(settings("allowed_error").GetValueOrDefault());
+	SetShootVelocity(settings("shoot_velocity").GetValueOrDefault());
+
+	// Configure closed loop settings
+	auto& closed_loop_settings = settings["closed_loop_settings"];
+	if (closed_loop_settings("use").GetValueOrDefault() == true)
+	{
+		roller_->SetP(closed_loop_settings("P").GetValueOrDefault());
+		roller_->SetI(closed_loop_settings("I").GetValueOrDefault());
+		roller_->SetD(closed_loop_settings("D").GetValueOrDefault());
+		roller_->SetF(closed_loop_settings("F").GetValueOrDefault());
+		roller_->SetIzone(closed_loop_settings("I_Zone").GetValueOrDefault());
+		roller_->SetCloseLoopRampRate(closed_loop_settings("ramp_rate").GetValueOrDefault());
+	}
+
+	// Configure roller settings
+	roller_->SetInverted(settings["intake_roller"]("invert_output").GetValueOrDefault());
+	roller_->SetSensorDirection(settings["intake_roller"]("invert_sensor").GetValueOrDefault());
+
+	return true;
 }
 
 // Main functions:
