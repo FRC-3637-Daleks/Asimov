@@ -143,9 +143,9 @@ bool Swiss::doConfigure()
 		if(state < reverse_limit) reverse_limit = state;
 		if(state > forward_limit) forward_limit = state;
 	}
+	swisstalon->ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SoftPositionLimits);
 	swisstalon->ConfigReverseLimit(reverse_limit);
 	swisstalon->ConfigForwardLimit(forward_limit);
-	swisstalon->ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SoftPositionLimits);
 	swisstalon->SetVoltageRampRate(settings("ramp_rate").GetValueOrDefault<double>());
 
 	swisstalon->SetSensorDirection(settings("sensor_flipped").GetValueOrDefault<bool>());

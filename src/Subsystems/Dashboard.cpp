@@ -25,7 +25,10 @@ void Dashboard::doRegister()
 bool Dashboard::doConfigure()
 {
 	if(!get_thread().is_running())
+	{
+		Log(MessageData::STATUS, "configure", "Subsystem") << "Starting thread";
 		get_thread().Start();
+	}
 	return true;
 }
 
