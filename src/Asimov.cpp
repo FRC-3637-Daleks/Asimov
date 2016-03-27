@@ -113,7 +113,6 @@ private:
 
 		BindControls();
 		BindDashboard();
-
 		TextLog::Log(MessageData(MessageData::INFO, 1), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Complete";
 

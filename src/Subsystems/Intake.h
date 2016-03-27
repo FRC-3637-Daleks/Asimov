@@ -170,6 +170,11 @@ public:
 	 */
 	double GetShootVelocity() const;
 
+	/**
+	 * @return the front roller's current position.
+	 */
+	double GetCurrentPosition() const;
+
 // Error Functions:
 public:
 		/**

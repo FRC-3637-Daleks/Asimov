@@ -9,40 +9,34 @@ namespace commands
 {
 
 // PushBall constructor:
-PushBall::PushBall(Intake *intake, double time) : CommandGroup("PushBall")
+PushBall::PushBall(Intake *intake) : CommandGroup("PushBall")
 {
 	intake_ = intake;
-	timeout_ = time;
 	push_ = new Push(intake);
 	stop_ = new Stopper(intake);
-	wait_ = new WaitCommand(timeout_);
 
 	SetInterruptible(false);
 
 	this->AddSequential(push_);
-	this->AddSequential(wait_);
 	this->AddSequential(stop_);
 }
 
 // PushBall main functions:
 void PushBall::Initialize()
 {
-	std::cout << "Intake : PushBall : Started with timeout = " << timeout_ << std::endl;
+	std::cout << "Intake : PushBall : Started with timeout = " << std::endl;
 	if (1)
 	{
 
 	}
 }
-double PushBall::GetAddedTime() const
-{
-	return timeout_;
-}
 
 // Push constructor:
-PushBall::Push::Push(Intake *intake)
+PushBall::Push::Push(Intake *intake, double timeout)
 {
 	intake_ = intake;
-	canceled = false;
+	target_position_ = 30.0;
+	timeout_ = timeout;
 	Requires(intake);
 	SetInterruptible(false);
 }
@@ -50,25 +44,20 @@ PushBall::Push::Push(Intake *intake)
 // Push main functions
 void PushBall::Push::Initialize()
 {
-	std::cout << "Intake : PushBall : Push : Started" << std::endl;
+	std::cout << "Intake : PushBall : Push : Started with timeout " << timeout_ << std::endl;
 	intake_->SetState(State_t::PUSHING);
 	intake_->OutakeBall();
 }
 
 bool PushBall::Push::IsFinished()
 {
-	return canceled || !intake_->CheckSwitch();
+	SetTimeout(timeout_);
+	return (!intake_->CheckSwitch() && intake_->GetCurrentPosition() >= target_position_) || IsTimedOut();
 }
 
 void PushBall::Push::End()
 {
-	canceled = false;
 	std::cout << "Intake : PushBall : Push : Ended" << std::endl;
-}
-
-void PushBall::Push::SetCanceled()
-{
-	canceled = true;
 }
 
 // Stopper constructor:

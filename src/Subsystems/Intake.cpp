@@ -20,14 +20,15 @@ Intake::Intake() : dman::WPISystem("Intake")
 	detector_ = new DigitalInput(0);
 
 	// Default values:
-	intake_speed_ = 0.8;
+	intake_speed_ = 0.5;
 	push_speed_ = -1.0;
 
 	state_ = State_t::OFF;
-	mode_ = Mode_t::VELOCITY;
+	mode_ = Mode_t::VBUS;
+	SetMode(Mode_t::VELOCITY);
 
-	max_velocity_ = 30;
-	allowed_error_ = 0.1;
+	max_velocity_ = 1000.0;
+	allowed_error_ = 100;
 	shoot_velocity_ = 1.0;
 }
 
@@ -109,12 +110,12 @@ bool Intake::doConfigure()
 void Intake::Initialize()
 {
 	roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
-	roller_->ConfigEncoderCodesPerRev(1024);
-	roller_->SetSensorDirection(false);
+	roller_->ConfigEncoderCodesPerRev(8);
+	roller_->SetSensorDirection(true);
 	roller_->SetInverted(true);
 	roller_->SelectProfileSlot(0);
 	roller_->SetVoltageRampRate(0.0);
-	roller_->SetCloseLoopRampRate(5.0);
+	//roller_->SetCloseLoopRampRate(5.0);
 
 	// Configure max and min voltage outputs
 	roller_->ConfigNominalOutputVoltage(0.0, 0.0);
@@ -204,6 +205,11 @@ void Intake::SetShootVelocity(double shoot_velocity)
 double Intake::GetShootVelocity() const
 {
 	return shoot_velocity_;
+}
+
+double Intake::GetCurrentPosition() const
+{
+	return roller_->GetPosition();
 }
 
 // Error functions:

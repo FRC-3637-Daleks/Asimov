@@ -9,8 +9,6 @@
 #define SRC_SUBSYSTEMS_SHOOTER_H_
 #include "WPILib.h"
 
-//TODO ::: MAKE SHOOT
-
 /**
  * Has forward declarations of command classes.
  */
@@ -34,6 +32,7 @@ public:
 	Shooter();
 	virtual ~Shooter();
 
+// Enumerations:
 public:
 	/**
 	 * Enumeration for possible Shooter states.
@@ -45,7 +44,7 @@ public:
 	 */
 	enum class Mode_t {VELOCITY = 0, VBUS};
 
-// Functions:
+// Main functions:
 public:
 	/**
 	 * Initializes settings of the top roller by calling CANTalon
