@@ -111,8 +111,10 @@ private:
 		Register();
 		get_context().SaveSchema();
 
+
 		BindControls();
 		BindDashboard();
+
 		TextLog::Log(MessageData(MessageData::INFO, 1), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Complete";
 
@@ -430,6 +432,10 @@ private:
 		else
 		{
 			shooter_.SetMode(Shooter::Mode_t::VELOCITY);
+<<<<<<< HEAD
+=======
+			intake_.SetMode(Intake::Mode_t::VELOCITY);
+>>>>>>> dev-DQsevilla
 		}
 
 		if(!lock)

@@ -1,4 +1,7 @@
 #include "PushBall.h"
+#include "Log/TextLog.h"
+#include "Log/MessageData.h"
+#include "Log/SystemData.h"
 
 /**
  * Commands namespace with implementation
@@ -7,6 +10,8 @@
  */
 namespace commands
 {
+
+using namespace dman;
 
 // PushBall constructor:
 PushBall::PushBall(Intake *intake) : CommandGroup("PushBall")
@@ -24,7 +29,9 @@ PushBall::PushBall(Intake *intake) : CommandGroup("PushBall")
 // PushBall main functions:
 void PushBall::Initialize()
 {
-	std::cout << "Intake : PushBall : Started with timeout = " << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "PushBall", "CommandGroup")) <<
+				"Initializing PushBall";
+//	std::cout << "Intake : PushBall : Started with timeout = " << std::endl;
 	if (1)
 	{
 
@@ -44,7 +51,8 @@ PushBall::Push::Push(Intake *intake, double timeout)
 // Push main functions
 void PushBall::Push::Initialize()
 {
-	std::cout << "Intake : PushBall : Push : Started with timeout " << timeout_ << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "Push", "Command")) <<
+				"Initializing Push (of PushBall) with initial time out: " << timeout_;
 	intake_->SetState(State_t::PUSHING);
 	intake_->OutakeBall();
 }
@@ -57,13 +65,15 @@ bool PushBall::Push::IsFinished()
 
 void PushBall::Push::End()
 {
-	std::cout << "Intake : PushBall : Push : Ended" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "Push", "Command")) <<
+				"Ending Push (of PushBall)";
 }
 
 // Stopper constructor:
 PushBall::Stopper::Stopper(Intake *intake)
 {
-	std::cout << "Intake : PushBall : Stopper : Started" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "Stopper", "Command")) <<
+				"Initializing Stopper (of PushBall)";
 	intake_ = intake;
 	Requires(intake);
 	SetInterruptible(false);
@@ -77,7 +87,8 @@ bool PushBall::Stopper::IsFinished()
 
 void PushBall::Stopper::End()
 {
-	std::cout << "Intake : PushBall : Stopper : Ended" << std::endl;
+	TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "Stopper", "Command")) <<
+				"Ending Stopper (of PushBall)";
 	intake_->Stop();
 	intake_->SetState(State_t::OFF);
 }
