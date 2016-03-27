@@ -1,11 +1,13 @@
 #include "Shooter.h"
 #include "Commands/SpinUp.h"
 #include "Commands/SpinDown.h"
+#include "Utility/FunkyGet.h"
 #include <math.h>
 
 namespace subsystems
 {
 
+using namespace dman;
 using SpinUp = commands::SpinUp;
 using SpinDown = commands::SpinDown;
 
@@ -53,6 +55,24 @@ void Shooter::doRegister()
 	// Inversion settings
 	settings["shooter_roller"]("invert_output").SetDefault(false);
 	settings["shooter_roller"]("invert_sensor").SetDefault(false);
+
+	// Value store functions
+	GetLocalValue<double>("top_roller_temp").Initialize(std::make_shared<FunkyGet<double> > ([this]()
+			{
+				return top_roller_->GetTemperature();
+			}));
+	GetLocalValue<double>("top_roller_ouput_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+			{
+				return top_roller_->GetOutputVoltage();
+			}));
+	GetLocalValue<double>("top_roller_ouput_current").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+			{
+				return top_roller_->GetOutputCurrent();
+			}));
+	GetLocalValue<bool>("top_roller_is_allowed_error").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
+			{
+				return IsAllowable();
+			}));
 }
 
 bool Shooter::doConfigure()
