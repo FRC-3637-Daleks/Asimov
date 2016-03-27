@@ -1,6 +1,7 @@
 #include "Intake.h"
 #include "Commands/IntakeBall.h"
 #include "Commands/PushBall.h"
+#include "Utility/FunkyGet.h"
 #include <math.h>
 
 /**
@@ -9,7 +10,7 @@
  */
 namespace subsystems
 {
-
+using namespace dman;
 using IntakeBall = commands::IntakeBall;
 using PushBall = commands::PushBall;
 
@@ -67,6 +68,24 @@ void Intake::doRegister()
 	// Inversion settings
 	settings["intake_roller"]("invert_output").SetDefault(false);
 	settings["intake_roller"]("invert_sensor").SetDefault(false);
+
+	// Value store functions
+	GetLocalValue<double>("front_roller_temp").Initialize(std::make_shared<FunkyGet<double> >([this]()
+			{
+				return roller_->GetTemperature();
+			}));
+	GetLocalValue<double>("front_roller_ouput_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+			{
+				return roller_->GetOutputVoltage();
+			}));
+	GetLocalValue<double>("front_roller_ouput_current").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+			{
+				return roller_->GetOutputCurrent();
+			}));
+	GetLocalValue<bool>("holding_bouler").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
+			{
+				return this->CheckSwitch();
+			}));
 }
 
 bool Intake::doConfigure()
