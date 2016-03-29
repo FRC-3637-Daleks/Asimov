@@ -144,6 +144,8 @@ bool Swiss::doConfigure()
 		if(state > forward_limit) forward_limit = state;
 	}
 	swisstalon->ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SoftPositionLimits);
+	Log(MessageData(MessageData::INFO, 3), "", "") << "Reverse Limit: " << reverse_limit <<
+			", forward_limit" << forward_limit;
 	swisstalon->ConfigReverseLimit(reverse_limit);
 	swisstalon->ConfigForwardLimit(forward_limit);
 	swisstalon->SetVoltageRampRate(settings("ramp_rate").GetValueOrDefault<double>());
