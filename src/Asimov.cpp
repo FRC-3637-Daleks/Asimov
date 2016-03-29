@@ -28,9 +28,11 @@
 #include "Subsystems/Camera.h"
 #include "Subsystems/Swiss.h"
 #include "Subsystems/OI.h"
+#include "Subsystems/Grip.h"
 #include "WPILib/GenericTrigger.h"
 #include "Subsystems/Align.h"
 #include "Subsystems/Dashboard.h"
+#include "Config/EnumSetting.h"
 
 #include <math.h>
 #include <vector>
@@ -41,6 +43,10 @@ using namespace subsystems;
 
 class Asimov: public IterativeRobot, public RootSystem
 {
+public:
+	enum Defenses {LOWBAR=0, PORTCULLIS, CHEVAL, MOAT, RAMPARTS, SALLY, DRAWBRIDGE, TERRAIN, WALL, N};
+	enum AutoMode {NO_OP=0, IN, IN_OUT, DEAD_HIGH_GOAL, AUTO_HIGH_GOAL, N_MODES};
+
 private:  // subsystems
 	OI oi_;
 	Drive drive_;
@@ -50,6 +56,7 @@ private:  // subsystems
 	Swiss swissCheez;
 	Align align_;
 	Dashboard dashboard_;
+	GRIP grip_;
 
 private:  // test modes and other things which will become outsourced to other classes
 	bool tank_drive_;
@@ -59,14 +66,22 @@ private:  // test modes and other things which will become outsourced to other c
 	bool lock;
 
 private:  // commands and triggers
+	EnumWrapper<Defenses> auton_defense_;
+	SettingWrapper<int> auton_position_;
+	EnumWrapper<AutoMode, N_MODES> auton_mode_;
 	CommandGroup auton_command_;
+
 	std::vector<Command*> commands;
 	std::vector<Trigger*> triggers;
 
 public:
 	Asimov(): RootSystem("/home/lvuser/dman/dalek/"),
-		tank_drive_(false), mode(MANUAL), speed(0.0), lock(false)
+		tank_drive_(false), mode(MANUAL), speed(0.0), lock(false),
+		auton_defense_(GetSettings()["autonomous"].WrapSetting<EnumWrapper<Defenses>>("defense")),
+		auton_position_(GetSettings()["autonomous"].WrapSetting<SettingWrapper<int>>("position")),
+		auton_mode_(GetSettings()["autonomous"].WrapSetting<EnumWrapper<AutoMode, N_MODES>>("mode"))
 	{
+		std::cout << "I'm alive" << std::endl;
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 						"Constructor Started";
 
@@ -74,15 +89,37 @@ public:
 		AddSubSystem("Drive", drive_);
 		AddSubSystem("OI", oi_);
 		AddSubSystem("Align", align_);
-		AddSubSystem("Camera", camera_);
+		AddSubSystem("CameraMount", camera_);
 		AddSubSystem("Swiss", swissCheez);
+		AddSubSystem("Intake", intake_);
+		AddSubSystem("Shooter", shooter_);
 		AddSubSystem("Dashboard", dashboard_);
+		AddSubSystem("GRIP", grip_);
 
 		// Port Spaces
 		get_context().RegisterPortSpace("CAN", std::make_shared<PortSpace>(0, 63));
 		get_context().RegisterPortSpace("USB", std::make_shared<PortSpace>(0, 5));
 		get_context().RegisterPortSpace("AnalogIn", std::make_shared<PortSpace>(0, 4));
 		get_context().RegisterPortSpace("PWM", std::make_shared<PortSpace>(0, 9));
+		get_context().RegisterPortSpace("DIO", std::make_shared<PortSpace>(0, 9));
+
+		// Defense names
+		EnumWrapper<Defenses>::SetString(Defenses::LOWBAR, "Low Bar");
+		EnumWrapper<Defenses>::SetString(Defenses::PORTCULLIS, "Portcullis");
+		EnumWrapper<Defenses>::SetString(Defenses::CHEVAL, "Cheval de Frise");
+		EnumWrapper<Defenses>::SetString(Defenses::MOAT, "Moat");
+		EnumWrapper<Defenses>::SetString(Defenses::RAMPARTS, "Ramparts");
+		EnumWrapper<Defenses>::SetString(Defenses::SALLY, "Sally Port");
+		EnumWrapper<Defenses>::SetString(Defenses::DRAWBRIDGE, "Drawbridge");
+		EnumWrapper<Defenses>::SetString(Defenses::TERRAIN, "Rough Terrain");
+		EnumWrapper<Defenses>::SetString(Defenses::WALL, "Rock Wall");
+
+		// Autonomous Mode Names
+		EnumWrapper<AutoMode, N_MODES>::SetString(AutoMode::NO_OP, "no-op");
+		EnumWrapper<AutoMode, N_MODES>::SetString(AutoMode::IN, "Cross");
+		EnumWrapper<AutoMode, N_MODES>::SetString(AutoMode::IN_OUT, "Cross, Drop Ball, Come Back");
+		EnumWrapper<AutoMode, N_MODES>::SetString(AutoMode::DEAD_HIGH_GOAL, "Dead Reckoned High Goal Shot");
+		EnumWrapper<AutoMode, N_MODES>::SetString(AutoMode::AUTO_HIGH_GOAL, "Vision Tracked High Goal Shot");
 
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 								"Constructor Complete";
@@ -95,29 +132,21 @@ private:
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Started";
 
-		shooter_.Initialize();
-		intake_.Initialize();
-
 		shooter_.SetMode(Shooter::Mode_t::VELOCITY);
 		intake_.SetMode(Intake::Mode_t::VBUS);
-
-		intake_.SetShootVelocity(0.6);
-		intake_.SetIntakeSpeed(0.6);
-		shooter_.SetAllowedError(1000);
 
 		mode = MANUAL;
 		lock = false;
 
 		Register();
 		get_context().SaveSchema();
-
+		get_context().AssembleConfig();
 
 		BindControls();
 		BindDashboard();
 
 		TextLog::Log(MessageData(MessageData::INFO, 1), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Complete";
-
 	}
 
 	void doRegister() override
@@ -125,10 +154,18 @@ private:
 		RootSystem::doRegister();
 
 		auto& settings = GetSettings();
-		settings["Shoot"]("shoot_speed").SetDefault(0.93);
 
 		{
-			auto& auton = GetSettings()["autonomous"];
+			auton_defense_.SetEnumDefault(LOWBAR);
+			auton_position_.SetDefault(1);
+			{
+				auto& position_schema = auton_position_.GetSetting().base_schema_;
+				position_schema["minimum"] = 1;
+				position_schema["maximum"] = 5;
+			}
+			auton_mode_.SetEnumDefault(IN_OUT);
+
+			auto& auton = settings["autonomous"];
 
 			{
 				auto& approach = auton["A_approach"];
@@ -139,22 +176,71 @@ private:
 
 			{
 				auto& alignment = auton["B_alignment"];
-				alignment("skip").SetDefault(false);
+				alignment("skip").SetDefault(true);
 				alignment("timeout").SetDefault(2.0);
 				alignment("speed_factor").SetDefault(0.5);
 			}
 
 			{
-				auto& swiss = auton["C_swiss"];
+				auto& swiss = auton["Swiss"];
+				swiss.SetDescription("This will only apply to auton routines which require use of the swiss");
 				swiss("skip").SetDefault(false);
 				swiss("timeout").SetDefault(3.0);
 			}
 
 			{
-				auto& cross = auton["D_cross"];
+				auto& cross = auton["Cross"];
+				cross.SetDescription("This should take the robot to be about a foot behind the batter");
 				cross("speed").SetDefault(.5);
 				cross("distance").SetDefault(3.0);
 				cross("timeout").SetDefault(5.0);
+			}
+
+			{
+				auto& spit = auton["Spit"];
+				spit("skip").SetDefault(false);
+				spit.SetDescription("Gets rid of the boulder before the robot drives back");
+			}
+
+			{
+				auto& ret = auton["Return"];
+				ret("speed").SetDefault(.5);
+				ret("distance").SetDefault(5.0);
+				ret("timeout").SetDefault(5.0);
+				ret.SetDescription("Distance traveled back by robot after spitting out boulder");
+			}
+
+			{
+				auto& approaches = auton["CourtyardApproaches"];
+				approaches.SetDescription("This is additional distance to be traveled after the initial cross per defense position");
+				approaches("speed").SetDefault(.5);
+				approaches("timeout").SetDefault(2.0);
+				for(int i = 1; i <= 5; i++)
+				{
+					approaches["from_" + std::to_string(i)]("distance").SetDefault(0.0);
+				}
+			}
+
+			{
+				auto& turns = auton["turns"];
+				turns.SetDescription("Each represents the number of revolutions the left wheel should travel to align the robot with the goal it goes for");
+				turns("speed").SetDefault(.5);
+				turns("timeout").SetDefault(1.0);
+				for(int i = 1; i <= 5; i++)
+				{
+					turns["from_" + std::to_string(i)]("left_revs").SetDefault(0.0);
+				}
+			}
+
+			{
+				auto& last_approach = auton["last_approach"];
+				last_approach.SetDescription("Distances needed to get to the goal");
+				last_approach("speed").SetDefault(.5);
+				last_approach("timeout").SetDefault(2.0);
+				for(int i = 0; i <= 5; i++)
+				{
+					last_approach["from_" + std::to_string(i)]("distance").SetDefault(.5);
+				}
 			}
 		}
 	}
@@ -230,8 +316,10 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/intake")));
 		triggers.back()->WhenActive(commands.back());
 
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/START")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/L_TRIGGER")));
 		triggers.back()->CancelWhenActive(commands.back());
+		commands.push_back(camera_.MakeSetCamera(Camera::CamState_t::BALL));
+		triggers.back()->WhileActive(commands.back());
 
 		auto push_ball_command = intake_.MakePushBall();
 
@@ -242,8 +330,8 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/spin_up")));
 
 		CommandGroup *spinup_group = new CommandGroup;
-		spinup_group->AddParallel(shooter_.MakeSpinUp(GetSettings()["Shoot"]("shoot_speed").GetValueOrDefault<double>()));
-		spinup_group->AddParallel(oi_.MakeShootMode(&camera_, .3, .3));
+		spinup_group->AddParallel(shooter_.MakeSpinUp());
+		spinup_group->AddParallel(oi_.MakeShootMode(&camera_, .6, .6));
 
 		commands.push_back(spinup_group);
 		triggers.back()->WhenActive(commands.back());
@@ -300,9 +388,17 @@ private:
 	{
 		std::string double_values[] =
 		{"Robot/Align/left_error", "Robot/Align/right_error", "Robot/Align/forward_error", "Robot/Align/rotation_error",
-		"Robot/Swiss/talon/output_current", "Robot/Swiss/talon/output_speed", "Robot/Swiss/talon/output_voltage"};
+		"Robot/Swiss/talon/output_current", "Robot/Swiss/talon/output_speed", "Robot/Swiss/talon/output_voltage",
+		"Robot/CameraMount/position", "Robot/Shooter/error", "Robot/Shooter/top_roller_output_voltage",
+		"Robot/Drive/distance",
+		"Robot/GRIP/turn_output"};
 		for(auto double_value : double_values)
 			dashboard_.AddDashValue<double>(double_value);
+
+		std::string boolean_values[] =
+		{"Robot/Intake/holding_boulder", "Robot/Shooter/spunup", "Robot/GRIP/aligned"};
+		for(auto bool_value : boolean_values)
+			dashboard_.AddDashValue<bool>(bool_value);
 
 	}
 
@@ -320,6 +416,7 @@ private:
 	// Teleop
 	void TeleopInit() override
 	{
+		get_context().LoadConfig();
 		Configure();
 		TestDriveInit();
 	}
@@ -346,7 +443,7 @@ private:
 	void TestInit()
 	{
 		TestBoulderInit();
-		TestDriveInit();
+		drive_.SetMode(Drive::Mode_t::VBus);
 	}
 
 	void TestPeriodic()
@@ -363,7 +460,7 @@ private:
 
 	void TestDriveInit()
 	{
-		drive_.SetMode(Drive::Mode_t::Velocity);
+		drive_.SetMode(Drive::Mode_t::VBus);
 	}
 
 	void TestDrivePeriodic()
@@ -432,10 +529,6 @@ private:
 		else
 		{
 			shooter_.SetMode(Shooter::Mode_t::VELOCITY);
-<<<<<<< HEAD
-=======
-			intake_.SetMode(Intake::Mode_t::VELOCITY);
->>>>>>> dev-DQsevilla
 		}
 
 		if(!lock)
