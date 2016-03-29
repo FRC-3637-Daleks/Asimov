@@ -52,7 +52,7 @@ void OI::doRegister()
 	front_mode_ = GetLocalValue<bool>("driver_right/buttons/11");
 	reverse_mode_ = GetLocalValue<bool>("driver_right/buttons/10");
 	intake_ = GetLocalValue<bool>("xbox/buttons/A");
-	push_ = GetLocalValue<bool>("xbox/buttons/B");
+	push_ = GetLocalValue<bool>("driver_right/buttons/3");
 	shoot_ = GetLocalValue<bool>("xbox/buttons/R_TRIGGER");
 	spindown_ = GetLocalValue<bool>("xbox/buttons/X");
 	spinup_ = GetLocalValue<bool>("xbox/buttons/Y");
