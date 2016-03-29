@@ -42,6 +42,7 @@ void ShootIntake::Initialize()
 		shooter_->SetState(Shooter::State_t::SHOOTING);
 		intake_->SetState(Intake::State_t::SHOOTING);
 		intake_->ShootBall();
+		check_switch_ = false;
 	}
 	else
 	{
