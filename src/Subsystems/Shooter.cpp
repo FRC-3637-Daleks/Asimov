@@ -18,10 +18,10 @@ Shooter::Shooter() : dman::WPISystem("Shooter")
 
 	state_ = State_t::OFF;
 	mode_ = Mode_t::VBUS;
-	SetMode(Mode_t::VELOCITY);
 
 	max_velocity_ = 2200000;
 	allowed_error_ = 0.1;
+	shoot_percent_ = .93;
 }
 
 // Destructor:
@@ -41,6 +41,7 @@ void Shooter::doRegister()
 	auto& settings = GetSettings();
 	settings("max_velocity").SetDefault(max_velocity_);
 	settings("allowed_error").SetDefault(allowed_error_);
+	settings("shoot_percent").SetDefault(shoot_percent_);
 
 	// PID settings
 	auto& closed_loop_settings = settings["closed_loop_settings"];
@@ -53,25 +54,40 @@ void Shooter::doRegister()
 	closed_loop_settings("ramp_rate").SetDefault(10);
 
 	// Inversion settings
-	settings["shooter_roller"]("invert_output").SetDefault(false);
-	settings["shooter_roller"]("invert_sensor").SetDefault(false);
+	settings("invert_output").SetDefault(false);
+	settings("invert_sensor").SetDefault(false);
+	settings("encoder_codes_per_rev").SetDefault(2);
 
 	// Value store functions
-	GetLocalValue<double>("top_roller_temp").Initialize(std::make_shared<FunkyGet<double> > ([this]()
+	GetLocalValue<double>("top_roller_temp").Initialize(std::make_shared<FunkyGet<double> > ([this]() -> double
 			{
-				return top_roller_->GetTemperature();
+				if(top_roller_)
+					return top_roller_->GetTemperature();
+				return 0.0;
 			}));
-	GetLocalValue<double>("top_roller_ouput_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+	GetLocalValue<double>("top_roller_ouput_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this] () -> double
 			{
-				return top_roller_->GetOutputVoltage();
+				if(top_roller_)
+					return top_roller_->GetOutputVoltage();
+				return 0.0;
 			}));
-	GetLocalValue<double>("top_roller_ouput_current").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+	GetLocalValue<double>("top_roller_ouput_current").Initialize(std::make_shared<FunkyGet<double> > ([this] () -> double
 			{
-				return top_roller_->GetOutputCurrent();
+				if(top_roller_)
+					return top_roller_->GetOutputCurrent();
+				return 0.0;
 			}));
-	GetLocalValue<bool>("top_roller_is_allowed_error").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
+	GetLocalValue<double>("error").Initialize(std::make_shared<FunkyGet<double> >([this] () -> double
 			{
-				return IsAllowable();
+				if(top_roller_ && top_roller_->GetSetpoint() != 0.0)
+					return 1.0 - fabs(GetSpeed()/top_roller_->GetSetpoint());
+				return 0.0;
+			}));
+	GetLocalValue<bool>("spunup").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
+			{
+				if(top_roller_)
+					return IsAllowable();
+				return false;
 			}));
 }
 
@@ -88,6 +104,7 @@ bool Shooter::doConfigure()
 	auto& settings = GetSettings();
 	SetMaxVelocity(settings("max_velocity").GetValueOrDefault());
 	SetAllowedError(settings("allowed_error").GetValueOrDefault());
+	SetShootPercent(settings("shoot_percent").GetValueOrDefault());
 
 	// Configure closed loop settings
 	auto& closed_loop_settings = settings["closed_loop_settings"];
@@ -102,28 +119,20 @@ bool Shooter::doConfigure()
 	}
 
 	// Configure roller settings
-	top_roller_->SetInverted(settings["intake_roller"]("invert_output").GetValueOrDefault());
-	top_roller_->SetSensorDirection(settings["intake_roller"]("invert_sensor").GetValueOrDefault());
+	top_roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
+	top_roller_->SetInverted(settings("invert_output").GetValueOrDefault());
+	top_roller_->SetSensorDirection(settings("invert_sensor").GetValueOrDefault());
+	top_roller_->ConfigEncoderCodesPerRev(settings("encoder_codes_per_rev").GetValueOrDefault<int>());
+
+	top_roller_->ConfigNominalOutputVoltage(0.0, 0.0);
+	top_roller_->ConfigPeakOutputVoltage(0, -12.0);
+
+	SetMode(mode_);
 
 	return true;
 }
 
 // Main functions:
-void Shooter::Initialize()
-{
-	top_roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
-	top_roller_->ConfigEncoderCodesPerRev(2);
-	top_roller_->SetInverted(true);
-	top_roller_->SetClosedLoopOutputDirection(false);
-	top_roller_->SetSensorDirection(false);
-	top_roller_->SelectProfileSlot(0);
-	top_roller_->SetVoltageRampRate(0.0);
-	//top_roller_->SetCloseLoopRampRate(0.0);
-
-	// Set max and min voltage ouput, dissalows negative voltage
-	top_roller_->ConfigNominalOutputVoltage(0.0, 0.0);
-	top_roller_->ConfigPeakOutputVoltage(0, -12.0);
-}
 
 void Shooter::SpinUp(double speed)
 {
@@ -202,14 +211,23 @@ Shooter::Mode_t Shooter::GetMode() const
 
 void Shooter::SetMode(Mode_t mode)
 {
-	if (mode_ != mode)
-	{
-		mode_ = mode;
-		if (mode_ == Mode_t::VELOCITY)
-			top_roller_->SetControlMode(CANTalon::ControlMode::kSpeed);
-		else if (mode_ == Mode_t::VBUS)
-			top_roller_->SetControlMode(CANTalon::ControlMode::kPercentVbus);
-	}
+	mode_ = mode;
+	if(!top_roller_)
+		return;
+	if (mode_ == Mode_t::VELOCITY)
+		top_roller_->SetControlMode(CANTalon::ControlMode::kSpeed);
+	else if (mode_ == Mode_t::VBUS)
+		top_roller_->SetControlMode(CANTalon::ControlMode::kPercentVbus);
+}
+
+void Shooter::SetShootPercent(double percent)
+{
+	shoot_percent_ = percent;
+}
+
+double Shooter::GetShootPercent() const
+{
+	return shoot_percent_;
 }
 
 // Command functions:

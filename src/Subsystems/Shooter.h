@@ -65,13 +65,6 @@ public:
 
 // Main functions:
 public:
-	/**
-	 * Initializes settings of the top roller by calling CANTalon
-	 * functions. The roller sets a Quadrature Encoder as its feedback
-	 * device, sets maximum and minimum voltage output, and limits the
-	 * roller to spin in only one (positive) direction.
-	 */
-	void Initialize();
 
 	/**
 	 * Controls the shooting roller by setting its speed and spinning it
@@ -129,6 +122,16 @@ public:
 	double GetAllowedError() const;
 
 	/**
+	 * Sets percent of max velocity the shooter will spin for shooting on goal
+	 */
+	void SetShootPercent(double percent);
+
+	/**
+	 * Returns percent of max velocity the shooter will spin for shooting on goal
+	 */
+	double GetShootPercent() const;
+
+	/**
 	 * Returns whether the current error is greater than the allowable
 	 * error, false if otherwise. Used to determine whether to stop the
 	 * SpinUp and SpinDown commands.
@@ -167,7 +170,12 @@ public:
 	/**
 	 * Creates new SpinUp command, and passes class instance as argument.
 	 */
-	commands::SpinUp * MakeSpinUp(double speed = 1.0);
+	commands::SpinUp * MakeSpinUp(double speed);
+
+	/**
+	 * Creates new SpinUp command with shoot_percent as the speed
+	 */
+	commands::SpinUp * MakeSpinUp() {return MakeSpinUp(-1);}
 
 	/**
 	 * Creates new SpinDown command, and passes class instance as argument.
@@ -180,6 +188,7 @@ private:
 	CANTalon *top_roller_;
 	double allowed_error_;
 	double max_velocity_;
+	double shoot_percent_;
 	State_t state_;
 	Mode_t mode_;
 };
