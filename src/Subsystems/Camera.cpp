@@ -33,9 +33,10 @@ Camera::Camera(): WPISystem("CameraMount"), servo_(nullptr), state_(DYNAMIC)
 
 void Camera::SetState(CamState_t state)
 {
-	state_ = state;
 	if(state < 0)
 		return;
+
+	state_ = state;
 
 	if(state_ <= WHEEL)
 	{
@@ -62,7 +63,7 @@ Camera::CamState_t Camera::GetState() const
 
 void Camera::SetPosition(double position)
 {
-	if(is_initialized() && position > 0.0 && position < 1.0)
+	if(is_initialized() && position >= -1.0 && position <= 1.0)
 	{
 		servo_->Set(position);
 	}
@@ -75,7 +76,7 @@ double Camera::GetPosition() const
 		return servo_->Get();
 	}
 
-	return 0.0;
+	return -1.0;
 }
 
 void Camera::OffsetPosition(double offset)
@@ -114,6 +115,9 @@ bool Camera::doConfigure()
 		positions[BACK] = pos_settings("BACK").GetValueOrDefault<double>();
 		positions[GOAL] = pos_settings("GOAL").GetValueOrDefault<double>();
 		positions[WHEEL] = pos_settings("WHEEL").GetValueOrDefault<double>();
+		Log(MessageData(MessageData::INFO, 3), "", "") << "Cam Positions: {" <<
+				"[BACK] = " << positions[BACK] << ", [GOAL] = " << positions[GOAL] << ", [WHEEL]"
+				<< positions[WHEEL] << "}";
 	}
 
 	SetState(WHEEL);
