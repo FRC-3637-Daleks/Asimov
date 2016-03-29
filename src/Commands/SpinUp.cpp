@@ -29,11 +29,21 @@ void SpinUp::Initialize()
 	State_t currState = shooter_->GetState(); // For readability
 	if (currState == State_t::OFF || currState == State_t::SPINNINGUP || currState == State_t::SPUNUP)
 	{
-		TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
-				"Initializing SpinUp with initial speed: " << speed_ << " and initial wait time: " << wait_time_;
+		if(speed_ < 0.0)
+		{
+			TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
+							"Initializing SpinUp with initial speed: " << shooter_->GetShootPercent() << " and initial wait time: " << wait_time_;
+			shooter_->SpinUp(shooter_->GetShootPercent());
+		}
+		else
+		{
+			TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
+							"Initializing SpinUp with initial speed: " << speed_ << " and initial wait time: " << wait_time_;
+			shooter_->SpinUp(speed_);
+		}
+
 		timer_->Reset();
 		timer_->Start();
-		shooter_->SpinUp(speed_);
 		if (currState != State_t::SPINNINGUP)
 			shooter_->SetState(State_t::SPINNINGUP);
 	}
