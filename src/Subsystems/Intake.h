@@ -64,12 +64,6 @@ public:
 
 // Main functions:
 public:
-	/**
-	 * Initializes the settings of the front roller. The roller sets
-	 * a Quadrature Encoder as its feedback device, and sets
-	 * maximum and minumum voltage rates.
-	 */
-	void Initialize();
 
 	/**
 	 * Returns true if the mechanical switch (detector_) is pressed

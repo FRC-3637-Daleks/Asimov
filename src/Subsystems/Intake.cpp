@@ -18,7 +18,7 @@ using PushBall = commands::PushBall;
 Intake::Intake() : dman::WPISystem("Intake")
 {
 	roller_ = NULL; // keep null until configure time
-	detector_ = new DigitalInput(0);
+	detector_ = nullptr;
 
 	// Default values:
 	intake_speed_ = 0.5;
@@ -26,7 +26,6 @@ Intake::Intake() : dman::WPISystem("Intake")
 
 	state_ = State_t::OFF;
 	mode_ = Mode_t::VBUS;
-	SetMode(Mode_t::VELOCITY);
 
 	max_velocity_ = 1000.0;
 	allowed_error_ = 100;
@@ -47,6 +46,8 @@ void Intake::doRegister()
 	auto& can_ports = GetPortSpace("CAN");
 	can_ports("intake_roller").SetDefault(5);
 
+	GetPortSpace("DIO")("boulder_detector").SetDefault(0);
+
 	// Instance variable settings
 	auto& settings = GetSettings();
 	settings("intake_speed").SetDefault(intake_speed_);
@@ -55,7 +56,7 @@ void Intake::doRegister()
 	settings("allowed_error").SetDefault(allowed_error_);
 	settings("shoot_velocity").SetDefault(shoot_velocity_);
 
-	// PID Settings | TODO: Set proper default values
+	// PID Settings
 	auto& closed_loop_settings = settings["closed_loop_settings"];
 	closed_loop_settings("use").SetDefault(false);
 	closed_loop_settings("P").SetDefault(.1);
@@ -66,8 +67,9 @@ void Intake::doRegister()
 	closed_loop_settings("ramp_rate").SetDefault(10);
 
 	// Inversion settings
-	settings["intake_roller"]("invert_output").SetDefault(false);
-	settings["intake_roller"]("invert_sensor").SetDefault(false);
+	settings("invert_output").SetDefault(false);
+	settings("invert_sensor").SetDefault(false);
+	settings("encoder_codes_per_rev").SetDefault(8);
 
 	// Value store functions
 	GetLocalValue<double>("front_roller_temp").Initialize(std::make_shared<FunkyGet<double> >([this]()
@@ -82,7 +84,7 @@ void Intake::doRegister()
 			{
 				return roller_->GetOutputCurrent();
 			}));
-	GetLocalValue<bool>("holding_bouler").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
+	GetLocalValue<bool>("holding_boulder").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
 			{
 				return this->CheckSwitch();
 			}));
@@ -96,6 +98,9 @@ bool Intake::doConfigure()
 	auto& can_ports = GetPortSpace("CAN");
 	if (roller_ == NULL)
 		roller_ = new CANTalon(can_ports("intake_roller").GetValueOrDefault());
+
+	if(detector_ == NULL)
+		detector_ = new DigitalInput(GetPortSpace("DIO")("boulder_detector").GetValueOrDefault());
 
 	// Configure variable values
 	auto& settings = GetSettings();
@@ -118,26 +123,17 @@ bool Intake::doConfigure()
 	}
 
 	// Configure roller settings
-	roller_->SetInverted(settings["intake_roller"]("invert_output").GetValueOrDefault());
-	roller_->SetSensorDirection(settings["intake_roller"]("invert_sensor").GetValueOrDefault());
+	roller_->SetInverted(settings("invert_output").GetValueOrDefault());
+	roller_->SetSensorDirection(settings("invert_sensor").GetValueOrDefault());
 
-	return true;
-}
-
-// Main functions:
-void Intake::Initialize()
-{
 	roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
-	roller_->ConfigEncoderCodesPerRev(8);
-	roller_->SetSensorDirection(true);
-	roller_->SetInverted(true);
-	roller_->SelectProfileSlot(0);
-	roller_->SetVoltageRampRate(0.0);
-	//roller_->SetCloseLoopRampRate(5.0);
-
-	// Configure max and min voltage outputs
+	roller_->ConfigEncoderCodesPerRev(settings("encoder_codes_per_rev").GetValueOrDefault<int>());
 	roller_->ConfigNominalOutputVoltage(0.0, 0.0);
 	roller_->ConfigPeakOutputVoltage(12.0, -12.0);
+
+	SetMode(mode_);
+
+	return true;
 }
 
 bool Intake::CheckSwitch() const
@@ -265,14 +261,13 @@ Intake::State_t Intake::GetState() const
 // Control mode functions:
 void Intake::SetMode(Mode_t mode)
 {
-	if (mode_ != mode)
-	{
-		mode_ = mode;
-		if (mode_ == Mode_t::VELOCITY)
-			roller_->SetControlMode(CANTalon::ControlMode::kSpeed);
-		else if (mode_ == Mode_t::VBUS)
-			roller_->SetControlMode(CANTalon::ControlMode::kPercentVbus);
-	}
+	mode_ = mode;
+	if(!roller_)
+		return;
+	if (mode_ == Mode_t::VELOCITY)
+		roller_->SetControlMode(CANTalon::ControlMode::kSpeed);
+	else if (mode_ == Mode_t::VBUS)
+		roller_->SetControlMode(CANTalon::ControlMode::kPercentVbus);
 }
 
 Intake::Mode_t Intake::GetMode() const
