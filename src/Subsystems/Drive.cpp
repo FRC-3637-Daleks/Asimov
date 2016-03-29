@@ -7,6 +7,8 @@
 
 #include "Drive.h"
 
+#include "Utility/FunkyGet.h"
+
 #include <cmath>
 #include <memory>
 #include <string>
@@ -129,6 +131,13 @@ void Drive::doRegister()
 	settings["left"]("invert_sensor").SetDefault(false);
 	settings["right"]("invert_output").SetDefault(true);
 	settings["right"]("invert_sensor").SetDefault(true);
+
+	GetLocalValue<double>("distance").Initialize(std::make_shared<dman::FunkyGet<double> > ([this]()
+		{
+					if(is_initialized())
+						return GetDistance();
+		}));
+
 }
 
 bool Drive::doConfigure()
@@ -212,7 +221,7 @@ void Drive::SetAllowableError(double allow)
 
 Drive::Meters_t Drive::GetDistance() const
 {
-	return (GetLeftRevs() + GetRightRevs()) / 2.0 * get_wheel_circumference();
+	return (GetLeftRevs())* get_wheel_circumference();
 }
 
 double Drive::GetRotation() const
