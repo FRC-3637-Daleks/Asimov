@@ -72,21 +72,33 @@ void Intake::doRegister()
 	settings("encoder_codes_per_rev").SetDefault(8);
 
 	// Value store functions
-	GetLocalValue<double>("front_roller_temp").Initialize(std::make_shared<FunkyGet<double> >([this]()
+	GetLocalValue<double>("front_roller_temp").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double
 			{
-				return roller_->GetTemperature();
+				if(roller_)
+					return roller_->GetTemperature();
+				else
+					return 0.0;
 			}));
-	GetLocalValue<double>("front_roller_ouput_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+	GetLocalValue<double>("front_roller_ouput_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this] () -> double
 			{
-				return roller_->GetOutputVoltage();
+				if(roller_)
+					return roller_->GetOutputVoltage();
+				else
+					return 0.0;
 			}));
-	GetLocalValue<double>("front_roller_ouput_current").Initialize(std::make_shared<FunkyGet<double> > ([this] ()
+	GetLocalValue<double>("front_roller_ouput_current").Initialize(std::make_shared<FunkyGet<double> > ([this] () -> double
 			{
-				return roller_->GetOutputCurrent();
+				if(roller_)
+					return roller_->GetOutputCurrent();
+				else
+					return 0.0;
 			}));
 	GetLocalValue<bool>("holding_boulder").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
 			{
-				return this->CheckSwitch();
+				if(detector_)
+					return this->CheckSwitch();
+				else
+					return false;
 			}));
 }
 

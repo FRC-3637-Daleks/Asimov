@@ -17,10 +17,9 @@ namespace subsystems
 using namespace dman;
 
 GRIP::GRIP(): WPISystem("GRIP"),
-		target_center_x_(113.0), standard_offset_x_(50.0), left_bias_(true), allowed_error_x_(2.0),
-		goals_(NetworkTable::GetTable("goal").get()), center_x_(113.0)
+		target_center_x_(113.0), standard_offset_x_(50.0), allowed_error_x_(2.0), timeout_(1000), left_bias_(true),
+		goals_(nullptr), center_x_(113.0)
 {
-	goals_->AddTableListener(this, true);
 }
 
 double GRIP::GetOffsetX() const
@@ -50,6 +49,9 @@ void GRIP::doRegister()
 	settings("timeout").SetDefault(get_timeout());
 	settings("timeout").SetDescription("milliseconds");
 
+	goals_ = NetworkTable::GetTable("GRIP/goals");
+	goals_->AddTableListener(this, true);
+
 	GetLocalValue<double>("turn_output").Initialize(std::make_shared<FunkyGet<double>>([this] ()
 			{
 				return GetStandardErrorX();
@@ -62,6 +64,7 @@ void GRIP::doRegister()
 
 bool GRIP::doConfigure()
 {
+	Log(MessageData::STATUS, "", "") << "Configuring GRIP client";
 	auto& goal_settings = GetSettings();
 	auto& settings = goal_settings;
 
@@ -78,7 +81,10 @@ void GRIP::ValueChanged(ITable *source,
 		std::shared_ptr<nt::Value> value,
 		bool isNew)
 {
-	if(source == goals_ )
+	Log(MessageData(MessageData::INFO, 3), "", "") << "p l e a s e";
+	if(value == nullptr)
+		return;
+	if(source == goals_.get())
 	{
 		if(value != nullptr && key == "centerX" && value->IsDoubleArray())
 		{
@@ -122,6 +128,7 @@ void GRIP::ValueChanged(ITable *source,
 
 		}
 	}
+
 }
 
 

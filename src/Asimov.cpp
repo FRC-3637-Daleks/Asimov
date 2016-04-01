@@ -76,10 +76,7 @@ private:  // commands and triggers
 
 public:
 	Asimov(): RootSystem("/home/lvuser/dman/dalek/"),
-		tank_drive_(false), mode(MANUAL), speed(0.0), lock(false),
-		auton_defense_(GetSettings()["autonomous"].WrapSetting<EnumWrapper<Defenses>>("defense")),
-		auton_position_(GetSettings()["autonomous"].WrapSetting<SettingWrapper<int>>("position")),
-		auton_mode_(GetSettings()["autonomous"].WrapSetting<EnumWrapper<AutoMode, N_MODES>>("mode"))
+		tank_drive_(false), mode(MANUAL), speed(0.0), lock(false)
 	{
 		std::cout << "I'm alive" << std::endl;
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
@@ -156,16 +153,21 @@ private:
 		auto& settings = GetSettings();
 
 		{
+			auto& auton = settings["autonomous"];
+
+			auton_defense_ = auton.WrapSetting<EnumWrapper<Defenses>>("defense");
 			auton_defense_.SetEnumDefault(LOWBAR);
+
+			auton_position_ = auton.WrapSetting<SettingWrapper<int>>("position");
 			auton_position_.SetDefault(1);
 			{
 				auto& position_schema = auton_position_.GetSetting().base_schema_;
 				position_schema["minimum"] = 1;
 				position_schema["maximum"] = 5;
 			}
-			auton_mode_.SetEnumDefault(IN_OUT);
 
-			auto& auton = settings["autonomous"];
+			auton_mode_ = auton.WrapSetting<EnumWrapper<AutoMode, N_MODES>>("mode");
+			auton_mode_.SetEnumDefault(IN_OUT);
 
 			{
 				auto& approach = auton["A_approach"];
@@ -278,7 +280,7 @@ private:
 			}
 
 			{
-				auto& swiss = auton["C_swiss"];
+				auto& swiss = auton["Swiss"];
 				bool skip = swiss("skip").GetValueOrDefault<bool>();
 				double timeout = swiss("timeout").GetValueOrDefault<double>();
 
@@ -290,7 +292,7 @@ private:
 			}
 
 			{
-				auto& cross = auton["D_cross"];
+				auto& cross = auton["Cross"];
 				double speed = cross("speed").GetValueOrDefault<double>();
 				double distance = cross("distance").GetValueOrDefault<double>();
 				double timeout = cross("timeout").GetValueOrDefault<double>();
@@ -386,6 +388,7 @@ private:
 
 	void BindDashboard()
 	{
+
 		std::string double_values[] =
 		{"Robot/Align/left_error", "Robot/Align/right_error", "Robot/Align/forward_error", "Robot/Align/rotation_error",
 		"Robot/Swiss/talon/output_current", "Robot/Swiss/talon/output_speed", "Robot/Swiss/talon/output_voltage",
@@ -395,11 +398,12 @@ private:
 		for(auto double_value : double_values)
 			dashboard_.AddDashValue<double>(double_value);
 
+		/*
 		std::string boolean_values[] =
 		{"Robot/Intake/holding_boulder", "Robot/Shooter/spunup", "Robot/GRIP/aligned"};
 		for(auto bool_value : boolean_values)
 			dashboard_.AddDashValue<bool>(bool_value);
-
+			*/
 	}
 
 	// Disabled

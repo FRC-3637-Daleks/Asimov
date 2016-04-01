@@ -14,6 +14,8 @@
 
 #include "WPILib/WPISystem.h"
 
+#include <memory>
+
 namespace subsystems
 {
 
@@ -69,7 +71,7 @@ private:
 	bool left_bias_;	///< Refers to the expectation of the goal being the left most or right most contour
 
 private:
-	ITable *goals_;
+	std::shared_ptr<ITable> goals_;
 	double center_x_;
 };
 
