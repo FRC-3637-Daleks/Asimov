@@ -44,6 +44,8 @@ public:
 
 public:
 	Joystick& get_joy() {return *xbox_;}
+	void SetBigRumble(double rumble_value);
+	void SetSmallRumble(double rumble_value);
 
 private:
 	void initXBox();

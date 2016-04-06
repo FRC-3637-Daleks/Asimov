@@ -52,6 +52,16 @@ bool XBoxWrapper::doConfigure()
 	return is_initialized();
 }
 
+void XBoxWrapper::SetBigRumble(double rumble_value)
+{
+	xbox_->SetRumble(Joystick::RumbleType::kLeftRumble, rumble_value);
+}
+
+void XBoxWrapper::SetSmallRumble(double rumble_value)
+{
+	xbox_->SetRumble(Joystick::RumbleType::kRightRumble, rumble_value);
+}
+
 void XBoxWrapper::initXBox()
 {
 	if(is_initialized())
