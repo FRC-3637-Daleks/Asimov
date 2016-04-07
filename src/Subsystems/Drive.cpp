@@ -232,7 +232,7 @@ double Drive::GetRotation() const
 double Drive::GetLeftRevs() const
 {
 	if(is_initialized())
-		return talons_->left_.GetPosition();  //<  Current understanding is that this returns revs
+		return talons_->left_.GetPosition();
 	else
 		return 0.0;
 }
@@ -240,7 +240,7 @@ double Drive::GetLeftRevs() const
 double Drive::GetRightRevs() const
 {
 	if(is_initialized())
-		return talons_->right_.GetPosition();  //< See GetLeftRevs
+		return talons_->right_.GetPosition();
 	else
 		return 0.0;
 }

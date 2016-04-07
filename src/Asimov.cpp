@@ -69,13 +69,13 @@ private:  // commands and triggers
 	EnumWrapper<Defenses> auton_defense_;
 	SettingWrapper<int> auton_position_;
 	EnumWrapper<AutoMode, N_MODES> auton_mode_;
-	CommandGroup auton_command_;
+	std::unique_ptr<CommandGroup> auton_command_;
 
 	std::vector<Command*> commands;
 	std::vector<Trigger*> triggers;
 
 public:
-	Asimov(): RootSystem("/home/lvuser/dman/dalek/"),
+	Asimov(): RootSystem("/home/lvuser/dalek/"),
 		tank_drive_(false), mode(MANUAL), speed(0.0), lock(false)
 	{
 		std::cout << "I'm alive" << std::endl;
@@ -130,7 +130,7 @@ private:
 				"RobotInit Started";
 
 		shooter_.SetMode(Shooter::Mode_t::VELOCITY);
-		intake_.SetMode(Intake::Mode_t::VBUS);
+		intake_.SetMode(Intake::Mode_t::VELOCITY);
 
 		mode = MANUAL;
 		lock = false;
@@ -199,16 +199,11 @@ private:
 			}
 
 			{
-				auto& spit = auton["Spit"];
-				spit("skip").SetDefault(false);
-				spit.SetDescription("Gets rid of the boulder before the robot drives back");
-			}
-
-			{
 				auto& ret = auton["Return"];
 				ret("speed").SetDefault(.5);
 				ret("distance").SetDefault(5.0);
 				ret("timeout").SetDefault(5.0);
+				ret("leave_ball").SetDefault(true);
 				ret.SetDescription("Distance traveled back by robot after spitting out boulder");
 			}
 
@@ -224,7 +219,7 @@ private:
 			}
 
 			{
-				auto& turns = auton["turns"];
+				auto& turns = auton["Turns"];
 				turns.SetDescription("Each represents the number of revolutions the left wheel should travel to align the robot with the goal it goes for");
 				turns("speed").SetDefault(.5);
 				turns("timeout").SetDefault(1.0);
@@ -252,7 +247,29 @@ private:
 		RootSystem::doConfigure();
 
 		{
+			/// Note: This has really shitty memory leaks because I have to dynamically allocate all of the
+			/// stupid commands and to clean them up I'd have to add them to my own stupid list of unique pointers
+			/// and that would bloat this code to twice the size it already is so we're going to deal with it like this
+			/// Someday I'll make a moveable command wrapper and better CommandGroup but today is not that day
+			auton_command_ = std::make_unique<CommandGroup>();
+			auto mode = auton_mode_.GetEnumValueOrDefault();
+			auto defense = auton_defense_.GetEnumValueOrDefault();
+			auto position = auton_position_.GetValueOrDefault();
+
+			//enum AutoMode {NO_OP=0, IN, IN_OUT, DEAD_HIGH_GOAL, AUTO_HIGH_GOAL, N_MODES};
+			//enum Defenses {LOWBAR=0, PORTCULLIS, CHEVAL, MOAT, RAMPARTS, SALLY, DRAWBRIDGE, TERRAIN, WALL, N};
 			auto& auton = GetSettings()["autonomous"];
+			if(mode == NO_OP)
+				return true;
+
+			if(defense == PORTCULLIS)
+			{
+				auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::port_down));
+			}
+			else if(defense == CHEVAL)
+			{
+				auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::horizontal));
+			}
 
 			{
 				auto& approach = auton["A_approach"];
@@ -261,7 +278,7 @@ private:
 				double timeout = approach("timeout").GetValueOrDefault<double>();
 
 				// Approach the outerworks
-				auton_command_.AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+				auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
 			}
 
 			{
@@ -273,22 +290,17 @@ private:
 				// Align with outerworks
 				if(!skip)
 				{
-					auton_command_.AddSequential(drive_.MakeTankDrive(GetLocalValue<double>("Align/left_output"),
+					auton_command_->AddSequential(drive_.MakeTankDrive(GetLocalValue<double>("Align/left_output"),
 														GetLocalValue<double>("Align/right_output"),
 														speed_factor), timeout);
 				}
 			}
 
+			if(defense == CHEVAL)
 			{
 				auto& swiss = auton["Swiss"];
-				bool skip = swiss("skip").GetValueOrDefault<bool>();
 				double timeout = swiss("timeout").GetValueOrDefault<double>();
-
-				// Put swiss down
-				if(!skip)
-				{
-					auton_command_.AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::port_down), timeout);
-				}
+				auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::cheval_down), timeout);
 			}
 
 			{
@@ -298,8 +310,81 @@ private:
 				double timeout = cross("timeout").GetValueOrDefault<double>();
 
 				// Drive over defense
-				auton_command_.AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+				auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
 			}
+
+			if(defense == CHEVAL || defense == PORTCULLIS)
+			{
+				auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
+			}
+
+			if(mode == IN)
+				return true;
+
+			if(mode == IN_OUT && defense != CHEVAL && defense != PORTCULLIS)
+			{
+				auto& ret = auton["Return"];
+				double speed = -fabs(ret("speed").GetValueOrDefault<double>());
+				double distance = ret("distance").GetValueOrDefault<double>();
+				double timeout = ret("timeout").GetValueOrDefault<double>();
+
+				// Return over defense
+				if(ret("leave_ball").GetValueOrDefault<bool>())
+					auton_command_->AddSequential(intake_.MakePushBall());
+				auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+				return true;
+			}
+			else if(mode == IN_OUT)
+			{
+				return true;
+			}
+			else
+			{
+				{
+					auto& approaches = auton["CourtyardApproaches"];
+					double speed = approaches("speed").GetValueOrDefault<double>();
+					double distance = approaches["from_" + std::to_string(position)]("distance").GetValueOrDefault<double>();
+					double timeout = approaches("timeout").GetValueOrDefault<double>();
+
+					// Move into a goal's line of sight
+					auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+				}
+
+				{
+					auto& turns = auton["Turns"];
+					double speed = turns("speed").GetValueOrDefault<double>();
+					double revs = turns["from_" + std::to_string(position)]("left_revs").GetValueOrDefault<double>();
+					double timeout = turns("timeout").GetValueOrDefault<double>();
+
+					if(revs < 0) speed *= -1;
+
+					// Turn towards the
+					auton_command_->AddSequential(drive_.MakeTurn(speed, revs, false), timeout);
+				}
+
+				{
+					auto& last_approach = auton["last_approach"];
+					double speed = last_approach("speed").GetValueOrDefault<double>();
+					double timeout = last_approach("timeout").GetValueOrDefault<double>();
+					double distance = last_approach["from_" + std::to_string(position)]("distance").GetValueOrDefault<double>();
+
+					if(mode == DEAD_HIGH_GOAL)
+					{
+						auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+					}
+					else if(mode == AUTO_HIGH_GOAL)
+					{
+						/* Auto aim command in parallel with a wait until boolean trigger command */
+					}
+
+					auton_command_->AddSequential(shooter_.MakeSpinUp());
+					auton_command_->AddSequential(new WaitCommand(1.0));
+					auton_command_->AddSequential(new commands::Shoot(&intake_, &shooter_, 2.0, .25, 3.0));
+					auton_command_->AddSequential(shooter_.MakeSpinDown());
+				}
+			}
+
+
 		}
 
 		return true;
@@ -345,7 +430,7 @@ private:
 		triggers.back()->WhenActive(commands.back());
 
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/shoot")));
-		commands.push_back(new commands::Shoot(&intake_, &shooter_, 2.0));
+		commands.push_back(new commands::Shoot(&intake_, &shooter_, 0.5, .25, 1.5));
 		triggers.back()->WhenActive(commands.back());
 
 		commands.push_back(oi_.MakeForwardBoost(2.0));
@@ -373,6 +458,10 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/turn_sensor_align")));
 		triggers.back()->WhileActive(commands.back());
 
+		commands.push_back(drive_.MakeArcadeDrive(oi_.GetNullAxis(), GetLocalValue<double>("GRIP/turn_output")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_left/buttons/7")));
+		triggers.back()->WhileActive(commands.back());
+
 		// swiss
 		for(int state = Swiss::retract; state < Swiss::n_states; state++)
 		{
@@ -394,16 +483,14 @@ private:
 		"Robot/Swiss/talon/output_current", "Robot/Swiss/talon/output_speed", "Robot/Swiss/talon/output_voltage",
 		"Robot/CameraMount/position", "Robot/Shooter/error", "Robot/Shooter/top_roller_output_voltage",
 		"Robot/Drive/distance",
-		"Robot/GRIP/turn_output"};
+		"Robot/GRIP/turn_output", "Robot/Shooter/target"};
 		for(auto double_value : double_values)
 			dashboard_.AddDashValue<double>(double_value);
 
-		/*
 		std::string boolean_values[] =
 		{"Robot/Intake/holding_boulder", "Robot/Shooter/spunup", "Robot/GRIP/aligned"};
 		for(auto bool_value : boolean_values)
 			dashboard_.AddDashValue<bool>(bool_value);
-			*/
 	}
 
 	// Disabled
@@ -436,7 +523,7 @@ private:
 	void AutonomousInit() override
 	{
 		Configure();
-		auton_command_.Start();
+		auton_command_->Start();
 	}
 
 	void AutonomousPeriodic() override
@@ -464,7 +551,7 @@ private:
 
 	void TestDriveInit()
 	{
-		drive_.SetMode(Drive::Mode_t::VBus);
+		drive_.SetMode(Drive::Mode_t::Velocity);
 	}
 
 	void TestDrivePeriodic()

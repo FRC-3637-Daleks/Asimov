@@ -56,6 +56,7 @@ void Shooter::doRegister()
 	// Inversion settings
 	settings("invert_output").SetDefault(false);
 	settings("invert_sensor").SetDefault(false);
+	settings("reverse_closed").SetDefault(false);
 	settings("encoder_codes_per_rev").SetDefault(2);
 
 	// Value store functions
@@ -81,6 +82,12 @@ void Shooter::doRegister()
 			{
 				if(top_roller_ && top_roller_->GetSetpoint() != 0.0)
 					return 1.0 - fabs(GetSpeed()/top_roller_->GetSetpoint());
+				return 0.0;
+			}));
+	GetLocalValue<double>("target").Initialize(std::make_shared<FunkyGet<double> >([this] () -> double
+			{
+				if(top_roller_)
+					return top_roller_->GetSetpoint();
 				return 0.0;
 			}));
 	GetLocalValue<bool>("spunup").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
@@ -123,6 +130,7 @@ bool Shooter::doConfigure()
 	top_roller_->SetInverted(settings("invert_output").GetValueOrDefault());
 	top_roller_->SetSensorDirection(settings("invert_sensor").GetValueOrDefault());
 	top_roller_->ConfigEncoderCodesPerRev(settings("encoder_codes_per_rev").GetValueOrDefault<int>());
+	top_roller_->SetClosedLoopOutputDirection(settings("reverse_closed").GetValueOrDefault<bool>());
 
 	top_roller_->ConfigNominalOutputVoltage(0.0, 0.0);
 	top_roller_->ConfigPeakOutputVoltage(0, -12.0);

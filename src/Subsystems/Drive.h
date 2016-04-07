@@ -27,6 +27,7 @@ namespace commands
 class DriveStraight;
 class TankDrive;
 class ArcadeDrive;
+class Turn;
 
 }
 
@@ -165,6 +166,12 @@ public:  // Command Generation
 	template<class ... Types>
 	commands::ArcadeDrive * MakeArcadeDrive(Types ... args);
 
+	/** Forwards the arguments to a Turn constructor with this as the first arg
+	 * @see commands::Turn::Turn
+	 */
+	template<class ... Types>
+	commands::Turn * MakeTurn(Types ... args);
+
 private:
 	struct Talons
 	{
@@ -207,6 +214,7 @@ private:
 #include "Commands/DriveStraight.h"
 #include "Commands/TankDrive.h"
 #include "Commands/ArcadeDrive.h"
+#include "Commands/Turn.h"
 
 template<class ... Types>
 commands::DriveStraight * subsystems::Drive::MakeDriveStraight(Types ... args)
@@ -224,6 +232,12 @@ template<class ... Types>
 commands::ArcadeDrive * subsystems::Drive::MakeArcadeDrive(Types ... args)
 {
 	return new commands::ArcadeDrive(this, std::forward<Types>(args)...);
+}
+
+template<class ... Types>
+commands::Turn * subsystems::Drive::MakeTurn(Types ... args)
+{
+	return new commands::Turn(this, std::forward<Types>(args)...);
 }
 
 

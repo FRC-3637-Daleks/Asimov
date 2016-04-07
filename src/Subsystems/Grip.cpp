@@ -81,7 +81,6 @@ void GRIP::ValueChanged(ITable *source,
 		std::shared_ptr<nt::Value> value,
 		bool isNew)
 {
-	Log(MessageData(MessageData::INFO, 3), "", "") << "p l e a s e";
 	if(value == nullptr)
 		return;
 	if(source == goals_.get())

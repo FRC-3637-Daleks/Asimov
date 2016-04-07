@@ -42,7 +42,7 @@ void PushBall::Initialize()
 PushBall::Push::Push(Intake *intake, double timeout)
 {
 	intake_ = intake;
-	target_position_ = 30.0;
+	target_position_ = 3000.0;
 	timeout_ = timeout;
 	Requires(intake);
 	SetInterruptible(false);
@@ -60,7 +60,7 @@ void PushBall::Push::Initialize()
 bool PushBall::Push::IsFinished()
 {
 	SetTimeout(timeout_);
-	return (!intake_->CheckSwitch() && intake_->GetCurrentPosition() >= target_position_) || IsTimedOut();
+	return (!intake_->CheckSwitch() && IsTimedOut());
 }
 
 void PushBall::Push::End()
