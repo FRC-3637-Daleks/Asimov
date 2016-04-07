@@ -9,6 +9,7 @@
 #define SRC_SUBSYSTEMS_INTAKE_H_
 #include "WPILib.h"
 #include "WPILib/WPISystem.h"
+#include "Utility/ValueStore.h"
 
 /**
  * Has forward declarations of Intake Command classes.
@@ -17,6 +18,7 @@ namespace commands
 {
 	class IntakeBall;
 	class PushBall;
+	class ControlIntake;
 } // end namespace commands
 
 /**
@@ -230,6 +232,11 @@ public:
 	 * Creates new PushBall command, and passes class instance as argument
 	 */
 	commands::PushBall * MakePushBall();
+
+	/**
+	 * Creates new ControlIntake command, and passes class instance as argument
+	 */
+	commands::ControlIntake * MakeControlIntake(dman::ValueStore::Value<double> input);
 
 protected:
 

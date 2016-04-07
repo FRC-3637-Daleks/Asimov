@@ -1,5 +1,6 @@
 #include "Intake.h"
 #include "Commands/IntakeBall.h"
+#include "Commands/ControlIntake.h"
 #include "Commands/PushBall.h"
 #include "Utility/FunkyGet.h"
 #include <math.h>
@@ -13,6 +14,7 @@ namespace subsystems
 using namespace dman;
 using IntakeBall = commands::IntakeBall;
 using PushBall = commands::PushBall;
+using ControlIntake = commands::ControlIntake;
 
 // Constructor:
 Intake::Intake() : dman::WPISystem("Intake")
@@ -296,6 +298,11 @@ IntakeBall* Intake::MakeIntakeBall()
 PushBall* Intake::MakePushBall()
 {
 	return new PushBall(this);
+}
+
+ControlIntake * Intake::MakeControlIntake(dman::ValueStore::Value<double> input)
+{
+	return new ControlIntake(this, std::move(input));
 }
 
 } // end namespace subsystems

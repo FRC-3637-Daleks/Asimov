@@ -41,6 +41,7 @@ void OI::doRegister()
 	arcade_forward_ = GetLocalValue<double>("driver_right/axes/y");
 	arcade_turn_ = GetLocalValue<double>("driver_left/axes/x");
 	swiss_ = GetLocalValue<double>("xbox/axes/L_Y_Axis");
+	intake_axis_ = GetLocalValue<double>("xbox/axes/R_Y_Axis");
 
 	// triggers
 	forward_boost_ = GetLocalValue<bool>("driver_right/buttons/1");
@@ -90,6 +91,10 @@ void OI::doRegister()
 	GetSwissAxis().Initialize(std::make_shared<FunkyGet<double> >([this]()
 		{
 			return GetSwiss();
+		}));
+	GetIntakeAxis().Initialize(std::make_shared<FunkyGet<double> >([this]()
+		{
+			return GetIntakeValue();
 		}));
 	GetNullAxis().Initialize(std::make_shared<FunkyGet<double> >([]() {
 		return 0.0;
@@ -143,6 +148,9 @@ void OI::doRegister()
 	}));
 	GetControlSwissButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
 		return GetSwissControl();
+	}));
+	GetControlIntakeButton().Initialize(std::make_shared<FunkyGet<bool> >([this]() {
+		return GetIntakeControl();
 	}));
 }
 
@@ -214,6 +222,13 @@ double OI::GetSwiss() const
 	if(!swiss_.initialized())
 		return 0.0;
 	return transformAxis(swiss_.GetValue(), false, -1.0);
+}
+
+double OI::GetIntakeValue() const
+{
+	if(!intake_axis_.initialized())
+		return 0.0;
+	return transformAxis(intake_axis_.GetValue(), false, -1.0);
 }
 
 Swiss::state_t OI::GetSwissPosition() const

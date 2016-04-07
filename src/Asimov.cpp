@@ -23,6 +23,7 @@
 #include "Commands/SetSwiss.h"
 #include "Commands/SetCamera.h"
 #include "Commands/ControlSwissVelocity.h"
+#include "Commands/ControlIntake.h"
 #include "Commands/ShootMode.h"
 #include "Subsystems/Drive.h"
 #include "Subsystems/Camera.h"
@@ -472,6 +473,10 @@ private:
 
 		commands.push_back(swissCheez.MakeControlSwissVelocity(oi_.GetSwissAxis()));
 		triggers.push_back(new GenericTrigger(oi_.GetControlSwissButton()));
+		triggers.back()->WhileActive(commands.back());
+
+		commands.push_back(intake_.MakeControlIntake(oi_.GetIntakeAxis()));
+		triggers.push_back(new GenericTrigger(oi_.GetControlIntakeButton()));
 		triggers.back()->WhileActive(commands.back());
 	}
 

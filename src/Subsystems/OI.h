@@ -74,6 +74,7 @@ public:
 
 	// Copilot Axes
 	double GetSwiss() const;
+	double GetIntakeValue() const;
 
 	// Drive Buttons
 	bool GetForwardBoost() const {return forward_boost_.GetValueOr(false);}
@@ -97,6 +98,7 @@ public:
 	Swiss::state_t GetSwissPosition() const;
 	bool IsSwissState(Swiss::state_t state) const {return GetSwissPosition() == state;}
 	bool GetSwissControl() const {return fabs(swiss_.GetValueOr(0.0)) > get_deadzone();}
+	bool GetIntakeControl() const {return fabs(intake_axis_.GetValueOr(0.0)) > get_deadzone();}
 
 public:
 	// Drive Axis Values
@@ -108,6 +110,7 @@ public:
 
 	// Copilot Axis Values
 	AxisValue_t GetSwissAxis() {return GetLocalValue<double>("swiss");}
+	AxisValue_t GetIntakeAxis() {return GetLocalValue<double>("intake_axis");}
 
 	// Triggers
 	ButtonValue_t GetForwardBoostButton() {return GetLocalValue<bool>("forward_boost");}
@@ -126,6 +129,7 @@ public:
 	ButtonValue_t GetForceToggleButton() {return GetLocalValue<bool>("force_toggle");}
 	ButtonValue_t GetSwissStateButton(Swiss::state_t state);
 	ButtonValue_t GetControlSwissButton() {return GetLocalValue<bool>("swiss_control");}
+	ButtonValue_t GetControlIntakeButton() {return GetLocalValue<bool>("intake_control");}
 
 public:
 	Joystick& get_left() {return driver_left_.get_joy();}
@@ -144,7 +148,7 @@ private:
 	JoystickWrapper driver_left_, driver_right_;
 	XBoxWrapper copilot_;
 	AxisValue_t tank_left_, tank_right_, arcade_forward_, arcade_turn_;
-	AxisValue_t swiss_;
+	AxisValue_t swiss_, intake_axis_;
 	double deadzone_;
 	bool forward_;
 	bool force_;
