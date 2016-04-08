@@ -18,7 +18,7 @@ using namespace dman;
 
 GRIP::GRIP(): WPISystem("GRIP"),
 		target_center_x_(113.0), standard_offset_x_(50.0), allowed_error_x_(2.0), timeout_(1000), left_bias_(true),
-		goals_(nullptr), center_x_(113.0)
+		goals_(nullptr), lights_(nullptr), center_x_(113.0)
 {
 }
 
@@ -39,6 +39,9 @@ bool GRIP::IsCloseEnough() const
 
 void GRIP::doRegister()
 {
+	auto& ports = GetPortSpace("DIO");
+	ports("lights").SetDefault(1);
+
 	auto& goal_settings = GetSettings();
 	auto& settings = goal_settings;
 
@@ -65,6 +68,10 @@ void GRIP::doRegister()
 bool GRIP::doConfigure()
 {
 	Log(MessageData::STATUS, "", "") << "Configuring GRIP client";
+
+	if(!lights_)
+		lights_ = std::make_unique<DigitalOutput>(GetPortSpace("DIO")("lights").GetValueOrDefault());
+
 	auto& goal_settings = GetSettings();
 	auto& settings = goal_settings;
 
@@ -74,6 +81,16 @@ bool GRIP::doConfigure()
 	set_timeout(settings("timeout").GetValueOrDefault<int>());
 
 	return true;
+}
+
+void GRIP::ItsLit()
+{
+	if(lights_) lights_->Set(1);
+}
+
+void GRIP::BringItDown()
+{
+	if(lights_) lights_->Set(0);
 }
 
 void GRIP::ValueChanged(ITable *source,

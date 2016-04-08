@@ -53,6 +53,13 @@ public:
 	/// True if the robot is close enough
 	bool IsCloseEnough() const;
 
+public:
+	/// Turns on the lights
+	void ItsLit();
+
+	/// Turns the lights off
+	void BringItDown();
+
 protected:
 	void doRegister() override;
 	bool doConfigure() override;
@@ -72,6 +79,7 @@ private:
 
 private:
 	std::shared_ptr<ITable> goals_;
+	std::unique_ptr<DigitalOutput> lights_;
 	double center_x_;
 };
 

@@ -76,7 +76,7 @@ private:  // commands and triggers
 	std::vector<Trigger*> triggers;
 
 public:
-	Asimov(): RootSystem("/home/lvuser/dalek/"),
+	Asimov(): RootSystem("/home/lvuser/dman/dalek/"),
 		tank_drive_(false), mode(MANUAL), speed(0.0), lock(false)
 	{
 		std::cout << "I'm alive" << std::endl;
@@ -501,6 +501,7 @@ private:
 	// Disabled
 	void DisabledInit() override
 	{
+		grip_.BringItDown();
 	}
 
 	void DisabledPeriodic() override
@@ -515,6 +516,7 @@ private:
 		get_context().LoadConfig();
 		Configure();
 		TestDriveInit();
+		grip_.ItsLit();
 	}
 
 	void TeleopPeriodic() override
@@ -528,6 +530,7 @@ private:
 	void AutonomousInit() override
 	{
 		Configure();
+		grip_.ItsLit();
 		auton_command_->Start();
 	}
 
