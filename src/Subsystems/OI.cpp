@@ -228,7 +228,7 @@ double OI::GetIntakeValue() const
 {
 	if(!intake_axis_.initialized())
 		return 0.0;
-	return transformAxis(intake_axis_.GetValue(), false, -1.0);
+	return fabs(transformAxis(intake_axis_.GetValue(), false, 0.6));
 }
 
 Swiss::state_t OI::GetSwissPosition() const
