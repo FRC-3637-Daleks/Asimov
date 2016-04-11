@@ -52,6 +52,12 @@ void GRIP::doRegister()
 	settings("timeout").SetDefault(get_timeout());
 	settings("timeout").SetDescription("milliseconds");
 
+	auto &target_contour = settings["target_countour"];
+	target_contour("x").SetDefault(113.0);
+	target_contour("y").SetDefault(50.0);
+	target_contour("width").SetDefault(61.0);
+	target_contour("height").SetDefault(50.0);
+
 	goals_ = NetworkTable::GetTable("GRIP/goals");
 	goals_->AddTableListener(this, true);
 
@@ -79,6 +85,14 @@ bool GRIP::doConfigure()
 	set_standard_offset_x(goal_settings("standard_offset_x").GetValueOrDefault<double>());
 	set_allowed_error_x(goal_settings("allowed_error_x").GetValueOrDefault<double>());
 	set_timeout(settings("timeout").GetValueOrDefault<int>());
+
+	auto& target_contour = settings["target_countour"]	;
+	auto table = NetworkTable::GetTable("GRIP/target_contour");
+
+	table->PutNumberArray("centerX", {target_contour("x").GetValueOrDefault<double>()});
+	table->PutNumberArray("centerY", {target_contour("y").GetValueOrDefault<double>()});
+	table->PutNumberArray("width", {target_contour("width").GetValueOrDefault<double>()});
+	table->PutNumberArray("height", {target_contour("height").GetValueOrDefault<double>()});
 
 	return true;
 }
@@ -116,7 +130,8 @@ void GRIP::ValueChanged(ITable *source,
 			auto array = value->GetDoubleArray();
 			if(array.size() == 0)  // nothing found
 			{
-				// assume it was the previous value
+				// don't assume it was the previous value
+				center_x_ = get_target_center_x();
 			}
 			else
 			{

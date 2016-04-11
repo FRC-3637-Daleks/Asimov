@@ -76,7 +76,7 @@ private:  // commands and triggers
 	std::vector<Trigger*> triggers;
 
 public:
-	Asimov(): RootSystem("/home/lvuser/dman/dalek/"),
+	Asimov(): RootSystem("/home/lvuser/dalek/"),
 		tank_drive_(false), mode(MANUAL), speed(0.0), lock(false)
 	{
 		std::cout << "I'm alive" << std::endl;
@@ -257,19 +257,17 @@ private:
 			auto defense = auton_defense_.GetEnumValueOrDefault();
 			auto position = auton_position_.GetValueOrDefault();
 
-			//enum AutoMode {NO_OP=0, IN, IN_OUT, DEAD_HIGH_GOAL, AUTO_HIGH_GOAL, N_MODES};
-			//enum Defenses {LOWBAR=0, PORTCULLIS, CHEVAL, MOAT, RAMPARTS, SALLY, DRAWBRIDGE, TERRAIN, WALL, N};
 			auto& auton = GetSettings()["autonomous"];
 			if(mode == NO_OP)
 				return true;
 
 			if(defense == PORTCULLIS)
 			{
-				auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::port_down));
+				auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::port_down), 1);
 			}
 			else if(defense == CHEVAL)
 			{
-				auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::horizontal));
+				auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::horizontal), 1);
 			}
 
 			{
@@ -291,8 +289,8 @@ private:
 				// Align with outerworks
 				if(!skip)
 				{
-					auton_command_->AddSequential(drive_.MakeTankDrive(GetLocalValue<double>("Align/left_output"),
-														GetLocalValue<double>("Align/right_output"),
+					auton_command_->AddSequential(drive_.MakeArcadeDrive(GetLocalValue<double>("Align/forward_output"),
+														oi_.GetNullAxis(),
 														speed_factor), timeout);
 				}
 			}
@@ -302,6 +300,11 @@ private:
 				auto& swiss = auton["Swiss"];
 				double timeout = swiss("timeout").GetValueOrDefault<double>();
 				auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::cheval_down), timeout);
+			}
+
+			if(defense == CHEVAL)
+			{
+				auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
 			}
 
 			{
@@ -314,9 +317,9 @@ private:
 				auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
 			}
 
-			if(defense == CHEVAL || defense == PORTCULLIS)
+			if(defense == PORTCULLIS)
 			{
-				auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
+				auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
 			}
 
 			if(mode == IN)
@@ -501,6 +504,7 @@ private:
 	// Disabled
 	void DisabledInit() override
 	{
+		grip_.Configure();
 		grip_.BringItDown();
 	}
 
