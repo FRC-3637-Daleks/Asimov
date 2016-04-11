@@ -87,8 +87,8 @@ double Align::GetForwardOutput() const {
 	double ret = -ForwardError();
 	if(ret > 1.0)
 		return 1.0;
-	else if(ret < -1.0)
-		return -1.0;
+	else if(ret < 0)
+		return 0;
 	return ret;
 }
 
