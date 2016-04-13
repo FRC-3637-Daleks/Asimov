@@ -462,7 +462,7 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/turn_sensor_align")));
 		triggers.back()->WhileActive(commands.back());
 
-		commands.push_back(drive_.MakeArcadeDrive(oi_.GetNullAxis(), GetLocalValue<double>("GRIP/turn_output")));
+		commands.push_back(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), GetLocalValue<double>("GRIP/turn_output")));
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_left/buttons/7")));
 		triggers.back()->WhileActive(commands.back());
 
