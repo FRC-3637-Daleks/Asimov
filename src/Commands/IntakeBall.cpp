@@ -24,7 +24,7 @@ IntakeBall::IntakeBall(Intake * intake) : Command("IntakeBall")
 // Main functions:
 void IntakeBall::Initialize()
 {
-	if (intake_->GetState() == State_t::OFF)
+	if (!intake_->CheckSwitch())
 	{
 		TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake", "IntakeBall", "Command")) <<
 					"Initializing IntakeBall";

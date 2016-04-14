@@ -261,6 +261,8 @@ private:
 			if(mode == NO_OP)
 				return true;
 
+			auton_command_->AddSequential(intake_.MakeIntakeBall(), .5);
+
 			if(defense == PORTCULLIS)
 			{
 				auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::port_down), 1);
@@ -364,6 +366,7 @@ private:
 
 					// Turn towards the
 					auton_command_->AddSequential(drive_.MakeTurn(speed, revs, false), timeout);
+					auton_command_->AddSequential(camera_.MakeSetCamera(Camera::CamState_t::GOAL));
 				}
 
 				{
@@ -379,9 +382,10 @@ private:
 					else if(mode == AUTO_HIGH_GOAL)
 					{
 						auton_command_->AddSequential(drive_.MakeArcadeDrive(GetLocalValue<double>("Align/forward_output"),
-																			GetLocalValue<double>("GRIP/turn_output")), timeout);
+																			GetLocalValue<double>("GRIP/turn_output"), speed), timeout);
 					}
 
+					auton_command_->AddSequential(drive_.MakeDriveStraight(.1, 0.1, true), .1);
 					auton_command_->AddSequential(shooter_.MakeSpinUp());
 					auton_command_->AddSequential(new WaitCommand(1.0));
 					auton_command_->AddSequential(new commands::Shoot(&intake_, &shooter_, 2.0, .25, 3.0));
@@ -411,7 +415,13 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/L_TRIGGER")));
 		triggers.back()->CancelWhenActive(commands.back());
 		commands.push_back(camera_.MakeSetCamera(Camera::CamState_t::BALL));
-		triggers.back()->WhileActive(commands.back());
+		triggers.back()->WhenActive(commands.back());
+		commands.push_back(camera_.MakeSetCamera(Camera::CamState_t::WHEEL));
+		triggers.back()->WhenInactive(commands.back());
+
+		commands.push_back(camera_.MakeSetCamera(Camera::CamState_t::FRONT));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("Intake/holding_boulder")));
+		triggers.back()->WhenActive(commands.back());
 
 		auto push_ball_command = intake_.MakePushBall();
 

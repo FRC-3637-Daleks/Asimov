@@ -32,7 +32,7 @@ ShootIntake::ShootIntake(Intake *intake, Shooter *shooter, double shoot_time, do
 // Main functions:
 void ShootIntake::Initialize()
 {
-	if (shooter_->GetState() == Shooter::State_t::SPUNUP && intake_->GetState() == Intake::State_t::HOLDING)
+	if (shooter_->GetState() == Shooter::State_t::SPUNUP && intake_->CheckSwitch())
 	{
 		TextLog::Log(MessageData(MessageData::INFO), SystemData("Intake and Shooter", "ShootIntake", "Command")) <<
 				"Initializing ShootIntake with initial shoot time: " << shoot_time_ << " and initial time out: "

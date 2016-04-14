@@ -52,7 +52,7 @@ void Turn::Initialize()
 
 	drive_->ResetPosition();
 	drive_->TankDrive(-velocity_, velocity_);
-	drive_->Log(dman::MessageData::STATUS, "Turn", "Command") << "DriveStraight initialized, driving at: " <<
+	drive_->Log(dman::MessageData::STATUS, "Turn", "Command") << "Turn initialized, driving at: " <<
 			velocity_;
 }
 
