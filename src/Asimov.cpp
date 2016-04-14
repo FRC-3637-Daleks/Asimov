@@ -378,7 +378,8 @@ private:
 					}
 					else if(mode == AUTO_HIGH_GOAL)
 					{
-						/* Auto aim command in parallel with a wait until boolean trigger command */
+						auton_command_->AddSequential(drive_.MakeArcadeDrive(GetLocalValue<double>("Align/forward_output"),
+																			GetLocalValue<double>("GRIP/turn_output")), timeout);
 					}
 
 					auton_command_->AddSequential(shooter_.MakeSpinUp());
@@ -398,7 +399,7 @@ private:
 	{
 		drive_.SetDefaultCommand(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), oi_.GetArcadeTurnAxis(), 1.0, 1.0));
 		swissCheez.SetDefaultCommand(swissCheez.MakeHoldSwiss());
-		camera_.SetDefaultCommand(camera_.MakeSetCamera(Camera::CamState_t::WHEEL));
+		//camera_.SetDefaultCommand(camera_.MakeSetCamera(Camera::CamState_t::WHEEL));
 
 		CommandGroup *intake_group = new CommandGroup;
 		intake_group->AddParallel(camera_.MakeSetCamera(Camera::CamState_t::BALL));
@@ -462,7 +463,10 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/turn_sensor_align")));
 		triggers.back()->WhileActive(commands.back());
 
-		commands.push_back(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), GetLocalValue<double>("GRIP/turn_output")));
+		CommandGroup *align_group = new CommandGroup;
+		align_group->AddParallel(camera_.MakeSetCamera(Camera::CamState_t::GOAL));
+		align_group->AddParallel(drive_.MakeArcadeDrive(oi_.GetArcadeForwardAxis(), GetLocalValue<double>("GRIP/turn_output")));
+		commands.push_back(align_group);
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/driver_left/buttons/7")));
 		triggers.back()->WhileActive(commands.back());
 
@@ -491,7 +495,8 @@ private:
 		"Robot/Swiss/talon/output_current", "Robot/Swiss/talon/output_speed", "Robot/Swiss/talon/output_voltage",
 		"Robot/CameraMount/position", "Robot/Shooter/error", "Robot/Shooter/top_roller_output_voltage",
 		"Robot/Drive/distance",
-		"Robot/GRIP/turn_output", "Robot/Shooter/target"};
+		"Robot/GRIP/turn_output", "Robot/Shooter/target",
+		"Robot/Intake/front_roller_ouput_voltage", "Robot/Intake/roller_error"};
 		for(auto double_value : double_values)
 			dashboard_.AddDashValue<double>(double_value);
 

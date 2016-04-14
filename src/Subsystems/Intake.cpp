@@ -95,6 +95,13 @@ void Intake::doRegister()
 				else
 					return 0.0;
 			}));
+	GetLocalValue<double>("roller_error").Initialize(std::make_shared<FunkyGet<double> >([this] () -> double
+			{
+				if(roller_)
+					return GetErr();
+				else
+					return 0.0;
+			}));
 	GetLocalValue<bool>("holding_boulder").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
 			{
 				if(detector_)

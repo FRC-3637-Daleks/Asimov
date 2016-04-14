@@ -15,7 +15,7 @@ namespace commands
 ShootMode::ShootMode(OI_t oi, Camera_t camera, double forward_multiplier, double turn_multiplier):
 		oi_(oi), camera_(camera), forward_multiplier_(forward_multiplier), turn_multiplier_(turn_multiplier)
 {
-	Requires(camera_);
+	//Requires(camera_);
 	Requires(oi_);
 }
 
@@ -35,7 +35,7 @@ void ShootMode::Initialize()
 
 	if(camera_ != nullptr && camera_->is_ready())
 	{
-		camera_->SetState(subsystems::Camera::GOAL);
+		//camera_->SetState(subsystems::Camera::GOAL);
 	}
 	else
 	{
@@ -63,7 +63,7 @@ void ShootMode::End()
 
 	if(camera_ == nullptr && camera_->is_ready())
 	{
-		camera_->SetState(subsystems::Camera::WHEEL);
+		//camera_->SetState(subsystems::Camera::WHEEL);
 		// Camera should revert to default state
 	}
 }
