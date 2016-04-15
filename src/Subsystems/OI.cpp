@@ -248,6 +248,23 @@ Swiss::state_t OI::GetSwissPosition() const
 	return Swiss::n_states;
 }
 
+Camera::CamState_t OI::GetCameraPosition() const
+{
+	double pov = swiss_state_.GetValueOr(-1);
+	if(pov < 0)
+		return Camera::CamState_t::N_STATES;
+	else if(pov < 46)
+		return Camera::CamState_t::GOAL;
+	else if(pov < 100)
+		return Camera::CamState_t::WHEEL;
+	else if(pov < 181)
+		return Camera::CamState_t::BALL;
+	else if(pov < 277)
+		return Camera::CamState_t::FRONT;
+
+	return Camera::CamState_t::N_STATES;
+}
+
 OI::ButtonValue_t OI::GetSwissStateButton(Swiss::state_t state)
 {
 	if(state == Swiss::n_states)
@@ -260,6 +277,22 @@ OI::ButtonValue_t OI::GetSwissStateButton(Swiss::state_t state)
 	{
 		ret.Initialize(std::make_shared<FunkyGet<bool> >([this, state]() {
 			return IsSwissState(state);
+		}));
+	}
+
+	return ret;
+}
+
+OI::ButtonValue_t OI::GetCameraStateButton(Camera::CamState_t state)
+{
+	if(state == Camera::N_STATES)
+		return GetLocalValue<bool>("false");
+
+	auto ret = GetLocalValue<bool>(std::string("camera_") + std::to_string(int(state)));
+	if(!ret.initialized())
+	{
+		ret.Initialize(std::make_shared<FunkyGet<bool> >([this, state]() {
+			return IsCameraState(state);
 		}));
 	}
 

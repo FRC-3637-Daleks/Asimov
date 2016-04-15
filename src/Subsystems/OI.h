@@ -62,7 +62,7 @@ public:  // Settings
 	double get_forward_multiplier() const {return forward_multiplier_ * base_forward_multiplier_;}
 	void SetForwardMultiplier(double forward_multiplier) {forward_multiplier_ = forward_multiplier;}
 
-	double get_turn_multiplier() const {return turn_multiplier_ * base_tank_multiplier_;}
+	double get_turn_multiplier() const {return turn_multiplier_ * base_turn_multiplier_;}
 	void SetTurnMultiplier(double turn_multiplier) {turn_multiplier_ = turn_multiplier;}
 
 public:
@@ -96,7 +96,9 @@ public:
 
 	// Misc.
 	Swiss::state_t GetSwissPosition() const;
+	Camera::CamState_t GetCameraPosition() const;
 	bool IsSwissState(Swiss::state_t state) const {return GetSwissPosition() == state;}
+	bool IsCameraState(Camera::CamState_t state) const {return GetCameraPosition() == state;}
 	bool GetSwissControl() const {return fabs(swiss_.GetValueOr(0.0)) > get_deadzone();}
 	bool GetIntakeControl() const {return fabs(intake_axis_.GetValueOr(0.0)) > get_deadzone();}
 
@@ -128,6 +130,7 @@ public:
 	ButtonValue_t GetSpinDownButton() {return GetLocalValue<bool>("spin_down");}
 	ButtonValue_t GetForceToggleButton() {return GetLocalValue<bool>("force_toggle");}
 	ButtonValue_t GetSwissStateButton(Swiss::state_t state);
+	ButtonValue_t GetCameraStateButton(Camera::CamState_t state);
 	ButtonValue_t GetControlSwissButton() {return GetLocalValue<bool>("swiss_control");}
 	ButtonValue_t GetControlIntakeButton() {return GetLocalValue<bool>("intake_control");}
 
