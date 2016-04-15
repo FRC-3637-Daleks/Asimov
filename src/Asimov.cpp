@@ -632,6 +632,7 @@ private:
 	void TeleopInit() override
 	{
 		get_context().LoadConfig();
+		auton_command_->Cancel();
 		Configure();
 		TestDriveInit();
 		grip_.ItsLit();
