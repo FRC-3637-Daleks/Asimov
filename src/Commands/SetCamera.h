@@ -33,7 +33,7 @@ public:
 	void Execute() override {};
 
 	/// Returns true
-	bool IsFinished() override {return false;}
+	bool IsFinished() override {return true;}
 
 	/// Nada
 	void End() override;

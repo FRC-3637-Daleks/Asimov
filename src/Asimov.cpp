@@ -235,7 +235,7 @@ private:
 				last_approach.SetDescription("Distances needed to get to the goal");
 				last_approach("speed").SetDefault(.5);
 				last_approach("timeout").SetDefault(2.0);
-				for(int i = 0; i <= 5; i++)
+				for(int i = 1; i <= 5; i++)
 				{
 					last_approach["from_" + std::to_string(i)]("distance").SetDefault(.5);
 				}
@@ -255,13 +255,13 @@ private:
 			auton_command_ = std::make_unique<CommandGroup>();
 			auto mode = auton_mode_.GetEnumValueOrDefault();
 			auto defense = auton_defense_.GetEnumValueOrDefault();
-			auto position = auton_position_.GetValueOrDefault();
+			int position = auton_position_.GetValueOrDefault();
 
 			auto& auton = GetSettings()["autonomous"];
 			if(mode == NO_OP)
 				return true;
 
-			auton_command_->AddSequential(intake_.MakeIntakeBall(), .5);
+			auton_command_->AddParallel(intake_.MakeIntakeBall(), 2);
 
 			if(defense == PORTCULLIS)
 			{
@@ -364,7 +364,7 @@ private:
 
 					if(revs < 0) speed *= -1;
 
-					// Turn towards the
+					// Turn towards the goal
 					auton_command_->AddSequential(drive_.MakeTurn(speed, revs, false), timeout);
 					auton_command_->AddSequential(camera_.MakeSetCamera(Camera::CamState_t::GOAL));
 				}
@@ -382,7 +382,8 @@ private:
 					else if(mode == AUTO_HIGH_GOAL)
 					{
 						auton_command_->AddSequential(drive_.MakeArcadeDrive(GetLocalValue<double>("Align/forward_output"),
-																			GetLocalValue<double>("GRIP/turn_output"), speed), timeout);
+																			GetLocalValue<double>("GRIP/turn_output"), speed, speed),
+														timeout);
 					}
 
 					auton_command_->AddSequential(drive_.MakeDriveStraight(.1, 0.1, true), .1);
@@ -412,7 +413,7 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/intake")));
 		triggers.back()->WhenActive(commands.back());
 
-		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/L_TRIGGER")));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/B")));
 		triggers.back()->CancelWhenActive(commands.back());
 		commands.push_back(camera_.MakeSetCamera(Camera::CamState_t::BALL));
 		triggers.back()->WhenActive(commands.back());
@@ -433,7 +434,7 @@ private:
 
 		CommandGroup *spinup_group = new CommandGroup;
 		spinup_group->AddParallel(shooter_.MakeSpinUp());
-		spinup_group->AddParallel(oi_.MakeShootMode(&camera_, .6, .6));
+		spinup_group->AddParallel(oi_.MakeShootMode(&camera_, .8, .8));
 
 		commands.push_back(spinup_group);
 		triggers.back()->WhenActive(commands.back());
@@ -447,6 +448,7 @@ private:
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/shoot")));
 		commands.push_back(new commands::Shoot(&intake_, &shooter_, 0.5, .25, 1.5));
 		triggers.back()->WhenActive(commands.back());
+		triggers.back()->CancelWhenActive(spinup_group);
 
 		commands.push_back(oi_.MakeForwardBoost(2.0));
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/forward_boost")));
@@ -481,16 +483,20 @@ private:
 		triggers.back()->WhileActive(commands.back());
 
 		// swiss
-		for(int state = Swiss::retract; state < Swiss::n_states; state++)
+		for(int state = Camera::CamState_t::BACK; state < Camera::N_STATES; state++)
 		{
-			commands.push_back(swissCheez.MakeSetSwiss(static_cast<Swiss::state_t>(state)));
-			triggers.push_back(new GenericTrigger(oi_.GetSwissStateButton(static_cast<Swiss::state_t>(state))));
+			commands.push_back(camera_.MakeSetCamera(static_cast<Camera::CamState_t>(state)));
+			triggers.push_back(new GenericTrigger(oi_.GetCameraStateButton(static_cast<Camera::CamState_t>(state))));
 			triggers.back()->WhenActive(commands.back());
 		}
 
 		commands.push_back(swissCheez.MakeControlSwissVelocity(oi_.GetSwissAxis()));
 		triggers.push_back(new GenericTrigger(oi_.GetControlSwissButton()));
 		triggers.back()->WhileActive(commands.back());
+
+		commands.push_back(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
+		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("OI/xbox/buttons/L_TRIGGER")));
+		triggers.back()->WhenActive(commands.back());
 
 		commands.push_back(intake_.MakeControlIntake(oi_.GetIntakeAxis()));
 		triggers.push_back(new GenericTrigger(oi_.GetControlIntakeButton()));
