@@ -185,6 +185,14 @@ private:
 			}
 
 			{
+				auto& turn_around = auton["TurnAround"];
+				turn_around("skip").SetDefault(false);
+				turn_around("timeout").SetDefault(3.0);
+				turn_around("speed").SetDefault(.7);
+				turn_around("left_revs").SetDefault(1.3);
+			}
+
+			{
 				auto& swiss = auton["Swiss"];
 				swiss.SetDescription("This will only apply to auton routines which require use of the swiss");
 				swiss("skip").SetDefault(false);
@@ -203,9 +211,18 @@ private:
 				auto& ret = auton["Return"];
 				ret("speed").SetDefault(.5);
 				ret("distance").SetDefault(5.0);
+				ret("short_distance").SetDefault(4.0);
 				ret("timeout").SetDefault(5.0);
 				ret("leave_ball").SetDefault(true);
 				ret.SetDescription("Distance traveled back by robot after spitting out boulder");
+			}
+
+			{
+				auto& trickshot = auton["Trickshot"];
+				trickshot("speed").SetDefault(.25);
+				trickshot("distance").SetDefault(.5);
+				trickshot("timeout").SetDefault(2.0);
+				trickshot.SetDescription("Balance on the cheval in auto B)");
 			}
 
 			{
@@ -319,13 +336,15 @@ private:
 				auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
 			}
 
-			if(defense == PORTCULLIS)
-			{
-				auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
-			}
-
 			if(mode == IN)
+			{
+				if(defense == PORTCULLIS)
+				{
+					auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
+				}
+
 				return true;
+			}
 
 			if(mode == IN_OUT && defense != CHEVAL && defense != PORTCULLIS)
 			{
@@ -338,11 +357,85 @@ private:
 				if(ret("leave_ball").GetValueOrDefault<bool>())
 					auton_command_->AddSequential(intake_.MakePushBall());
 				auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+
+				{
+					auto& turn_around = auton["TurnAround"];
+					double speed = turn_around("speed").GetValueOrDefault<double>();
+					double left_revs = turn_around("left_revs").GetValueOrDefault<double>();
+					double timeout = turn_around("timeout").GetValueOrDefault<double>();
+					bool skip = turn_around("skip").GetValueOrDefault<bool>();
+
+					if(!skip)
+					{
+						auton_command_->AddSequential(drive_.MakeTurn(speed, left_revs, false), timeout);
+					}
+				}
+
 				return true;
 			}
 			else if(mode == IN_OUT)
 			{
-				return true;
+				if(defense == CHEVAL)
+				{
+					auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::horizontal), 1);
+				}
+
+				{
+					auto& turn_around = auton["TurnAround"];
+					double speed = turn_around("speed").GetValueOrDefault<double>();
+					double left_revs = turn_around("left_revs").GetValueOrDefault<double>();
+					double timeout = turn_around("timeout").GetValueOrDefault<double>();
+					bool skip = turn_around("skip").GetValueOrDefault<bool>();
+
+					if(!skip)
+					{
+						auton_command_->AddSequential(drive_.MakeTurn(speed, left_revs, false), timeout);
+					}
+				}
+
+				{
+					auto& ret = auton["Return"];
+					double speed = fabs(ret("speed").GetValueOrDefault<double>());
+					double distance = 0.0;
+					if(defense == CHEVAL)
+						distance = ret("short_distance").GetValueOrDefault<double>();
+					else
+						distance = ret("distance").GetValueOrDefault<double>();
+
+					double timeout = ret("timeout").GetValueOrDefault<double>();
+					auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+				}
+
+				if(defense == CHEVAL)
+				{
+					{
+						auto& alignment = auton["B_alignment"];
+						bool skip = alignment("skip").GetValueOrDefault<bool>();
+						double timeout = alignment("timeout").GetValueOrDefault<double>();
+						double speed_factor = alignment("speed_factor").GetValueOrDefault<double>();
+
+						// Align with outerworks
+						if(!skip)
+						{
+							auton_command_->AddSequential(drive_.MakeArcadeDrive(GetLocalValue<double>("Align/forward_output"),
+															oi_.GetNullAxis(),
+															speed_factor), timeout);
+						}
+					}
+
+					auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
+
+					{
+						auto& ret = auton["Trickshot"];
+						double timeout = ret("timeout").GetValueOrDefault<double>();
+						double speed = fabs(ret("speed").GetValueOrDefault<double>());
+						double distance = ret("distance").GetValueOrDefault<double>();
+
+						auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+					}
+				}
+
+
 			}
 			else
 			{
