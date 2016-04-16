@@ -72,7 +72,7 @@ bool Turn::IsFinished()
 	if(type_ == FOREVER)
 		return false;
 
-	return IsTimedOut() || fabs(drive_->GetLeftRevs()) > length_;
+	return IsTimedOut() || (fabs(drive_->GetLeftRevs()) > fabs(length_));
 }
 
 void Turn::End()

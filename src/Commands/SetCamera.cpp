@@ -17,6 +17,7 @@ SetCamera::SetCamera(CameraPtr_t camera, Camera_t::CamState_t view):
 		camera_(camera), view_(view)
 {
 	Requires(camera_);
+	this->SetRunWhenDisabled(true);
 }
 
 void SetCamera::Initialize()

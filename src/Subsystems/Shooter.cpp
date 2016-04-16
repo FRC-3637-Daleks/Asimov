@@ -93,7 +93,7 @@ void Shooter::doRegister()
 	GetLocalValue<bool>("spunup").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
 			{
 				if(top_roller_)
-					return IsAllowable();
+					return !IsAllowable() && state_ == Shooter::State_t::SPUNUP;
 				return false;
 			}));
 }

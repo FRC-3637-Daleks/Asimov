@@ -278,6 +278,9 @@ private:
 			if(mode == NO_OP)
 				return true;
 
+			if(position == 1 || position == 2 || position == 4) grip_.set_left_bias(true);
+			if(position == 3 || position == 5) grip_.set_left_bias(false);
+
 			auton_command_->AddParallel(intake_.MakeIntakeBall(), 2);
 
 			if(defense == PORTCULLIS)
@@ -325,6 +328,10 @@ private:
 			{
 				auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
 			}
+			else if(defense == PORTCULLIS)
+			{
+				auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
+			}
 
 			{
 				auto& cross = auton["Cross"];
@@ -348,16 +355,18 @@ private:
 
 			if(mode == IN_OUT && defense != CHEVAL && defense != PORTCULLIS)
 			{
-				auto& ret = auton["Return"];
-				double speed = -fabs(ret("speed").GetValueOrDefault<double>());
-				double distance = ret("distance").GetValueOrDefault<double>();
-				double timeout = ret("timeout").GetValueOrDefault<double>();
+				{
+					auto& ret = auton["Return"];
+					double speed = -fabs(ret("speed").GetValueOrDefault<double>());
+					double distance = ret("distance").GetValueOrDefault<double>();
+					double timeout = ret("timeout").GetValueOrDefault<double>();
 
-				// Return over defense
-				if(ret("leave_ball").GetValueOrDefault<bool>())
-					auton_command_->AddSequential(intake_.MakePushBall());
-				auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+					// Return over defense
+					if(ret("leave_ball").GetValueOrDefault<bool>())
+						auton_command_->AddSequential(intake_.MakePushBall());
+					auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
 
+				}
 				{
 					auto& turn_around = auton["TurnAround"];
 					double speed = turn_around("speed").GetValueOrDefault<double>();
@@ -375,10 +384,6 @@ private:
 			}
 			else if(mode == IN_OUT)
 			{
-				if(defense == CHEVAL)
-				{
-					auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::horizontal), 1);
-				}
 
 				{
 					auto& turn_around = auton["TurnAround"];
@@ -387,10 +392,12 @@ private:
 					double timeout = turn_around("timeout").GetValueOrDefault<double>();
 					bool skip = turn_around("skip").GetValueOrDefault<bool>();
 
-					if(!skip)
-					{
-						auton_command_->AddSequential(drive_.MakeTurn(speed, left_revs, false), timeout);
-					}
+					auton_command_->AddSequential(drive_.MakeTurn(speed, left_revs, false), timeout);
+				}
+
+				if(defense == CHEVAL)
+				{
+					auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::retract), 3);
 				}
 
 				{
@@ -423,7 +430,7 @@ private:
 						}
 					}
 
-					auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
+					auton_command_->AddParallel(swissCheez.MakeSetSwiss(Swiss::state_t::cheval_down), 3);
 
 					{
 						auto& ret = auton["Trickshot"];
@@ -433,6 +440,8 @@ private:
 
 						auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
 					}
+
+					auton_command_->AddSequential(swissCheez.MakeSetSwiss(Swiss::state_t::retract));
 				}
 
 
@@ -446,6 +455,7 @@ private:
 					double timeout = approaches("timeout").GetValueOrDefault<double>();
 
 					// Move into a goal's line of sight
+					this->Log(MessageData::STATUS, "Auton", "Courtyard Approach") << "distance: " << distance << " meters";
 					auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
 				}
 
@@ -456,6 +466,8 @@ private:
 					double timeout = turns("timeout").GetValueOrDefault<double>();
 
 					if(revs < 0) speed *= -1;
+
+					this->Log(MessageData::STATUS, "Auton", "Turn") << "left_revs: " << revs;
 
 					// Turn towards the goal
 					auton_command_->AddSequential(drive_.MakeTurn(speed, revs, false), timeout);
@@ -479,7 +491,7 @@ private:
 														timeout);
 					}
 
-					auton_command_->AddSequential(drive_.MakeDriveStraight(.1, 0.1, true), .1);
+					auton_command_->AddSequential(drive_.MakeDriveStraight(-0.1, 0.1, true), .1);
 					auton_command_->AddSequential(shooter_.MakeSpinUp());
 					auton_command_->AddSequential(new WaitCommand(1.0));
 					auton_command_->AddSequential(new commands::Shoot(&intake_, &shooter_, 2.0, .25, 3.0));
@@ -513,9 +525,11 @@ private:
 		commands.push_back(camera_.MakeSetCamera(Camera::CamState_t::WHEEL));
 		triggers.back()->WhenInactive(commands.back());
 
+		/*
 		commands.push_back(camera_.MakeSetCamera(Camera::CamState_t::FRONT));
 		triggers.push_back(new GenericTrigger(GetLocalValue<bool>("Intake/holding_boulder")));
 		triggers.back()->WhenActive(commands.back());
+		*/
 
 		auto push_ball_command = intake_.MakePushBall();
 
