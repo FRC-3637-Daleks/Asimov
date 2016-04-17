@@ -130,7 +130,7 @@ private:
 		TextLog::Log(MessageData(MessageData::INFO, 2), SystemData("Asimov", "RobotInit", "Robot")) <<
 				"RobotInit Started";
 
-		shooter_.SetMode(Shooter::Mode_t::VELOCITY);
+		//shooter_.SetMode(Shooter::Mode_t::VELOCITY);
 		intake_.SetMode(Intake::Mode_t::VELOCITY);
 
 		mode = MANUAL;
@@ -757,11 +757,11 @@ private:
 
 		if(oi_.get_xbox().GetRawButton(XBoxWrapper::START))
 		{
-			shooter_.SetMode(Shooter::Mode_t::VBUS);
+			shooter_.SetMode(Shooter::Mode_t::VELOCITY);
 		}
 		else
 		{
-			shooter_.SetMode(Shooter::Mode_t::VELOCITY);
+			shooter_.SetMode(Shooter::Mode_t::VBUS);
 		}
 
 		if(!lock)

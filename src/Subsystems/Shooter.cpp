@@ -52,6 +52,8 @@ void Shooter::doRegister()
 	closed_loop_settings("F").SetDefault(1.0);
 	closed_loop_settings("I_Zone").SetDefault(2.5);
 	closed_loop_settings("ramp_rate").SetDefault(10);
+	closed_loop_settings("init_closed_loop").SetDefault(false);
+	closed_loop_settings("voltage_compensation_rate").SetDefault(1.0);
 
 	// Inversion settings
 	settings("invert_output").SetDefault(false);
@@ -115,6 +117,15 @@ bool Shooter::doConfigure()
 
 	// Configure closed loop settings
 	auto& closed_loop_settings = settings["closed_loop_settings"];
+	if (closed_loop_settings("init_closed_loop").GetValueOrDefault<bool>() == false)
+	{
+		this->SetMode(Mode_t::VBUS);
+	}
+	else
+	{
+		this->SetMode(Mode_t::VELOCITY);
+	}
+
 	if (closed_loop_settings("use").GetValueOrDefault() == true)
 	{
 		top_roller_->SetP(closed_loop_settings("P").GetValueOrDefault());
@@ -133,7 +144,7 @@ bool Shooter::doConfigure()
 	top_roller_->SetClosedLoopOutputDirection(settings("reverse_closed").GetValueOrDefault<bool>());
 
 	top_roller_->ConfigNominalOutputVoltage(0.0, 0.0);
-	top_roller_->ConfigPeakOutputVoltage(0, -12.0);
+	top_roller_->ConfigPeakOutputVoltage(12.0, 0);
 
 	SetMode(mode_);
 
