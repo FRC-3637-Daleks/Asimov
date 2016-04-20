@@ -29,18 +29,9 @@ void SpinUp::Initialize()
 	State_t currState = shooter_->GetState(); // For readability
 	if (currState == State_t::OFF || currState == State_t::SPINNINGUP || currState == State_t::SPUNUP)
 	{
-		if(speed_ < 0.0)
-		{
-			TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
-							"Initializing SpinUp with initial speed: " << shooter_->GetShootPercent() << " and initial wait time: " << wait_time_;
-			shooter_->SpinUp(shooter_->GetShootPercent());
-		}
-		else
-		{
-			TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
-							"Initializing SpinUp with initial speed: " << speed_ << " and initial wait time: " << wait_time_;
-			shooter_->SpinUp(speed_);
-		}
+		TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
+						"Initializing SpinUp with initial speed: " << speed_ << " and initial wait time: " << wait_time_;
+		shooter_->SpinUp(GetSpeed());
 
 		timer_->Reset();
 		timer_->Start();
@@ -72,8 +63,8 @@ void SpinUp::Interrupted()
 {
 	TextLog::Log(MessageData(MessageData::INFO), SystemData("Shooter", "SpinUp", "Command")) <<
 			"Interrupting SpinUp";
-	//shooter_->EmergencyStop();
-	//shooter_->SetState(State_t::OFF);
+	shooter_->EmergencyStop();
+	shooter_->SetState(State_t::OFF);
 }
 
 void SpinUp::SetSpeed(double speed)
@@ -83,7 +74,10 @@ void SpinUp::SetSpeed(double speed)
 
 double SpinUp::GetSpeed() const
 {
-	return speed_;
+	if(speed_ < 0.0)
+		return shooter_->GetShootPercent();
+	else
+		return speed_;
 }
 
 }// end namespace commands

@@ -95,7 +95,7 @@ void Shooter::doRegister()
 	GetLocalValue<bool>("spunup").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
 			{
 				if(top_roller_)
-					return !IsAllowable() && state_ == Shooter::State_t::SPUNUP;
+					return IsAllowable()/* && state_ == Shooter::State_t::SPUNUP*/;
 				return false;
 			}));
 }
@@ -172,7 +172,8 @@ void Shooter::SpinDown()
 
 void Shooter::EmergencyStop()
 {
-	top_roller_->StopMotor();
+	//top_roller_->StopMotor();
+	SpinDown();
 }
 
 double Shooter::GetMaxVelocity() const
@@ -208,7 +209,7 @@ double Shooter::GetAllowedError() const
 
 bool Shooter::IsAllowable() const
 {
-	return (fabs(GetErr()) > fabs(allowed_error_));
+	return (fabs(GetErr()) < fabs(allowed_error_));
 }
 
 // State functions:

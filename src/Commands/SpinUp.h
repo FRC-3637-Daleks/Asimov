@@ -24,7 +24,7 @@ class SpinUp : public Command
 using State_t = Shooter::State_t;
 // Constructor & destructor:
 public:
-	SpinUp(Shooter* shooter, double speed = 1.0, double wait_time = 0.25);
+	SpinUp(Shooter* shooter, double speed = 1.0, double wait_time = 2.0);
 	virtual ~SpinUp() = default;
 
 // Main functions:
@@ -70,7 +70,7 @@ public:
 	/**
 	 * @return speed_ the current top roller speed.
 	 */
-	double GetSpeed() const;
+	virtual double GetSpeed() const;
 
 protected:
 
