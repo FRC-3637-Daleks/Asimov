@@ -1,6 +1,7 @@
 #include "Shooter.h"
 #include "Commands/SpinUp.h"
 #include "Commands/SpinDown.h"
+#include "Commands/VarSpinUp.h"
 #include "Utility/FunkyGet.h"
 #include <math.h>
 
@@ -10,6 +11,7 @@ namespace subsystems
 using namespace dman;
 using SpinUp = commands::SpinUp;
 using SpinDown = commands::SpinDown;
+using VarSpinUp = commands::VarSpinUp;
 
 // Constructor:
 Shooter::Shooter() : dman::WPISystem("Shooter")
@@ -254,6 +256,11 @@ double Shooter::GetShootPercent() const
 SpinUp* Shooter::MakeSpinUp(double speed)
 {
 	return new commands::SpinUp(this, speed);
+}
+
+VarSpinUp* Shooter::MakeVarSpinUp(VarSpinUp::Input_t modifier)
+{
+	return new commands::VarSpinUp(this, std::move(modifier));
 }
 
 SpinDown* Shooter::MakeSpinDown()

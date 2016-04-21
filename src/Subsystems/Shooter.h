@@ -17,6 +17,7 @@
 namespace commands
 {
 	class SpinUp;
+	class VarSpinUp;
 	class SpinDown;
 }// end namespace commands
 
@@ -176,6 +177,11 @@ public:
 	 * Creates new SpinUp command with shoot_percent as the speed
 	 */
 	commands::SpinUp * MakeSpinUp() {return MakeSpinUp(-1);}
+
+	/**
+	 * Creates new VarSpinUp command with input as the speed modifier
+	 */
+	commands::VarSpinUp * MakeVarSpinUp(dman::ValueStore::Value<double> modifier);
 
 	/**
 	 * Creates new SpinDown command, and passes class instance as argument.

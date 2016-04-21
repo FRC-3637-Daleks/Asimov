@@ -26,7 +26,8 @@ using namespace dman;
 OI::OI(): WPISystem("OI"), driver_left_("driver_left"), driver_right_("driver_right"),
 		deadzone_(.05), forward_(true),
 		tank_multiplier_(1.0), forward_multiplier_(1.0), turn_multiplier_(1.0),
-		base_tank_multiplier_(.5), base_forward_multiplier_(.5), base_turn_multiplier_(.5)
+		base_tank_multiplier_(.5), base_forward_multiplier_(.5), base_turn_multiplier_(.5),
+		shot_speed_multiplier_(.2)
 {
 	AddSubSystem("driver_left", driver_left_);
 	AddSubSystem("driver_right", driver_right_);
@@ -42,6 +43,7 @@ void OI::doRegister()
 	arcade_turn_ = GetLocalValue<double>("driver_left/axes/x");
 	swiss_ = GetLocalValue<double>("xbox/axes/L_Y_Axis");
 	intake_axis_ = GetLocalValue<double>("xbox/axes/R_Y_Axis");
+	shot_speed_axis_ = GetLocalValue<double>("xbox/axes/R_Trigger");
 
 	// triggers
 	forward_boost_ = GetLocalValue<bool>("driver_right/buttons/1");
@@ -72,6 +74,8 @@ void OI::doRegister()
 		speed_settings("base_turn_speed").SetDefault(base_turn_multiplier_);
 	}
 
+	settings("shot_speed_multiplier").SetDefault(get_shot_speed_multiplier());
+
 	GetTankLeftAxis().Initialize(std::make_shared<FunkyGet<double> >([this]()
 		{
 			return GetTankLeft();
@@ -96,6 +100,11 @@ void OI::doRegister()
 		{
 			return GetIntakeValue();
 		}));
+	GetShotSpeedAxis().Initialize(std::make_shared<FunkyGet<double>>([this]()
+		{
+			return GetShotSpeed();
+		}));
+
 	GetNullAxis().Initialize(std::make_shared<FunkyGet<double> >([]() {
 		return 0.0;
 	}));
@@ -166,8 +175,8 @@ bool OI::doConfigure()
 		tank_multiplier_ = speed_settings("base_tank_speed").GetValueOrDefault<double>();
 	}
 
+	SetShotSpeedMultiplier(settings("shot_speed_multiplier").GetValueOrDefault<double>());
 
-	Log(dman::MessageData::INFO, "", "Subsystem") << "Deadzone: " << get_deadzone();
 	return true;
 }
 
@@ -229,6 +238,11 @@ double OI::GetIntakeValue() const
 	if(!intake_axis_.initialized())
 		return 0.0;
 	return -fabs(transformAxis(intake_axis_.GetValue(), false, 0.6));
+}
+
+double OI::GetShotSpeed() const
+{
+	return transformAxis(shot_speed_axis_.GetValueOr(0.0), false, get_shot_speed_multiplier());
 }
 
 Swiss::state_t OI::GetSwissPosition() const

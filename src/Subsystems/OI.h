@@ -65,6 +65,9 @@ public:  // Settings
 	double get_turn_multiplier() const {return turn_multiplier_ * base_turn_multiplier_;}
 	void SetTurnMultiplier(double turn_multiplier) {turn_multiplier_ = turn_multiplier;}
 
+	double get_shot_speed_multiplier() const {return shot_speed_multiplier_;}
+	void SetShotSpeedMultiplier(double multiplier) {shot_speed_multiplier_ = multiplier;}
+
 public:
 	// Drive Axes
 	double GetTankLeft() const;
@@ -75,6 +78,7 @@ public:
 	// Copilot Axes
 	double GetSwiss() const;
 	double GetIntakeValue() const;
+	double GetShotSpeed() const;
 
 	// Drive Buttons
 	bool GetForwardBoost() const {return forward_boost_.GetValueOr(false);}
@@ -113,6 +117,7 @@ public:
 	// Copilot Axis Values
 	AxisValue_t GetSwissAxis() {return GetLocalValue<double>("swiss");}
 	AxisValue_t GetIntakeAxis() {return GetLocalValue<double>("intake_axis");}
+	AxisValue_t GetShotSpeedAxis() {return GetLocalValue<double>("shot_speed");}
 
 	// Triggers
 	ButtonValue_t GetForwardBoostButton() {return GetLocalValue<bool>("forward_boost");}
@@ -151,12 +156,13 @@ private:
 	JoystickWrapper driver_left_, driver_right_;
 	XBoxWrapper copilot_;
 	AxisValue_t tank_left_, tank_right_, arcade_forward_, arcade_turn_;
-	AxisValue_t swiss_, intake_axis_;
+	AxisValue_t swiss_, intake_axis_, shot_speed_axis_;
 	double deadzone_;
 	bool forward_;
 	bool force_;
 	double base_tank_multiplier_, base_forward_multiplier_, base_turn_multiplier_;
 	double tank_multiplier_, forward_multiplier_, turn_multiplier_;
+	double shot_speed_multiplier_;
 
 private:  // Buttons
 	ButtonValue_t forward_boost_, turn_boost_;
