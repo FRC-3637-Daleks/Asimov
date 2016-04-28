@@ -154,6 +154,8 @@ bool Drive::doConfigure()
 	SetAllowableError(settings("allowable_error").GetValueOrDefault());
 	SetResetTimeout(settings("reset_timeout").GetValueOrDefault<double>());
 
+	Log(dman::MessageData::STATUS, "Drive", "Subsystem") << "Reset Timeout: " << get_reset_timeout();
+
 	ResetPosition();
 
 	return configureBoth();

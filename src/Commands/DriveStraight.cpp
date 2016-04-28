@@ -50,8 +50,6 @@ void DriveStraight::Initialize()
 	}
 
 	drive_->ResetPosition();
-	timer.Reset();
-	timer.Start();
 	drive_->TankDrive(velocity_, velocity_);
 	drive_->Log(dman::MessageData::STATUS, "DriveStraight", "Command") << "DriveStraight initialized, driving at: " <<
 			velocity_;
