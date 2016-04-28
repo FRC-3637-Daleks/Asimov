@@ -85,7 +85,10 @@ public:  /// Configuration functions
 	double get_wheel_revs_per_base_rev() const {return wheel_revs_per_base_rev_;}
 
 	void SetAllowableError(double allow);
-	double get_allowable_error() {return allowable_error_;}
+	double get_allowable_error() const {return allowable_error_;}
+
+	void SetResetTimeout(double time) {reset_timeout_ = time;}
+	double get_reset_timeout() const {return reset_timeout_;}
 
 public:  /// Position tracking functions
 
@@ -199,11 +202,13 @@ private:
 
 private:
 	Ptr_t<Talons> talons_ ;
+	mutable Timer reset_timer_;
 	Mode_t mode_;
 	Ticks_t ticks_per_rev_;
 	Meters_t wheel_diameter_;
 	MetersPerSecond_t max_velocity_;
 	double wheel_revs_per_base_rev_;
+	double reset_timeout_;
 	Meters_t allowable_error_;
 };
 
