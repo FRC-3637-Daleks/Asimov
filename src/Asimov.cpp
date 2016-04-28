@@ -364,6 +364,7 @@ private:
 					// Return over defense
 					if(ret("leave_ball").GetValueOrDefault<bool>())
 						auton_command_->AddSequential(intake_.MakePushBall());
+
 					auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
 
 				}

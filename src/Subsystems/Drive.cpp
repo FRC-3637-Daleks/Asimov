@@ -31,7 +31,7 @@ std::string Drive::ModeToString(Mode_t mode)
 
 Drive::Drive(): dman::WPISystem("Drive"), talons_(nullptr), mode_(Mode_t::VBus),
 		ticks_per_rev_(761), wheel_diameter_(0.3048), max_velocity_(120.0), wheel_revs_per_base_rev_(5000),
-		allowable_error_(0.05) // 5 cm of wheel rotation
+		allowable_error_(0.05), reset_timeout_(0.1) // 5 cm of wheel rotation
 {
 }
 
@@ -117,6 +117,7 @@ void Drive::doRegister()
 	settings("max_velocity").SetDefault(get_velocity_scale());
 	settings("wheel_revolutions_per_chassis_pivot_revolution").SetDefault(get_wheel_revs_per_base_rev());
 	settings("allowable_error").SetDefault(get_allowable_error());
+	settings("reset_timeout").SetDefault(get_reset_timeout());
 
 	auto& closed_loop_settings = settings["closed_loop_settings"];
 	closed_loop_settings("use").SetDefault(false);
@@ -151,6 +152,9 @@ bool Drive::doConfigure()
 	SetVelocityScale(settings("max_velocity").GetValueOrDefault());
 	SetWheelRevsPerBaseRev(settings("wheel_revolutions_per_chassis_pivot_revolution").GetValueOrDefault());
 	SetAllowableError(settings("allowable_error").GetValueOrDefault());
+	SetResetTimeout(settings("reset_timeout").GetValueOrDefault<double>());
+
+	ResetPosition();
 
 	return configureBoth();
 }
@@ -231,16 +235,20 @@ double Drive::GetRotation() const
 
 double Drive::GetLeftRevs() const
 {
-	if(is_initialized())
+	if(is_initialized() && reset_timer_.HasPeriodPassed(get_reset_timeout()))
+	{
 		return talons_->left_.GetPosition();
+	}
 	else
 		return 0.0;
 }
 
 double Drive::GetRightRevs() const
 {
-	if(is_initialized())
+	if(is_initialized() && reset_timer_.HasPeriodPassed(get_reset_timeout()))
+	{
 		return talons_->right_.GetPosition();
+	}
 	else
 		return 0.0;
 }
@@ -293,6 +301,8 @@ void Drive::ResetPosition()
 	{
 		talons_->left_.SetPosition(0.0);
 		talons_->right_.SetPosition(0.0);
+		reset_timer_.Reset();
+		reset_timer_.Start();
 	}
 }
 

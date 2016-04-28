@@ -50,6 +50,8 @@ void DriveStraight::Initialize()
 	}
 
 	drive_->ResetPosition();
+	timer.Reset();
+	timer.Start();
 	drive_->TankDrive(velocity_, velocity_);
 	drive_->Log(dman::MessageData::STATUS, "DriveStraight", "Command") << "DriveStraight initialized, driving at: " <<
 			velocity_;
@@ -71,7 +73,7 @@ bool DriveStraight::IsFinished()
 	if(type_ == FOREVER)
 		return false;
 
-	return IsTimedOut() || fabs(drive_->GetDistance()) > length_;
+	return IsTimedOut();
 }
 
 void DriveStraight::End()
