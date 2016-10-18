@@ -472,6 +472,7 @@ private:
 
 					// Turn towards the goal
 					auton_command_->AddSequential(drive_.MakeTurn(speed, revs, false), timeout);
+					auton_command_->AddSequential(drive_.MakeDriveStraight(-0.5, 0.3, false), 0.6);
 					auton_command_->AddSequential(camera_.MakeSetCamera(Camera::CamState_t::GOAL));
 				}
 
@@ -483,18 +484,21 @@ private:
 
 					if(mode == DEAD_HIGH_GOAL)
 					{
-						auton_command_->AddSequential(drive_.MakeDriveStraight(speed, distance, false), timeout);
+						//TODO: Make this an auto align
+						auton_command_->AddSequential(drive_.MakeArcadeDrive(GetLocalValue<double>("Align/forward_output"),
+																	oi_.GetNullAxis()), timeout);
 					}
 					else if(mode == AUTO_HIGH_GOAL)
 					{
+						auton_command_->AddSequential(new WaitCommand(2.0));
 						auton_command_->AddSequential(drive_.MakeArcadeDrive(GetLocalValue<double>("Align/forward_output"),
-																			GetLocalValue<double>("GRIP/turn_output"), speed, speed),
+																			GetLocalValue<double>("GRIP/turn_output"), speed, speed/1.5),
 														timeout);
 					}
 
 					auton_command_->AddSequential(drive_.MakeDriveStraight(-0.1, 0.1, true), .1);
 					auton_command_->AddSequential(shooter_.MakeSpinUp());
-					auton_command_->AddSequential(new WaitCommand(1.0));
+					auton_command_->AddSequential(new WaitCommand(0.5));
 					auton_command_->AddSequential(new commands::Shoot(&intake_, &shooter_, 2.0, .25, 3.0));
 					auton_command_->AddSequential(shooter_.MakeSpinDown());
 				}

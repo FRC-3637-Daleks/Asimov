@@ -237,7 +237,7 @@ double Drive::GetRotation() const
 
 double Drive::GetLeftRevs() const
 {
-	if(is_initialized() && reset_timer_.HasPeriodPassed(get_reset_timeout()))
+	if(is_initialized() && reset_timer_.Get() > get_reset_timeout())
 	{
 		return talons_->left_.GetPosition();
 	}
@@ -247,7 +247,7 @@ double Drive::GetLeftRevs() const
 
 double Drive::GetRightRevs() const
 {
-	if(is_initialized() && reset_timer_.HasPeriodPassed(get_reset_timeout()))
+	if(is_initialized() && reset_timer_.Get() > get_reset_timeout())
 	{
 		return talons_->right_.GetPosition();
 	}
@@ -301,8 +301,10 @@ void Drive::ResetPosition()
 {
 	if(is_initialized())
 	{
+		Log(dman::MessageData::STATUS, "Drive", "") << "Resetting";
 		talons_->left_.SetPosition(0.0);
 		talons_->right_.SetPosition(0.0);
+		reset_timer_.Stop();
 		reset_timer_.Reset();
 		reset_timer_.Start();
 	}

@@ -71,7 +71,7 @@ bool DriveStraight::IsFinished()
 	if(type_ == FOREVER)
 		return false;
 
-	return IsTimedOut();
+	return IsTimedOut() || fabs(drive_->GetDistance()) > fabs(length_);
 }
 
 void DriveStraight::End()

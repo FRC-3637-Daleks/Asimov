@@ -41,7 +41,7 @@ void SpinDown::Initialize()
 
 bool SpinDown::IsFinished()
 {
-	return !shooter_->IsAllowable();
+	return shooter_->IsAllowable();
 }
 
 void SpinDown::End()
