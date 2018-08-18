@@ -9,6 +9,7 @@
 #define SRC_SUBSYSTEMS_SWISS_H_
 
 #include "WPILib.h"
+#include "ctre/Phoenix.h"
 
 #include "WPILib/WPISystem.h"
 #include "Utility/ValueStore.h"
@@ -36,9 +37,9 @@ class Swiss: public WPISystem
 {
 public:
 	enum state_t {retract = 0, horizontal, cheval_down, port_down, n_states};
-	enum mode_t {pos = CANTalon::ControlMode::kPosition,
-				velocity = CANTalon::ControlMode::kSpeed,
-				vbus = CANTalon::ControlMode::kPercentVbus};
+	enum mode_t {pos = (unsigned int)ControlMode::Position,
+				velocity = (unsigned int)ControlMode::Velocity,
+				vbus = (unsigned int)ControlMode::PercentOutput};
 
 public:
 	static std::string StateToString(state_t state);
@@ -62,7 +63,7 @@ private:
 
 	state_t current;
 	state_t position;
-	CANTalon *swisstalon;
+	WPI_TalonSRX *swisstalon;
 
 public:
 

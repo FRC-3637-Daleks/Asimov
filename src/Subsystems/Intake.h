@@ -10,6 +10,7 @@
 #include "WPILib.h"
 #include "WPILib/WPISystem.h"
 #include "Utility/ValueStore.h"
+#include "ctre/Phoenix.h"
 
 /**
  * Has forward declarations of Intake Command classes.
@@ -241,7 +242,7 @@ public:
 protected:
 
 private:
-	CANTalon *roller_;
+	WPI_TalonSRX *roller_;
 	DigitalInput *detector_;
 
 	State_t state_;

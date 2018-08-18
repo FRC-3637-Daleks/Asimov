@@ -40,7 +40,7 @@ public:
 	DashValue(Key_t key, Value_t value): publish_key_(key), value_(value)
 	{
 		// We must remove the freaking slashes from the publish_key because smart_dash is dumb
-		for(int i = 0; i < publish_key_.size(); i++)
+		for(unsigned int i = 0; i < publish_key_.size(); i++)
 			if(publish_key_[i] == '/') publish_key_[i] = '_';
 	}
 	DashValue(Value_t value): DashValue(value.get_key(), std::move(value)) {}

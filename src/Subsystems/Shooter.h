@@ -9,7 +9,7 @@
 #define SRC_SUBSYSTEMS_SHOOTER_H_
 #include "WPILib.h"
 #include "WPILib/WPISystem.h"
-
+#include "ctre/Phoenix.h"
 
 /**
  * Has forward declarations of command classes.
@@ -191,7 +191,7 @@ public:
 protected:
 
 private:
-	CANTalon *top_roller_;
+	WPI_TalonSRX *top_roller_;
 	double allowed_error_;
 	double max_velocity_;
 	double shoot_percent_;

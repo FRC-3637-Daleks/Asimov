@@ -391,8 +391,6 @@ private:
 					double speed = turn_around("speed").GetValueOrDefault<double>();
 					double left_revs = turn_around("left_revs").GetValueOrDefault<double>();
 					double timeout = turn_around("timeout").GetValueOrDefault<double>();
-					bool skip = turn_around("skip").GetValueOrDefault<bool>();
-
 					auton_command_->AddSequential(drive_.MakeTurn(speed, left_revs, false), timeout);
 				}
 
@@ -480,7 +478,6 @@ private:
 					auto& last_approach = auton["last_approach"];
 					double speed = last_approach("speed").GetValueOrDefault<double>();
 					double timeout = last_approach("timeout").GetValueOrDefault<double>();
-					double distance = last_approach["from_" + std::to_string(position)]("distance").GetValueOrDefault<double>();
 
 					if(mode == DEAD_HIGH_GOAL)
 					{

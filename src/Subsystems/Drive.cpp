@@ -6,6 +6,7 @@
  */
 
 #include "Drive.h"
+#include "ctre/Phoenix.h"
 
 #include "Utility/FunkyGet.h"
 
@@ -27,6 +28,7 @@ std::string Drive::ModeToString(Mode_t mode)
 	case Mode_t::Velocity:
 		return "Velocity";
 	}
+	return "Unknown";
 }
 
 Drive::Drive(): dman::WPISystem("Drive"), talons_(nullptr), mode_(Mode_t::VBus),
@@ -52,26 +54,26 @@ void Drive::initTalons()
 	}
 }
 
-bool Drive::configureMaster(CANTalon& master)
+bool Drive::configureMaster(WPI_TalonSRX& master)
 {
 	std::cout << "Configuring a side" << std::endl;
-	master.ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SrxDisableSwitchInputs);
-	master.ConfigNeutralMode(CANTalon::NeutralMode::kNeutralMode_Brake);
-	master.SetFeedbackDevice(CANTalon::FeedbackDevice::QuadEncoder);
-	SetTicksPerRev(get_ticks_per_rev());
-	master.SetPosition(0.0);
+	master.SetNeutralMode(NeutralMode::Brake);
+	master.ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0, 10);
 
-	master.SetVoltageRampRate(50.0);
+	SetTicksPerRev(get_ticks_per_rev());
+	master.GetSensorCollection().SetQuadraturePosition(0,0);
+
+	master.ConfigOpenloopRamp(50.0, 10);
 
 	if(GetSettings()["closed_loop_settings"]("use").GetValueOrDefault())
 	{
 		auto& settings = GetSettings()["closed_loop_settings"];
-		if(!settings("P").is_empty()) master.SetP(settings("P").get_value());
-		if(!settings("I").is_empty()) master.SetI(settings("I").get_value());
-		if(!settings("D").is_empty()) master.SetD(settings("D").get_value());
-		if(!settings("F").is_empty()) master.SetF(settings("F").get_value());
-		if(!settings("I_Zone").is_empty()) master.SetIzone(settings("I_Zone").get_value());
-		if(!settings("ramp_rate").is_empty()) master.SetCloseLoopRampRate(settings("ramp_rate").get_value());
+		if(!settings("P").is_empty()) master.Config_kP(0, settings("P").get_value(), 10);
+		if(!settings("I").is_empty()) master.Config_kI(0, settings("I").get_value(), 10);
+		if(!settings("D").is_empty()) master.Config_kD(0, settings("D").get_value(), 10);
+		if(!settings("F").is_empty()) master.Config_kF(0, settings("F").get_value(), 10);
+		if(!settings("I_Zone").is_empty()) master.Config_IntegralZone(0, settings("I_Zone").get_value(), 10);
+		if(!settings("ramp_rate").is_empty()) master.ConfigClosedloopRamp(settings("ramp_rate").get_value(), 10);
 	}
 
 	return true;
@@ -83,19 +85,17 @@ bool Drive::configureBoth()
 	{
 		std::cout << "Configuring Drive" << std::endl;
 		auto& settings = GetSettings();
-		auto& ports = GetPortSpace("CAN");
+//		auto& ports = GetPortSpace("CAN");
 
 		bool left_ret = configureMaster(talons_->left_);
-		talons_->left_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
-		talons_->left_slave_.Set(ports("left"));
+		talons_->left_slave_.Set(ControlMode::Follower, talons_->left_.GetDeviceID());
 		talons_->left_.SetInverted(settings["left"]("invert_output").GetValueOrDefault());
-		talons_->left_.SetSensorDirection(settings["left"]("invert_sensor").GetValueOrDefault());
+		talons_->left_.SetSensorPhase(settings["left"]("invert_sensor").GetValueOrDefault());
 
 		bool right_ret = configureMaster(talons_->right_);
-		talons_->right_slave_.SetControlMode(CANTalon::ControlMode::kFollower);
-		talons_->right_slave_.Set(ports("right"));
+		talons_->right_slave_.Set(ControlMode::Follower, talons_->right_.GetDeviceID());
 		talons_->right_.SetInverted(settings["right"]("invert_output").GetValueOrDefault());
-		talons_->right_.SetSensorDirection(settings["right"]("invert_sensor").GetValueOrDefault());
+		talons_->right_.SetSensorPhase(settings["right"]("invert_sensor").GetValueOrDefault());
 
 		return left_ret && right_ret;
 	}
@@ -137,6 +137,7 @@ void Drive::doRegister()
 		{
 					if(is_initialized())
 						return GetDistance();
+					return 0.0;
 		}));
 
 }
@@ -177,21 +178,15 @@ void Drive::SetMode(Mode_t m)
 	}
 }
 
-void Drive::setModeMaster(CANTalon &master)
+void Drive::setModeMaster(WPI_TalonSRX &master)
 {
 	if(get_mode() == Mode_t::Position)
 	{
-		master.SetControlMode(CANTalon::ControlMode::kPosition);
-		master.SelectProfileSlot(ModePIDSlot_t::PositionPID);
+		master.SelectProfileSlot(ModePIDSlot_t::PositionPID, 0);
 	}
 	else if(get_mode() == Mode_t::Velocity)
 	{
-		master.SetControlMode(CANTalon::ControlMode::kSpeed);
-		master.SelectProfileSlot(ModePIDSlot_t::VelocityPID);
-	}
-	else if(get_mode() == Mode_t::VBus)
-	{
-		master.SetControlMode(CANTalon::ControlMode::kPercentVbus);
+		master.SelectProfileSlot(ModePIDSlot_t::VelocityPID, 0);
 	}
 }
 
@@ -200,8 +195,9 @@ void Drive::SetTicksPerRev(Ticks_t val)
 	ticks_per_rev_ = val;
 	if(is_initialized())
 	{
-		talons_->left_.ConfigEncoderCodesPerRev(ticks_per_rev_);
-		talons_->right_.ConfigEncoderCodesPerRev(ticks_per_rev_);
+		// not really usable anymore as values are always reported in ticks
+		// talons_->left_.ConfigEncoderCodesPerRev(ticks_per_rev_);
+		// talons_->right_.ConfigEncoderCodesPerRev(ticks_per_rev_);
 	}
 }
 
@@ -239,7 +235,7 @@ double Drive::GetLeftRevs() const
 {
 	if(is_initialized() && reset_timer_.Get() > get_reset_timeout())
 	{
-		return talons_->left_.GetPosition();
+		return talons_->left_.GetSensorCollection().GetQuadraturePosition();
 	}
 	else
 		return 0.0;
@@ -249,7 +245,7 @@ double Drive::GetRightRevs() const
 {
 	if(is_initialized() && reset_timer_.Get() > get_reset_timeout())
 	{
-		return talons_->right_.GetPosition();
+		return talons_->right_.GetSensorCollection().GetQuadraturePosition();
 	}
 	else
 		return 0.0;
@@ -258,7 +254,7 @@ double Drive::GetRightRevs() const
 double Drive::GetLeftRPM() const
 {
 	if(is_initialized())
-		return talons_->left_.GetSpeed();
+		return talons_->left_.GetSensorCollection().GetQuadratureVelocity();
 	else
 		return 0.0;
 }
@@ -266,7 +262,7 @@ double Drive::GetLeftRPM() const
 double Drive::GetRightRPM() const
 {
 	if(is_initialized())
-		return talons_->right_.GetSpeed();
+		return talons_->right_.GetSensorCollection().GetQuadratureVelocity();
 	else
 		return 0.0;
 }
@@ -274,7 +270,7 @@ double Drive::GetRightRPM() const
 double Drive::GetLeftSetPointRPM() const
 {
 	if(is_initialized())
-		return talons_->left_.GetSetpoint();
+		return talons_->left_.GetClosedLoopTarget(ModePIDSlot_t::VelocityPID);
 	else
 		return 0.0;
 }
@@ -282,7 +278,7 @@ double Drive::GetLeftSetPointRPM() const
 double Drive::GetRightSetPointRPM() const
 {
 	if(is_initialized())
-		return talons_->right_.GetSetpoint();
+		return talons_->right_.GetClosedLoopTarget(ModePIDSlot_t::VelocityPID);
 	else
 		return 0.0;
 }
@@ -302,8 +298,8 @@ void Drive::ResetPosition()
 	if(is_initialized())
 	{
 		Log(dman::MessageData::STATUS, "Drive", "") << "Resetting";
-		talons_->left_.SetPosition(0.0);
-		talons_->right_.SetPosition(0.0);
+		talons_->left_.GetSensorCollection().SetQuadraturePosition(0, 0);
+		talons_->right_.GetSensorCollection().SetQuadraturePosition(0, 0);
 		reset_timer_.Stop();
 		reset_timer_.Reset();
 		reset_timer_.Start();
@@ -315,9 +311,9 @@ bool Drive::GoToPosition(Meters_t pos)
 	SetMode(Mode_t::Position);
 	if(is_initialized())
 	{
-		talons_->left_.Set(pos * get_wheel_circumference(), 3);
-		talons_->right_.Set(pos * get_wheel_circumference(), 3);
-		CANJaguar::UpdateSyncGroup(3);
+		talons_->left_.Set(ControlMode::Position, pos * get_wheel_circumference());
+		talons_->right_.Set(ControlMode::Position, pos * get_wheel_circumference());
+		// CANJaguar::UpdateSyncGroup(3);
 
 		if(fabs(GetDistance() - pos) < get_allowable_error())
 		{
@@ -339,9 +335,9 @@ bool Drive::TurnToRotation(double revolutions)
 	SetMode(Mode_t::Position);
 	if(is_initialized())
 	{
-		talons_->left_.Set(revolutions * get_wheel_revs_per_base_rev(), 3);
-		talons_->right_.Set(revolutions * get_wheel_revs_per_base_rev(), 3);
-		CANJaguar::UpdateSyncGroup(3);
+		talons_->left_.Set(ControlMode::Position, revolutions * get_wheel_revs_per_base_rev());
+		talons_->right_.Set(ControlMode::Position, revolutions * get_wheel_revs_per_base_rev());
+		// CANJaguar::UpdateSyncGroup(3);
 
 		if(fabs(GetRotation() - revolutions) * get_wheel_revs_per_base_rev() <
 				get_allowable_error() / get_wheel_diameter())
@@ -375,12 +371,14 @@ void Drive::TankDrive(double left, double right)
 		{
 			left *= get_velocity_scale();
 			right *= get_velocity_scale();
+			talons_->left_.Set(ControlMode::Velocity, left);
+			talons_->right_.Set(ControlMode::Velocity, right);
 		}
-
-
-		talons_->left_.Set(left, 3);
-		talons_->right_.Set(right, 3);
-		CANJaguar::UpdateSyncGroup(3);
+		else {
+			talons_->left_.Set(ControlMode::PercentOutput, left);
+			talons_->right_.Set(ControlMode::PercentOutput, right);
+		}
+		// CANJaguar::UpdateSyncGroup(3);
 	}
 }
 

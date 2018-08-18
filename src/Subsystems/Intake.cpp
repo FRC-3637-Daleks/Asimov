@@ -84,7 +84,7 @@ void Intake::doRegister()
 	GetLocalValue<double>("front_roller_ouput_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this] () -> double
 			{
 				if(roller_)
-					return roller_->GetOutputVoltage();
+					return roller_->GetMotorOutputVoltage();
 				else
 					return 0.0;
 			}));
@@ -118,7 +118,7 @@ bool Intake::doConfigure()
 	// Initialize roller to CAN port
 	auto& can_ports = GetPortSpace("CAN");
 	if (roller_ == NULL)
-		roller_ = new CANTalon(can_ports("intake_roller").GetValueOrDefault());
+		roller_ = new WPI_TalonSRX(can_ports("intake_roller").GetValueOrDefault());
 
 	if(detector_ == NULL)
 		detector_ = new DigitalInput(GetPortSpace("DIO")("boulder_detector").GetValueOrDefault());
@@ -135,22 +135,24 @@ bool Intake::doConfigure()
 	auto& closed_loop_settings = settings["closed_loop_settings"];
 	if (closed_loop_settings("use").GetValueOrDefault() == true)
 	{
-		roller_->SetP(closed_loop_settings("P").GetValueOrDefault());
-		roller_->SetI(closed_loop_settings("I").GetValueOrDefault());
-		roller_->SetD(closed_loop_settings("D").GetValueOrDefault());
-		roller_->SetF(closed_loop_settings("F").GetValueOrDefault());
-		roller_->SetIzone(closed_loop_settings("I_Zone").GetValueOrDefault());
-		roller_->SetCloseLoopRampRate(closed_loop_settings("ramp_rate").GetValueOrDefault());
+		roller_->Config_kP(0, closed_loop_settings("P").GetValueOrDefault(), 10);
+		roller_->Config_kI(0, closed_loop_settings("I").GetValueOrDefault(), 10);
+		roller_->Config_kD(0, closed_loop_settings("D").GetValueOrDefault(), 10);
+		roller_->Config_kF(0, closed_loop_settings("F").GetValueOrDefault(), 10);
+		roller_->Config_IntegralZone(0, closed_loop_settings("I_Zone").GetValueOrDefault(), 10);
+		roller_->ConfigClosedloopRamp(closed_loop_settings("ramp_rate").GetValueOrDefault(), 10);
 	}
 
 	// Configure roller settings
-	roller_->SetInverted(settings("invert_output").GetValueOrDefault());
-	roller_->SetSensorDirection(settings("invert_sensor").GetValueOrDefault());
+	roller_->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0, 10);
 
-	roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
-	roller_->ConfigEncoderCodesPerRev(settings("encoder_codes_per_rev").GetValueOrDefault<int>());
-	roller_->ConfigNominalOutputVoltage(0.0, 0.0);
-	roller_->ConfigPeakOutputVoltage(12.0, -12.0);
+	roller_->SetInverted(settings("invert_output").GetValueOrDefault());
+	roller_->SetSensorPhase(settings("invert_sensor").GetValueOrDefault());
+
+	roller_->ConfigNominalOutputForward(0.0, 10);
+	roller_->ConfigNominalOutputReverse(0.0, 10);
+	roller_->ConfigPeakOutputForward(1.0, 10);
+	roller_->ConfigPeakOutputReverse(-1.0, 10);
 
 	SetMode(mode_);
 
@@ -184,11 +186,11 @@ void Intake::SetSpeed(double speed)
 {
 	if (mode_ == Mode_t::VELOCITY)
 	{
-		roller_->Set(max_velocity_ * speed);
+		roller_->Set(ControlMode::Velocity, max_velocity_ * speed);
 	}
 	else if (mode_ == Mode_t::VBUS)
 	{
-		roller_->Set(speed);
+		roller_->Set(ControlMode::PercentOutput, speed);
 	}
 }
 
@@ -244,13 +246,13 @@ double Intake::GetShootVelocity() const
 
 double Intake::GetCurrentPosition() const
 {
-	return roller_->GetPosition();
+	return roller_->GetSensorCollection().GetQuadraturePosition();
 }
 
 // Error functions:
 double Intake::GetErr() const
 {
-	return roller_->GetClosedLoopError();
+	return roller_->GetClosedLoopError(0);
 }
 
 void Intake::SetAllowedError(double err)
@@ -285,10 +287,6 @@ void Intake::SetMode(Mode_t mode)
 	mode_ = mode;
 	if(!roller_)
 		return;
-	if (mode_ == Mode_t::VELOCITY)
-		roller_->SetControlMode(CANTalon::ControlMode::kSpeed);
-	else if (mode_ == Mode_t::VBUS)
-		roller_->SetControlMode(CANTalon::ControlMode::kPercentVbus);
 }
 
 Intake::Mode_t Intake::GetMode() const

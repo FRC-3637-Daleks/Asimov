@@ -1,6 +1,7 @@
 #include "WPILib.h"
 
 #include "Swiss.h"
+#include "ctre/Phoenix.h"
 #include "Commands/SetSwiss.h"
 #include "Commands/HoldSwiss.h"
 #include "Commands/ControlSwissVelocity.h"
@@ -79,7 +80,7 @@ void Swiss::doRegister()
 				}));
 		GetLocalValue<double>("target_position").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
 						if(swisstalon)
-							return swisstalon->GetSetpoint();
+							return (double)swisstalon->GetClosedLoopTarget(0);
 						return 0.0;
 					}));
 		GetLocalValue<state_t>("n_current_state").Initialize(std::make_shared<FunkyGet<state_t> >([this]() {
@@ -96,12 +97,12 @@ void Swiss::doRegister()
 				}));
 		GetLocalValue<double>("talon/output_voltage").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
 					if(swisstalon)
-						return swisstalon->GetOutputVoltage();
+						return swisstalon->GetMotorOutputVoltage();
 					return 0.0;
 				}));
 		GetLocalValue<double>("talon/output_speed").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
 					if(swisstalon)
-						return swisstalon->GetSpeed();
+						return swisstalon->GetSensorCollection().GetQuadratureVelocity();
 					return 0.0;
 		}));
 		GetLocalValue<double>("talon/output_current").Initialize(std::make_shared<FunkyGet<double> >([this]() -> double {
@@ -132,10 +133,9 @@ bool Swiss::doConfigure()
 		for(int i = 0; i < n_states; i++)
 			states[i] = positions(StateToString(static_cast<state_t>(i))).GetValueOrDefault<double>();
 	}
+	swisstalon->ConfigSelectedFeedbackSensor(FeedbackDevice::Analog, 0, 10);
+	swisstalon->SetNeutralMode(NeutralMode::Brake);
 
-	swisstalon->SetFeedbackDevice(CANTalon::FeedbackDevice::AnalogPot);
-	//swisstalon->ConfigPotentiometerTurns(settings("pot_turns").GetValueOrDefault<double>());
-	swisstalon->ConfigNeutralMode(CANSpeedController::kNeutralMode_Brake);
 	double reverse_limit = 1000000;
 	double forward_limit = -1000000;
 	for(auto state : states)
@@ -143,19 +143,20 @@ bool Swiss::doConfigure()
 		if(state < reverse_limit) reverse_limit = state;
 		if(state > forward_limit) forward_limit = state;
 	}
-	swisstalon->ConfigLimitMode(CANTalon::LimitMode::kLimitMode_SoftPositionLimits);
 	Log(MessageData(MessageData::INFO, 3), "", "") << "Reverse Limit: " << reverse_limit <<
 			", forward_limit" << forward_limit;
-	swisstalon->ConfigReverseLimit(reverse_limit);
-	swisstalon->ConfigForwardLimit(forward_limit);
-	swisstalon->SetVoltageRampRate(settings("ramp_rate").GetValueOrDefault<double>());
+	swisstalon->ConfigReverseSoftLimitEnable(reverse_limit, 10);
+	swisstalon->ConfigForwardSoftLimitEnable(forward_limit, 10);
+	swisstalon->ConfigOpenloopRamp(settings("ramp_rate").GetValueOrDefault<double>(), 10);
 
-	swisstalon->SetSensorDirection(settings("sensor_flipped").GetValueOrDefault<bool>());
-	swisstalon->SetClosedLoopOutputDirection(settings("closed_loop_output").GetValueOrDefault<bool>());
+	swisstalon->SetSensorPhase(settings("sensor_flipped").GetValueOrDefault<bool>());
 	swisstalon->SetInverted(settings("output_flipped").GetValueOrDefault<bool>());
 
 	// idk
-	swisstalon->ConfigPeakOutputVoltage(12.0, -12.0);
+	swisstalon->ConfigNominalOutputForward(0.0, 10);
+	swisstalon->ConfigNominalOutputReverse(0.0, 10);
+	swisstalon->ConfigPeakOutputForward(1.0, 10);
+	swisstalon->ConfigPeakOutputReverse(-1.0, 10);
 
 	if(settings["closed_loop"]("use").GetValueOrDefault<bool>()) {
 		Log(MessageData(MessageData::INFO, 2), "", "") << "Using file PID";
@@ -165,11 +166,13 @@ bool Swiss::doConfigure()
 		pPid.d = closed_loop("D").GetValueOrDefault<double>();
 		pPid.f = closed_loop("F").GetValueOrDefault<double>();
 		pPid.izone = closed_loop("I-Zone").GetValueOrDefault<int>();
-		swisstalon->SelectProfileSlot(0);
-		swisstalon->SetPID(pPid.p, pPid.i, pPid.d, pPid.f);
-		swisstalon->SetIzone(pPid.izone);
-		SetAllowableError(closed_loop("allowable_error").GetValueOrDefault<double>());
-		swisstalon->SetCloseLoopRampRate(settings("ramp_rate").GetValueOrDefault<double>());
+		swisstalon->SelectProfileSlot(0, 0);
+		swisstalon->Config_kP(0, pPid.p, 10);
+		swisstalon->Config_kI(0, pPid.i, 10);
+		swisstalon->Config_kD(0, pPid.d, 10);
+		swisstalon->Config_kF(0, pPid.f, 10);
+		swisstalon->Config_IntegralZone(0, pPid.izone, 10);
+		swisstalon->ConfigClosedloopRamp(settings("ramp_rate").GetValueOrDefault<double>(), 10);
 	}
 	else
 	{
@@ -185,7 +188,7 @@ void Swiss::initTalon()
 	if(is_initialized())
 		return;
 
-	swisstalon = new CANTalon(GetPortSpace("CAN")("talon").GetValueOrDefault());
+	swisstalon = new WPI_TalonSRX(GetPortSpace("CAN")("talon").GetValueOrDefault());
 }
 
 Swiss::mode_t Swiss::GetMode() const {
@@ -198,19 +201,16 @@ void Swiss::SetMode(mode_t m) {
 
 	}
 	if(m == pos){
-		swisstalon->SetControlMode(CANTalon::ControlMode::kPosition);
-		swisstalon->SelectProfileSlot(0);
-		swisstalon->Set(swisstalon->Get());
+		swisstalon->SelectProfileSlot(0, 0);
+		swisstalon->Set(ControlMode::Position, swisstalon->Get());
 		return;
 	}
 	else if(m == velocity){
-		swisstalon->SetControlMode(CANTalon::ControlMode::kSpeed);
-		swisstalon->SelectProfileSlot(1);
+		swisstalon->SelectProfileSlot(1, 0);
 		SetVelocity(0.0, false);
 		return;
 	}
 	else{
-		swisstalon->SetControlMode(CANTalon::ControlMode::kPercentVbus);
 		SetVelocity(0.0, false);
 		return;
 	}
@@ -225,14 +225,14 @@ void Swiss::SetVelocity(double v, bool changeMode){
 		SetMode(velocity);
 
 	if(GetMode() == mode_t::velocity)
-		swisstalon->Set(maxVelocity * v);
+		swisstalon->Set(ControlMode::Velocity, maxVelocity * v);
 	else if(GetMode() == mode_t::vbus)
-		swisstalon->Set(v);
+		swisstalon->Set(ControlMode::PercentOutput, v);
 }
 
 double Swiss::GetPos() const {
 	if(swisstalon)
-		return swisstalon->GetPosition();
+		return (double)swisstalon->GetSensorCollection().GetAnalogIn();
 	else
 		return 0.0;
 }
@@ -274,7 +274,7 @@ void Swiss::Hold(){
 
 void Swiss::SetAllowableError(double err) {
 	allowable_error = err;
-	swisstalon->SetAllowableClosedLoopErr(allowable_error);
+	// swisstalon->SetAllowableClosedLoopErr(allowable_error);
 }
 
 commands::SetSwiss *Swiss::MakeSetSwiss(state_t state)

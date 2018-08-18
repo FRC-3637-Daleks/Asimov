@@ -1,4 +1,5 @@
 #include "Shooter.h"
+#include "ctre/Phoenix.h"
 #include "Commands/SpinUp.h"
 #include "Commands/SpinDown.h"
 #include "Commands/VarSpinUp.h"
@@ -70,13 +71,13 @@ void Shooter::doRegister()
 					return top_roller_->GetTemperature();
 				return 0.0;
 			}));
-	GetLocalValue<double>("top_roller_ouput_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this] () -> double
+	GetLocalValue<double>("top_roller_output_voltage").Initialize(std::make_shared<FunkyGet<double> > ([this]() -> double
 			{
 				if(top_roller_)
-					return top_roller_->GetOutputVoltage();
+					return top_roller_->GetMotorOutputVoltage();
 				return 0.0;
 			}));
-	GetLocalValue<double>("top_roller_ouput_current").Initialize(std::make_shared<FunkyGet<double> > ([this] () -> double
+	GetLocalValue<double>("top_roller_output_current").Initialize(std::make_shared<FunkyGet<double> > ([this]() -> double
 			{
 				if(top_roller_)
 					return top_roller_->GetOutputCurrent();
@@ -84,14 +85,14 @@ void Shooter::doRegister()
 			}));
 	GetLocalValue<double>("error").Initialize(std::make_shared<FunkyGet<double> >([this] () -> double
 			{
-				if(top_roller_ && top_roller_->GetSetpoint() != 0.0)
-					return 1.0 - fabs(GetSpeed()/top_roller_->GetSetpoint());
+				if(top_roller_ && top_roller_->GetClosedLoopTarget(0) != 0)
+ 					return (double)top_roller_->GetClosedLoopError(0);
 				return 0.0;
 			}));
 	GetLocalValue<double>("target").Initialize(std::make_shared<FunkyGet<double> >([this] () -> double
 			{
 				if(top_roller_)
-					return top_roller_->GetSetpoint();
+					return (double)top_roller_->GetClosedLoopTarget(0);
 				return 0.0;
 			}));
 	GetLocalValue<bool>("spunup").Initialize(std::make_shared<FunkyGet<bool> > ([this] ()
@@ -109,7 +110,7 @@ bool Shooter::doConfigure()
 	// Initialize roller to CAN port
 	auto& can_ports = GetPortSpace("CAN");
 	if (top_roller_ == NULL)
-		top_roller_ = new CANTalon(can_ports("shooter_roller").GetValueOrDefault());
+		top_roller_ = new WPI_TalonSRX(can_ports("shooter_roller").GetValueOrDefault());
 
 	// Configure variable values
 	auto& settings = GetSettings();
@@ -130,23 +131,24 @@ bool Shooter::doConfigure()
 
 	if (closed_loop_settings("use").GetValueOrDefault() == true)
 	{
-		top_roller_->SetP(closed_loop_settings("P").GetValueOrDefault());
-		top_roller_->SetI(closed_loop_settings("I").GetValueOrDefault());
-		top_roller_->SetD(closed_loop_settings("D").GetValueOrDefault());
-		top_roller_->SetF(closed_loop_settings("F").GetValueOrDefault());
-		top_roller_->SetIzone(closed_loop_settings("I_Zone").GetValueOrDefault());
-		top_roller_->SetCloseLoopRampRate(closed_loop_settings("ramp_rate").GetValueOrDefault());
+		top_roller_->Config_kP(0, closed_loop_settings("P").GetValueOrDefault(), 10);
+		top_roller_->Config_kI(0, closed_loop_settings("I").GetValueOrDefault(), 10);
+		top_roller_->Config_kD(0, closed_loop_settings("D").GetValueOrDefault(), 10);
+		top_roller_->Config_kF(0, closed_loop_settings("F").GetValueOrDefault(), 10);
+		top_roller_->Config_IntegralZone(0, closed_loop_settings("I_Zone").GetValueOrDefault(), 10);
+		top_roller_->ConfigClosedloopRamp(closed_loop_settings("ramp_rate").GetValueOrDefault(), 10);
 	}
 
 	// Configure roller settings
-	top_roller_->SetFeedbackDevice(CANTalon::QuadEncoder);
-	top_roller_->SetInverted(settings("invert_output").GetValueOrDefault());
-	top_roller_->SetSensorDirection(settings("invert_sensor").GetValueOrDefault());
-	top_roller_->ConfigEncoderCodesPerRev(settings("encoder_codes_per_rev").GetValueOrDefault<int>());
-	top_roller_->SetClosedLoopOutputDirection(settings("reverse_closed").GetValueOrDefault<bool>());
+	top_roller_->ConfigSelectedFeedbackSensor(FeedbackDevice::QuadEncoder, 0, 100);
 
-	top_roller_->ConfigNominalOutputVoltage(0.0, 0.0);
-	top_roller_->ConfigPeakOutputVoltage(12.0, 0);
+	top_roller_->SetInverted(settings("invert_output").GetValueOrDefault());
+	top_roller_->SetSensorPhase(settings("invert_sensor").GetValueOrDefault());
+
+	top_roller_->ConfigNominalOutputForward(0.0, 10);
+	top_roller_->ConfigNominalOutputReverse(0.0, 10);
+	top_roller_->ConfigPeakOutputForward(1.0, 10);
+	top_roller_->ConfigPeakOutputReverse(0.0, 10);
 
 	SetMode(mode_);
 
@@ -190,13 +192,13 @@ void Shooter::SetMaxVelocity(double max_velocity)
 
 double Shooter::GetSpeed() const
 {
-	return top_roller_->GetSpeed();
+	return top_roller_->GetSensorCollection().GetQuadratureVelocity();
 }
 
 // Error functions:
 double Shooter::GetErr() const
 {
-	return top_roller_->GetClosedLoopError();
+	return (double)top_roller_->GetClosedLoopError(0);
 }
 
 void Shooter::SetAllowedError(double err)
@@ -236,10 +238,6 @@ void Shooter::SetMode(Mode_t mode)
 	mode_ = mode;
 	if(!top_roller_)
 		return;
-	if (mode_ == Mode_t::VELOCITY)
-		top_roller_->SetControlMode(CANTalon::ControlMode::kSpeed);
-	else if (mode_ == Mode_t::VBUS)
-		top_roller_->SetControlMode(CANTalon::ControlMode::kPercentVbus);
 }
 
 void Shooter::SetShootPercent(double percent)

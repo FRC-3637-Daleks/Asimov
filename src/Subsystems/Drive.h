@@ -10,6 +10,7 @@
 
 // WPI Includes
 #include "WPILib.h"
+#include "ctre/Phoenix.h"
 
 // Dalek Manager Includes
 #include "WPILib/WPISystem.h"
@@ -182,10 +183,10 @@ private:
 			   uint8_t right, uint8_t right_slave):
 			left_(left), left_slave_(left_slave),
 			right_(right), right_slave_(right_slave) {}
-		CANTalon left_;
-		CANTalon left_slave_;
-		CANTalon right_;
-		CANTalon right_slave_;
+		WPI_TalonSRX left_;
+		WPI_TalonSRX left_slave_;
+		WPI_TalonSRX right_;
+		WPI_TalonSRX right_slave_;
 	};
 
 private:
@@ -193,12 +194,12 @@ private:
 	void initTalons();
 
 	// Configures the motor at master for the current mode
-	bool configureMaster(CANTalon &master);
+	bool configureMaster(WPI_TalonSRX &master);
 
 	// Runs configureMaster on both sides
 	bool configureBoth();
 
-	void setModeMaster(CANTalon &master);
+	void setModeMaster(WPI_TalonSRX &master);
 
 private:
 	Ptr_t<Talons> talons_ ;
